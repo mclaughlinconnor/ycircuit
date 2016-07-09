@@ -200,8 +200,6 @@ class myMainWindow(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
-    """What happens if I write a super long
-    commentaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"""
     app = QtGui.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()
