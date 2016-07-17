@@ -30,8 +30,8 @@ I plan to add some additional functionality later that will allow for LaTeX supp
 The software is fairly easy to use (partially because of the limited feature set). To start the software, run the following command
 
 This is a list
-    * HighResolution
-    * Hi again
+  - HighResolution
+  - Hi again
 
 `python test.py`
 
