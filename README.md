@@ -22,7 +22,7 @@ YCircuit currently has the following dependencies:
   * PyQt4 - for rendering the GUI
   * NumPy - for handling some of the math (may not even be entirely necessary)
 
-I plan to add some additional functionality later that will allow for LaTeX support, so the dependency list may grow. The easiest way to satisfy all dependencies is to use Anaconda ()<https://www.continuum.io/downloads>). This is what I use also, and so we can be sure that the environments are (more or less) similar.
+I plan to add some additional functionality later that will allow for LaTeX support, so the dependency list may grow. The easiest way to satisfy all dependencies is to use Anaconda (<https://www.continuum.io/downloads>). This is what I use also, and so we can be sure that the environments are (more or less) similar.
 
 ## Usage ##
 
