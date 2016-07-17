@@ -9,6 +9,7 @@ Written in Python. Currently built using PyQt, but this may change in the future
 
 -------------------------------------------------------------------------------
 You can download the zip file from this repo or clone it manually using the command:
+
 `git clone git@bitbucket.org/siddharthshekar/ycircuit.git`
 
 This repo is currently private, so I'm not sure if this command actually works. Send me an email if you're having issues.
@@ -20,13 +21,18 @@ YCircuit currently has the following dependencies:
   * PyQt4 - for rendering the GUI
   * NumPy - for handling some of the math (may not even be entirely necessary)
 
-I plan to add some additional functionality later that will allow for LaTeX support, so the dependency list may grow. The easiest way to satisfy all dependencies is to use Anaconda <https://www.continuum.io/downloads>. This is what I use also, and so we can be sure that the environments are (more or less) similar.
+I plan to add some additional functionality later that will allow for LaTeX support, so the dependency list may grow. The easiest way to satisfy all dependencies is to use Anaconda ()<https://www.continuum.io/downloads>). This is what I use also, and so we can be sure that the environments are (more or less) similar.
 
 ## Usage ##
 
 -------------------------------------------------------------------------------
 
 The software is fairly easy to use (partially because of the limited feature set). To start the software, run the following command
+
+This is a list
+  * HighResolution
+  * Hi again
+
 `python test.py`
 
 As of this point in time, the following options are available:
