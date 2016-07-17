@@ -18,6 +18,7 @@ This repo is currently private, so I'm not sure if this command actually works. 
 
 -------------------------------------------------------------------------------
 YCircuit currently has the following dependencies:
+
   * PyQt4 - for rendering the GUI
   * NumPy - for handling some of the math (may not even be entirely necessary)
 
@@ -29,14 +30,10 @@ I plan to add some additional functionality later that will allow for LaTeX supp
 
 The software is fairly easy to use (partially because of the limited feature set). To start the software, run the following command
 
-This is a list:
-
-  * Item 1
-  * Item 2
-
 `python test.py`
 
 As of this point in time, the following options are available:
+
   * Saving and loading
     * Save and load symbols
     * Save and load schematics
