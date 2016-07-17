@@ -1,13 +1,15 @@
 # YCircuit #
-
 -------------------------------------------------------------------------------
+
 Because XCircuit produces amazing output but has unintuitive GUI and PyCircuit was already taken ):.
 
 Written in Python. Currently built using PyQt, but this may change in the future.
 
-## Installation ##
+Current status is pre-alpha at best.
 
+## Installation ##
 -------------------------------------------------------------------------------
+
 You can download the zip file from this repo or clone it manually using the command:
 
 `git clone git@bitbucket.org/siddharthshekar/ycircuit.git`
@@ -15,8 +17,8 @@ You can download the zip file from this repo or clone it manually using the comm
 This repo is currently private, so I'm not sure if this command actually works. Send me an email if you're having issues.
 
 ## Dependencies ##
-
 -------------------------------------------------------------------------------
+
 YCircuit currently has the following dependencies:
 
   * Python - tested on 2.7.11
@@ -26,7 +28,6 @@ YCircuit currently has the following dependencies:
 I plan to add some additional functionality later that will allow for LaTeX support, so the dependency list may grow. The easiest way to satisfy all dependencies is to use Anaconda (<https://www.continuum.io/downloads>). This is what I use also, and so we can be sure that the environments are (more or less) similar.
 
 ## Usage ##
-
 -------------------------------------------------------------------------------
 
 The software is fairly easy to use (partially because of the limited feature set). To start the software, run the following command
@@ -66,7 +67,6 @@ As of this point in time, the following options are available:
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
 ## Organization ##
-
 -------------------------------------------------------------------------------
 
 Currently, the files have the following uses:
@@ -79,7 +79,6 @@ Currently, the files have the following uses:
   * Resources/*.pkl: Contains binary files that have the various symbols. Schematics are also currently saved as a .pkl file. Try loading inverter.pkl for an example inverter schematic.
 
 ## Feedback ##
-
 -------------------------------------------------------------------------------
 
-At this point, there probably are 104540295845 bugs in this program. I'd appreciate it if you could file bug reports as and when you encounter them. Thanks! 
+At this point, there probably are a few million bugs in this program. I'd appreciate it if you could file bug reports as and when you encounter them. Thanks! 
