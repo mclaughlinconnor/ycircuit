@@ -271,7 +271,8 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         newWire = super(Wire, self).createCopy()
         newWire.setPath(self.path())
         newWire.oldPath = newWire.path()
-        newWire.origin = self.origin
+        if hasattr(self, 'origin'):
+            newWire.origin = self.origin
         return newWire
 
     def __getstate__(self):

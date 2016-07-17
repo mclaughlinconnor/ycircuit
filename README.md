@@ -64,6 +64,19 @@ As of this point in time, the following options are available:
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
+## Organization ##
+
+-------------------------------------------------------------------------------
+
+Currently, the files have the following uses:
+
+  * test.py: Contains mappings from UI callbacks to actual functions. Used for launching the GUI.
+  * schematic_mainWindow.*: The UI file contains the output of Qt Designer while the py file is the exported version of the same.
+  * drawingitems.py: Contains the Grid class for creating the background grid in the GUI.
+  * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
+  * components.py: Defines item classes for creating and manipulating shapes.
+  * Resources/*.pkl: Contains binary files that have the various symbols. Schematics are also currently saved as a .pkl file. Try loading inverter.pkl for an example inverter schematic.
+
 ## Feedback ##
 
 -------------------------------------------------------------------------------
