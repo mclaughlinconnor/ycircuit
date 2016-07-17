@@ -54,6 +54,7 @@ As of this point in time, the following options are available:
     * Circle
     * Ellipse
   * Symbols
+    * Wire
     * Resistor
     * Capacitor
     * Ground
