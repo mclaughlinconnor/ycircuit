@@ -19,6 +19,7 @@ This repo is currently private, so I'm not sure if this command actually works. 
 -------------------------------------------------------------------------------
 YCircuit currently has the following dependencies:
 
+  * Python - tested on 2.7.11
   * PyQt4 - for rendering the GUI
   * NumPy - for handling some of the math (may not even be entirely necessary)
 
