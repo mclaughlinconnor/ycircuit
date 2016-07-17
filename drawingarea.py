@@ -12,20 +12,24 @@ class DrawingArea(QtGui.QGraphicsView):
         self.setScene(QtGui.QGraphicsScene(self))
         self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(00, 00, 2000, 1000))
-        self._keys = {'control': False, 'shift': False, 'c': True,
-                      'm': False, 'r': False, 'w': False}
+        self._keys = {'control': False, 'shift': False, 'c': False,
+                      'm': False, 'r': False, 'w': False, 'rectangle': False,
+                      'circle': False, 'ellipse': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
         self.scene().addItem(self._grid)
         self._grid.createGrid()
         self.enableGrid = True
+        self.snapToGrid = True
         self.reflections = 0
         self.rotations = 0
+        self.rotateAngle = 90
         self.selectedWidth = 2
         self.selectedPenColour = 'black'
         self.selectedPenStyle = 1
         self.selectedBrushColour = 'black'
         self.selectedBrushStyle = 0
+        self.items = []
 
     def keyPressEvent(self, event):
         super(DrawingArea, self).keyPressEvent(event)
@@ -52,30 +56,59 @@ class DrawingArea(QtGui.QGraphicsView):
         self._keys['w'] = True
         self.currentWire = None
 
+    def addRectangle(self):
+        self.escapeRoutine()
+        self._keys['rectangle'] = True
+        self.currentRectangle = None
+
+    def addCircle(self):
+        self.escapeRoutine()
+        self._keys['circle'] = True
+        self.currentCircle = None
+
+    def addEllipse(self):
+        self.escapeRoutine()
+        self._keys['ellipse'] = True
+        self.currentEllipse = None
+
     def addResistor(self):
         start = self.mapToGrid(self.currentPos)
-        self.currentResistor = Resistor(start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-        self.scene().addItem(self.currentResistor)
+        self.loadRoutine('symbol', './Resources/resistor.pkl')
 
     def addCapacitor(self):
         start = self.mapToGrid(self.currentPos)
-        self.currentCapacitor = Capacitor(start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-        self.scene().addItem(self.currentCapacitor)
+        self.loadRoutine('symbol', './Resources/capacitor.pkl')
 
     def addGround(self):
         start = self.mapToGrid(self.currentPos)
-        self.currentGround = Ground(start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-        self.scene().addItem(self.currentGround)
+        self.loadRoutine('symbol', './Resources/ground.pkl')
 
     def addDot(self):
         start = self.mapToGrid(self.currentPos)
-        self.currentDot = Dot(start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-        self.scene().addItem(self.currentDot)
+        self.loadRoutine('symbol', './Resources/dot.pkl')
+        # self.currentDot = Dot(start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+        # self.scene().addItem(self.currentDot)
 
     def addTransistor(self, kind='MOS', polarity='N', arrow=False):
         start = self.mapToGrid(self.currentPos)
-        self.currentTransistor = Transistor(start=start, kind=kind, polarity=polarity, arrow=arrow, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle)
-        self.scene().addItem(self.currentTransistor)
+        if kind == 'MOS':
+            if polarity == 'N':
+                if arrow is True:
+                    self.loadRoutine('symbol', './Resources/nfetArrow.pkl')
+                else:
+                    self.loadRoutine('symbol', './Resources/nfetNoArrow.pkl')
+            else:
+                if arrow is True:
+                    self.loadRoutine('symbol', './Resources/pfetArrow.pkl')
+                else:
+                    self.loadRoutine('symbol', './Resources/pfetNoArrow.pkl')
+        elif kind == 'BJT':
+            if polarity == 'N':
+                self.loadRoutine('symbol', './Resources/npnbjt.pkl')
+            if polarity == 'P':
+                self.loadRoutine('symbol', './Resources/pnpbjt.pkl')
+            # self.currentTransistor = Transistor(start=start, kind=kind, polarity=polarity, arrow=arrow, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle)
+            # self.scene().addItem(self.currentTransistor)
 
     def saveRoutine(self, mode='export'):
         # Remove grid from the scene to avoid saving it
@@ -86,29 +119,25 @@ class DrawingArea(QtGui.QGraphicsView):
             return
         if mode == 'symbol' or mode == 'schematic':
             listOfItems = self.scene().items()
-            if mode == 'symbol':
-                # If item is already a group, destroy it and add child items to scene
-                for item in listOfItems:
-                    if type(item) is myGraphicsItemGroup:
-                        self.scene().destroyItemGroup(item)
-                listOfItems = self.scene().items()
+            listOfItems = [item for item in listOfItems if item.parentItem() is None]
+            # if mode == 'symbol':
+            #     # If item is already a group, destroy it and add child items to scene
+            #     for item in listOfItems:
+            #         if type(item) is myGraphicsItemGroup:
+            #             # self.scene().destroyItemGroup(item)
+            #             for item2 in item.childItems():
+            #                 item2.setParentItem(None)
+            #             self.scene().removeItem(item)
+            #     listOfItems = self.scene().items()
             # start = self.mapToGrid(self.currentPos)
-            # saveObject = myGraphicsItemGroup(start=start)
-            saveObject = myGraphicsItemGroup(None, self.scene(), QtCore.QPointF(0, 0))
-            saveObject.setItems(listOfItems)
-            x = min([item.x() for item in listOfItems])
-            y = min([item.y() for item in listOfItems])
-            saveObject.origin = QtCore.QPoint(x, y)
+            x = min([item.scenePos().x() for item in listOfItems])
+            y = min([item.scenePos().y() for item in listOfItems])
+            origin = QtCore.QPointF(x, y)
+            saveObject = myGraphicsItemGroup(None, self.scene(), origin)
+            saveObject.origin = origin
             for item in listOfItems:
-                if mode == 'symbol':
-                    item.origin = item.pos() - saveObject.origin
-                elif mode == 'schematic':
-                    item.origin = item.pos()
-                # For already grouped items, remove copies from the list
-                if isinstance(item, myGraphicsItemGroup):
-                    print item.origin
-                    for item2 in item.listOfItems:
-                        listOfItems.remove(item2)
+                item.origin = item.scenePos() - saveObject.origin
+                item.transformData = item.transform()
             saveObject.setItems(listOfItems)
             saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save File', './untitled.pkl', 'Objects (*.pkl)'))
             if saveFile != '':
@@ -142,9 +171,10 @@ class DrawingArea(QtGui.QGraphicsView):
         # painter = QtGui.QPainter(printer)
         # self.scene().render(painter)
 
-    def loadRoutine(self, mode='symbol'):
+    def loadRoutine(self, mode='symbol', loadFile=None):
         if mode == 'symbol' or mode == 'schematic':
-            loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load File', './', 'Objects (*.pkl)'))
+            if loadFile is None:
+                loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load File', './', 'Objects (*.pkl)'))
             if loadFile != '':
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)
@@ -158,10 +188,16 @@ class DrawingArea(QtGui.QGraphicsView):
             loadItem.loadItems(mode)
             if mode == 'schematic':
                 loadItem.setPos(loadItem.origin)
-                self.scene().destroyItemGroup(loadItem)
+                # self.scene().destroyItemGroup(loadItem)
+                loadItem.reparentItems()
+                self.scene().removeItem(loadItem)
             elif mode == 'symbol':
+                # loadItem.setLocalPenOptions(penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle)
+                # loadItem.setLocalBrushOptions(brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                 loadItem.setPos(self.mapToGrid(self.currentPos))
                 loadItem.setSelected(True)
+        # Save a copy locally so that items don't disappear
+        self.items = self.scene().items()
 
     def escapeRoutine(self):
         # If mouse had been clicked
@@ -175,8 +211,7 @@ class DrawingArea(QtGui.QGraphicsView):
                     self.rotateRoutine(QtCore.Qt.ShiftModifier)
                 # Undo rotation command if items were being moved
                 if self.rotations != 0:
-                    print self.rotations
-                    for i in range(4 - self.rotations):
+                    for i in range(360/self.rotateAngle - self.rotations):
                         self.rotateRoutine()
                 if (hasattr(self, 'moveItems')):
                     for i in self.moveItems:
@@ -192,6 +227,15 @@ class DrawingArea(QtGui.QGraphicsView):
             if self._keys['w'] is True:
                 # self.scene().removeItem(self.currentWire)
                 self.currentWire.cancelSegment()
+            # Remove last rectangle being drawn
+            if self._keys['rectangle'] is True:
+                self.scene().removeItem(self.currentRectangle)
+            # Remove last circle being drawn
+            if self._keys['circle'] is True:
+                self.scene().removeItem(self.currentCircle)
+            # Remove last ellipse being drawn
+            if self._keys['ellipse'] is True:
+                self.scene().removeItem(self.currentEllipse)
         # Zero all rotations and reflections
         self.reflections = 0
         self.rotations = 0
@@ -208,6 +252,8 @@ class DrawingArea(QtGui.QGraphicsView):
         self._keys['c'] = True
         for i in self.scene().selectedItems():
             i.createCopy()
+        # Save a copy locally so that items don't disappear
+        self.items = self.scene().items()
         # Start moving after creating copy
         self._keys['m'] = True
 
@@ -225,6 +271,9 @@ class DrawingArea(QtGui.QGraphicsView):
             self.scene().removeItem(self._grid)
         if self.enableGrid is True:
             self.scene().addItem(self._grid)
+
+    def toggleSnapToGridRoutine(self, state):
+        self.snapToGrid = state
 
     def changeWidthRoutine(self, selectedWidth):
         self.selectedWidth = selectedWidth
@@ -293,10 +342,10 @@ class DrawingArea(QtGui.QGraphicsView):
                         item.modifyMoveOrigin(self.moveStartPos, 'R', True)
             else:
                 self.rotations += 1
-                self.rotations %= 4
+                self.rotations %= 360/self.rotateAngle
                 oldPos = self.moveItemsGroup.sceneBoundingRect(
                 ).center().toPoint()
-                self.moveItemsGroup.rotate(90)
+                self.moveItemsGroup.rotate(self.rotateAngle)
                 newPos = self.moveItemsGroup.sceneBoundingRect(
                 ).center().toPoint()
                 delta = newPos - oldPos
@@ -330,6 +379,33 @@ class DrawingArea(QtGui.QGraphicsView):
                 else:
                     self.currentWire.createSegment(self.mapToGrid(event.pos()))
                 # self.scene().addItem(self.currentWire)
+        if self._keys['rectangle'] is True:
+            if event.button () == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                start = self.mapToGrid(self.currentPos)
+                if self.currentRectangle is None:
+                    self.currentRectangle = Rectangle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.scene().addItem(self.currentRectangle)
+        if self._keys['circle'] is True:
+            if event.button () == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                start = self.mapToGrid(self.currentPos)
+                if self.currentCircle is None:
+                    self.currentCircle = Circle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.scene().addItem(self.currentCircle)
+        if self._keys['ellipse'] is True:
+            if event.button () == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                start = self.mapToGrid(self.currentPos)
+                if self.currentEllipse is None:
+                    self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.scene().addItem(self.currentEllipse)
 
     def mouseMoveEvent(self, event):
         super(DrawingArea, self).mouseMoveEvent(event)
@@ -343,6 +419,12 @@ class DrawingArea(QtGui.QGraphicsView):
             if (self._keys['control'] is False):
                 if (self._keys['w'] is True):
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
+                if (self._keys['rectangle'] is True):
+                    self.currentRectangle.updateRectangle(self.mapToGrid(event.pos()))
+                if (self._keys['circle'] is True):
+                    self.currentCircle.updateCircle(self.mapToGrid(event.pos()))
+                if (self._keys['ellipse'] is True):
+                    self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
                 if (self._keys['m'] is True):
                 # elif (self._keys['m'] is True):
                     self.moveStopPos = self.mapToGrid(event.pos())
@@ -362,7 +444,10 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def mapToGrid(self, point):
         point = self.mapToScene(point)
-        return self._grid.snapTo(point)
+        if self.snapToGrid is True:
+            return self._grid.snapTo(point)
+        else:
+            return point
 
     def wheelEvent(self, event):
         scaleFactor = -event.delta() / 240.

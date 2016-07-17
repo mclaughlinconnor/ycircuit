@@ -13,31 +13,20 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.setupUi(self)
 
         # Connect actions to relevant slots
+        # File menu
         self.ui.action_saveSchematic.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematic'))
         self.ui.action_loadSchematic.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('schematic'))
         self.ui.action_saveSymbol.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbol'))
         self.ui.action_loadSymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbol'))
         self.ui.action_exportFile.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('export'))
         self.ui.action_quit.triggered.connect(self.close)
+
+        # Edit menu
         self.ui.action_rotate.triggered.connect(self.ui.drawingArea.rotateRoutine)
         self.ui.action_mirror.triggered.connect(lambda x:self.ui.drawingArea.rotateRoutine(modifier=QtCore.Qt.ShiftModifier))
         self.ui.action_move.triggered.connect(self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(self.ui.drawingArea.copyRoutine)
         self.ui.action_delete.triggered.connect(self.ui.drawingArea.deleteRoutine)
-
-        self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addWire)
-        self.ui.action_addResistor.triggered.connect(self.ui.drawingArea.addResistor)
-        self.ui.action_addCapacitor.triggered.connect(self.ui.drawingArea.addCapacitor)
-        self.ui.action_addGround.triggered.connect(self.ui.drawingArea.addGround)
-        self.ui.action_addDot.triggered.connect(self.ui.drawingArea.addDot)
-        self.ui.action_addNMOSWithArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', True))
-        self.ui.action_addNMOSWithoutArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', False))
-        self.ui.action_addPMOSWithArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', True))
-        self.ui.action_addPMOSWithoutArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', False))
-
-        self.ui.action_fitToView.triggered.connect(self.ui.drawingArea.fitToViewRoutine)
-        self.ui.action_showGrid.setChecked(True)
-        self.ui.action_showGrid.triggered.connect(self.ui.drawingArea.toggleGridRoutine)
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(lambda x:self.action_setWidth_triggered(2))
@@ -69,6 +58,30 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_setBrushStyleNone.triggered.connect(lambda x: self.action_setBrushStyle_triggered(0))
         self.ui.action_setBrushStyleNone.setChecked(True)
         self.ui.action_setBrushStyleSolid.triggered.connect(lambda x: self.action_setBrushStyle_triggered(1))
+
+        # View menu
+        self.ui.action_fitToView.triggered.connect(self.ui.drawingArea.fitToViewRoutine)
+        self.ui.action_showGrid.triggered.connect(self.ui.drawingArea.toggleGridRoutine)
+        self.ui.action_snapToGrid.triggered.connect(self.ui.drawingArea.toggleSnapToGridRoutine)
+
+        # Shape menu
+        self.ui.action_addLine.triggered.connect(self.ui.drawingArea.addWire)
+        self.ui.action_addRectangle.triggered.connect(self.ui.drawingArea.addRectangle)
+        self.ui.action_addCircle.triggered.connect(self.ui.drawingArea.addCircle)
+        self.ui.action_addEllipse.triggered.connect(self.ui.drawingArea.addEllipse)
+
+        # Symbol menu
+        self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addWire)
+        self.ui.action_addResistor.triggered.connect(self.ui.drawingArea.addResistor)
+        self.ui.action_addCapacitor.triggered.connect(self.ui.drawingArea.addCapacitor)
+        self.ui.action_addGround.triggered.connect(self.ui.drawingArea.addGround)
+        self.ui.action_addDot.triggered.connect(self.ui.drawingArea.addDot)
+        self.ui.action_addNMOSWithArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', True))
+        self.ui.action_addNMOSWithoutArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', False))
+        self.ui.action_addPMOSWithArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', True))
+        self.ui.action_addPMOSWithoutArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', False))
+        self.ui.action_addNPNBJT.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('BJT', 'N', True))
+        self.ui.action_addPNPBJT.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('BJT', 'P', True))
 
     def menu_Edit_hovered(self):
         widthList = []

@@ -1,4 +1,5 @@
 from PyQt4 import QtCore, QtGui
+import numpy
 
 
 class drawingElement(object):
@@ -36,6 +37,8 @@ class drawingElement(object):
             self.setBrush(self.localBrush)
 
     def setLocalPenOptions(self, **kwargs):
+        # Necessary for objects with modified bounding rects
+        self.prepareGeometryChange()
         if 'pen' in kwargs:
             self.localPen = kwargs['pen']
             self.localPenWidth = self.localPen.width()
@@ -55,6 +58,8 @@ class drawingElement(object):
             self.setPen(self.localPen)
 
     def setLocalBrushOptions(self, **kwargs):
+        # Necessary for objects with modified bounding rects
+        self.prepareGeometryChange()
         if 'brush' in kwargs:
             self.localBrush = kwargs['brush']
             self.localBrushColour = self.localBrush.color()
@@ -106,7 +111,7 @@ class drawingElement(object):
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
-        newItem = self.__class__(None, _start, pen=self.localPen)
+        newItem = self.__class__(None, _start, pen=self.localPen, brush=self.localBrush)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
@@ -114,9 +119,9 @@ class drawingElement(object):
         return newItem
 
 
-class myGraphicsItemGroup(QtGui.QGraphicsItemGroup, drawingElement):
-    """Subclassed from QGraphicsItemGroup. Provides additional methods so that
-    the group remembers all the items part of it."""
+class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
+    """Subclassed from QGraphicsItem. Provides additional methods so that
+    the parent item remembers all the items that are its children."""
     def __init__(self, parent=None, scene=None, start=None, listOfItems=None):
         super(myGraphicsItemGroup, self).__init__(parent, scene)
         self.listOfItems = listOfItems
@@ -131,8 +136,56 @@ class myGraphicsItemGroup(QtGui.QGraphicsItemGroup, drawingElement):
         self.localBrushColour = 'black'
         self.localBrushStyle = 0
 
+    def paint(self, painter, *args):
+        if not isinstance(self.parentItem(), myGraphicsItemGroup):
+            if self.isSelected() is True:
+                pen = QtGui.QPen()
+                pen.setStyle(2)
+                painter.setPen(pen)
+                painter.drawRect(self.boundingRect())
+
+    def boundingRect(self):
+        rect = self.listOfItems[0].sceneBoundingRect()
+        for item in self.listOfItems:
+            rect = rect.united(item.sceneBoundingRect())
+        return self.mapRectFromScene(rect)
+
+    def createCopy(self):
+        if self.isSelected() is True:
+            self.setSelected(False)
+        _start = self.pos()
+        newItem = self.__class__(None, self.scene(), _start)
+        newItem.listOfItems = []
+        for item in self.listOfItems:
+            itemCopy = item.createCopy()
+            newItem.listOfItems.append(itemCopy)
+        newItem.setItems(newItem.listOfItems)
+        newItem.setTransform(self.transform())
+        # self.scene().addItem(newItem)
+        newItem.setSelected(True)
+        newItem.moveTo(0, 0, 'start')
+        return newItem
+
     def setItems(self, listOfItems):
-        self.listOfItems = listOfItems
+        for item in listOfItems:
+            item.setParentItem(self)
+            if hasattr(item, 'origin'):
+                item.setPos(item.origin)
+            if hasattr(item, 'transformData'):
+                item.setTransform(item.transformData)
+            item.setFlag(item.ItemIsSelectable, False)
+        self.listOfItems = self.childItems()
+
+    def reparentItems(self, newParent=None):
+        for item in self.listOfItems:
+            # Remove item and add it again to avoid item being randomly removed
+            # self.scene().removeItem(item)
+            # self.scene().addItem(item)
+            item.setParentItem(newParent)
+            item.setFlag(item.ItemIsSelectable, True)
+            if hasattr(item, 'origin'):
+                item.setPos(self.pos() + item.origin)
+                item.origin = item.pos()
 
     def __setstate__(self, state):
         self.__dict__ = state
@@ -150,11 +203,15 @@ class myGraphicsItemGroup(QtGui.QGraphicsItemGroup, drawingElement):
             if not isinstance(item, myGraphicsItemGroup):
                 item.__init__(self, item.origin, penColour=item.localPenColour, width=item.localPenWidth, penStyle=item.localPenStyle, brushColour=item.localBrushColour, brushStyle=item.localBrushStyle)
             else:
-                item.__init__(None, self.scene(), QtCore.QPointF(0, 0), item.listOfItems)
-                # item.__init__(self, self.scene(), item.origin, item.listOfItems)
+                # item.__init__(self, self.scene(), QtCore.QPointF(0, 0), item.listOfItems)
+                item.__init__(self, self.scene(), item.origin, item.listOfItems)
+                # item.loadItems(mode)
+                # item.setPos(item.origin)
                 item.loadItems(mode)
-                item.setPos(item.origin)
-            self.addToGroup(item)
+                # item.setPos(item.origin)
+            # self.addToGroup(item)
+            # item.setParentItem(self)
+        self.setItems(self.listOfItems)
 
 
 class Wire(QtGui.QGraphicsPathItem, drawingElement):
@@ -163,9 +220,9 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
         if not hasattr(self, 'oldPath'):
-            super(Wire, self).__init__(QtGui.QPainterPath(point))
+            super(Wire, self).__init__(QtGui.QPainterPath(point), parent)
         else:
-            super(Wire, self).__init__(self.oldPath)
+            super(Wire, self).__init__(self.oldPath, parent)
         self.oldPath = self.path()
         self.parent = parent
         self.start = start
@@ -176,7 +233,8 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         self.setLocalBrushOptions(**kwargs)
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
-        self.setPos(self.start)
+        if self.start is not None:
+            self.setPos(self.start)
 
     # def boundingRect(self):
     #     rect = super(Wire, self).boundingRect()
@@ -212,6 +270,9 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
     def createCopy(self):
         newWire = super(Wire, self).createCopy()
         newWire.setPath(self.path())
+        newWire.oldPath = newWire.path()
+        newWire.origin = self.origin
+        return newWire
 
     def __getstate__(self):
         localDict = super(Wire, self).__getstate__()
@@ -236,6 +297,154 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
     # def keyReleaseEvent(self, event):
     #     super(Wire, self).keyReleaseEvent(event)
     #     keyPressed = event.key()
+
+
+class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
+    """docstring for Rectangle"""
+    def __init__(self, parent=None, start=None, **kwargs):
+        point = QtCore.QPointF(0, 0)
+        rect = QtCore.QRectF(point, point)
+        if not hasattr(self, 'oldRect'):
+            super(Rectangle, self).__init__(rect, parent)
+            self.setPos(start)
+        else:
+            super(Rectangle, self).__init__(self.oldRect, parent)
+            self.setPos(self.origin)
+        self.oldRect = self.rect()
+        self.parent = parent
+        # Set the fixed vertex to (0, 0) in local coordinates
+        self.start = point
+        self.localPen = QtGui.QPen()
+        self.localBrush = QtGui.QBrush()
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
+        self.setFlag(self.ItemIsSelectable, True)
+        self.setFlag(self.ItemIsFocusable, True)
+
+    def boundingRect(self):
+        pad = 10
+        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, pad)
+        topRight = self.rect().topRight() + QtCore.QPointF(pad, -pad)
+        rect = QtCore.QRectF(bottomLeft, topRight)
+        return rect
+
+    def paint(self, painter, *args):
+        # super(Rectangle, self).paint(painter, *args)
+        if self.isSelected() is False:
+            super(Rectangle, self).paint(painter, *args)
+        else:
+            pen = QtGui.QPen()
+            pen.setStyle(2)
+            painter.setPen(pen)
+            painter.drawRect(self.boundingRect())
+            painter.setPen(self.localPen)
+            painter.setBrush(self.localBrush)
+            painter.drawRect(self.rect())
+
+    def updateRectangle(self, end):
+        end = self.mapFromScene(end)
+        rect = QtCore.QRectF(self.start, end)
+        self.setRect(rect)
+        self.oldRect = rect
+
+    def mouseReleaseEvent(self, event):
+        # Necessary so that bounding rect is drawn correctly
+        self.prepareGeometryChange()
+        super(Rectangle, self).mouseReleaseEvent(event)
+
+
+class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
+    """docstring for Ellipse"""
+    def __init__(self, parent=None, start=None, **kwargs):
+        point = QtCore.QPointF(0, 0)
+        rect = QtCore.QRectF(point, point)
+        if not hasattr(self, 'oldRect'):
+            super(Ellipse, self).__init__(rect, parent)
+            self.setPos(start)
+        else:
+            super(Ellipse, self).__init__(self.oldRect, parent)
+            self.setPos(self.origin)
+        self.oldRect = self.rect()
+        self.parent = parent
+        # Set the fixed vertex to (0, 0) in local coordinates
+        self.start = point
+        self.localPen = QtGui.QPen()
+        self.localBrush = QtGui.QBrush()
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
+        self.setFlag(self.ItemIsSelectable, True)
+        self.setFlag(self.ItemIsFocusable, True)
+
+    def boundingRect(self):
+        pad = 10
+        # Not sure why this is different from the Rectangle boundingRect
+        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, -pad)
+        topRight = self.rect().topRight() + QtCore.QPointF(pad, pad)
+        rect = QtCore.QRectF(bottomLeft, topRight)
+        return rect
+
+    def paint(self, painter, *args):
+        # super(Rectangle, self).paint(painter, *args)
+        if self.isSelected() is False:
+            super(Ellipse, self).paint(painter, *args)
+        else:
+            pen = QtGui.QPen()
+            pen.setStyle(2)
+            painter.setPen(pen)
+            painter.drawRect(self.boundingRect())
+            painter.setPen(self.localPen)
+            painter.setBrush(self.localBrush)
+            painter.drawEllipse(self.rect())
+
+    def updateEllipse(self, end):
+        end = self.mapFromScene(end)
+        rect = QtCore.QRectF(self.start, end)
+        self.setRect(rect)
+        self.oldRect = rect
+
+    def mouseReleaseEvent(self, event):
+        # Necessary so that bounding rect is drawn correctly
+        self.prepareGeometryChange()
+        super(Ellipse, self).mouseReleaseEvent(event)
+
+
+class Circle(Ellipse):
+    """docstring for Circle"""
+    def __init__(self, parent=None, start=None, **kwargs):
+        super(Circle, self).__init__(parent, start, **kwargs)
+
+    def boundingRect(self):
+        pad = 10
+        # This is the same as that for rectangle
+        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, pad)
+        topRight = self.rect().topRight() + QtCore.QPointF(pad, -pad)
+        rect = QtCore.QRectF(bottomLeft, topRight)
+        return rect
+
+    def updateCircle(self, end):
+        distanceLine = end - self.mapToScene(self.start)
+        if distanceLine.x() == 0:
+            if distanceLine.y() < 0:
+                theta = 270
+            elif distanceLine.y() > 0:
+                theta = 90
+            else:
+                theta = 0
+        elif distanceLine.y() == 0:
+            if distanceLine.x() < 0:
+                theta = 180
+            elif distanceLine.x() > 0:
+                theta = 0
+            else:
+                theta = 0
+        else:
+            theta = 180/numpy.pi*numpy.arctan2(distanceLine.y(), distanceLine.x())
+        sideLength = numpy.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
+        square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength/2), QtCore.QSizeF(sideLength, sideLength))
+        self.setRect(square)
+        self.setTransformOriginPoint(self.start)
+        self.setRotation(theta)
+        self.oldRect = self.rect()
 
 
 class Dot(QtGui.QGraphicsEllipseItem, drawingElement):
@@ -275,76 +484,6 @@ class Dot(QtGui.QGraphicsEllipseItem, drawingElement):
         super(Dot, self).mouseReleaseEvent(event)
         self.setFocus(QtCore.Qt.MouseFocusReason)
 
-
-class Resistor(QtGui.QGraphicsPathItem, drawingElement):
-    """docstring for Resistor"""
-    def __init__(self, parent=None, start=None, **kwargs):
-        super(Resistor, self).__init__(QtGui.QPainterPath())
-        self.parent = parent
-        self.start = start
-        self.vertices = [[0, 0], [50, 0], [60, -20], [80, 20], [100, -20],
-                         [120, 20], [140, -20], [160, 20], [170, 0], [220, 0]]
-        self.vertices = [QtCore.QPointF(i[0], i[1]) for i in self.vertices]
-        path = self.path()
-        for i in range(len(self.vertices)):
-            path.lineTo(self.vertices[i])
-        self.setPath(path)
-        # self.setPolygon(QtGui.QPolygonF(self.vertices))
-        self.defaultLocalPenBrushOptions()
-        self.setLocalPenOptions(**kwargs)
-        self.setLocalBrushOptions(**kwargs)
-        self.setFlag(self.ItemIsSelectable, True)
-        self.setFlag(self.ItemIsFocusable, True)
-        self.setPos(self.start)
-
-
-class Capacitor(QtGui.QGraphicsPathItem, drawingElement):
-    """docstring for Capacitor"""
-    def __init__(self, parent=None, start=None, **kwargs):
-        super(Capacitor, self).__init__(QtGui.QPainterPath())
-        self.parent = parent
-        self.start = start
-        self.vertices = [[[0, 0], [100, 0], [100, -50], [100, 50]], [[120, 50], [120, -50],
-                         [120, 0], [220, 0]]]
-        for i in range(len(self.vertices)):
-            for j in range(len(self.vertices[i])):
-                self.vertices[i][j] = QtCore.QPointF(self.vertices[i][j][0], self.vertices[i][j][1])
-        path = self.path()
-        for i in range(len(self.vertices)):
-            path.moveTo(self.vertices[i][0])
-            for j in range(len(self.vertices[i])):
-                path.lineTo(self.vertices[i][j])
-        self.setPath(path)
-        self.defaultLocalPenBrushOptions()
-        self.setLocalPenOptions(**kwargs)
-        self.setLocalBrushOptions(**kwargs)
-        self.setFlag(self.ItemIsSelectable, True)
-        self.setFlag(self.ItemIsFocusable, True)
-        self.setPos(self.start)
-
-
-class Ground(QtGui.QGraphicsPathItem, drawingElement):
-    """docstring for Ground"""
-    def __init__(self, parent=None, start=None, **kwargs):
-        super(Ground, self).__init__(QtGui.QPainterPath())
-        self.parent = parent
-        self.start = start
-        self.vertices = [[[0, 0], [60, 0]], [[10, 10], [50, 10]], [[20, 20], [40, 20]], [[30, 0], [30, -20]]]
-        for i in range(len(self.vertices)):
-            for j in range(len(self.vertices[i])):
-                self.vertices[i][j] = QtCore.QPointF(self.vertices[i][j][0], self.vertices[i][j][1])
-        path = self.path()
-        for i in range(len(self.vertices)):
-            path.moveTo(self.vertices[i][0])
-            for j in range(len(self.vertices[i])):
-                path.lineTo(self.vertices[i][j])
-        self.setPath(path)
-        self.defaultLocalPenBrushOptions()
-        self.setLocalPenOptions(**kwargs)
-        self.setLocalBrushOptions(**kwargs)
-        self.setFlag(self.ItemIsSelectable, True)
-        self.setFlag(self.ItemIsFocusable, True)
-        self.setPos(self.start)
 
 class Transistor(QtGui.QGraphicsPathItem, drawingElement):
     """Docstring for Transistor"""

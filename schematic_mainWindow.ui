@@ -130,7 +130,7 @@
    </widget>
    <widget class="QMenu" name="menu_Add">
     <property name="title">
-     <string>&amp;Add</string>
+     <string>&amp;Symbol</string>
     </property>
     <widget class="QMenu" name="menu_Transistor">
      <property name="title">
@@ -152,8 +152,8 @@
      </widget>
      <addaction name="menu_N_type_MOSFET"/>
      <addaction name="menu_P_type_MOSFET"/>
-     <addaction name="actionNPN_BJT"/>
-     <addaction name="actionPNP_BJT"/>
+     <addaction name="action_addNPNBJT"/>
+     <addaction name="action_addPNPBJT"/>
     </widget>
     <addaction name="action_addWire"/>
     <addaction name="action_addResistor"/>
@@ -168,10 +168,21 @@
     </property>
     <addaction name="action_fitToView"/>
     <addaction name="action_showGrid"/>
+    <addaction name="action_snapToGrid"/>
+   </widget>
+   <widget class="QMenu" name="menuSh_ape">
+    <property name="title">
+     <string>Sh&amp;ape</string>
+    </property>
+    <addaction name="action_addLine"/>
+    <addaction name="action_addRectangle"/>
+    <addaction name="action_addCircle"/>
+    <addaction name="action_addEllipse"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
+   <addaction name="menuSh_ape"/>
    <addaction name="menu_Add"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -330,6 +341,9 @@
   </action>
   <action name="action_showGrid">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -531,14 +545,20 @@
     <string>Fill with a solid colour</string>
    </property>
   </action>
-  <action name="actionNPN_BJT">
+  <action name="action_addNPNBJT">
    <property name="text">
     <string>NPN BJT</string>
    </property>
+   <property name="toolTip">
+    <string>Add NPN BJT</string>
+   </property>
   </action>
-  <action name="actionPNP_BJT">
+  <action name="action_addPNPBJT">
    <property name="text">
     <string>PNP BJT</string>
+   </property>
+   <property name="toolTip">
+    <string>Add PNP BJT</string>
    </property>
   </action>
   <action name="action_addNMOSWithArrow">
@@ -603,6 +623,37 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="action_addLine">
+   <property name="text">
+    <string>&amp;Line</string>
+   </property>
+  </action>
+  <action name="action_addRectangle">
+   <property name="text">
+    <string>&amp;Rectangle</string>
+   </property>
+  </action>
+  <action name="action_addCircle">
+   <property name="text">
+    <string>&amp;Circle</string>
+   </property>
+  </action>
+  <action name="action_addEllipse">
+   <property name="text">
+    <string>&amp;Ellipse</string>
+   </property>
+  </action>
+  <action name="action_snapToGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sn&amp;ap to grid</string>
    </property>
   </action>
  </widget>
