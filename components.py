@@ -351,6 +351,14 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
+    def createCopy(self):
+        newRectangle = super(Rectangle, self).createCopy()
+        newRectangle.setRect(self.rect())
+        newRectangle.oldRect = newRectangle.rect()
+        if hasattr(self, 'origin'):
+            newRectangle.origin = self.origin
+        return newRectangle
+
     def mouseReleaseEvent(self, event):
         # Necessary so that bounding rect is drawn correctly
         self.prepareGeometryChange()
@@ -403,6 +411,14 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
+    def createCopy(self):
+        newEllipse = super(Ellipse, self).createCopy()
+        newEllipse.setRect(self.rect())
+        newEllipse.oldRect = newEllipse.rect()
+        if hasattr(self, 'origin'):
+            newEllipse.origin = self.origin
+        return newEllipse
+
     def mouseReleaseEvent(self, event):
         # Necessary so that bounding rect is drawn correctly
         self.prepareGeometryChange()
@@ -446,6 +462,7 @@ class Circle(Ellipse):
         self.setTransformOriginPoint(self.start)
         self.setRotation(theta)
         self.oldRect = self.rect()
+        collidingItems = self.collidingItems()
         for item in collidingItems:
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
