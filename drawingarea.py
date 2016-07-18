@@ -12,9 +12,10 @@ class DrawingArea(QtGui.QGraphicsView):
         self.setScene(QtGui.QGraphicsScene(self))
         self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(00, 00, 2000, 1000))
+        self.parent = parent
         self._keys = {'control': False, 'shift': False, 'c': False,
                       'm': False, 'r': False, 'w': False, 'rectangle': False,
-                      'circle': False, 'ellipse': False}
+                      'circle': False, 'ellipse': False, 'textBox': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
         self.scene().addItem(self._grid)
@@ -70,6 +71,11 @@ class DrawingArea(QtGui.QGraphicsView):
         self.escapeRoutine()
         self._keys['ellipse'] = True
         self.currentEllipse = None
+
+    def addTextBox(self):
+        self.escapeRoutine()
+        self._keys['textBox'] = True
+        self.currentTextBox = None
 
     def addResistor(self):
         start = self.mapToGrid(self.currentPos)
@@ -236,6 +242,9 @@ class DrawingArea(QtGui.QGraphicsView):
             # Remove last ellipse being drawn
             if self._keys['ellipse'] is True:
                 self.scene().removeItem(self.currentEllipse)
+            # Remove last text box being drawn
+            # if self._keys['textBox'] is True:
+            #     self.scene().removeItem(self.currentTextBox)
         # Zero all rotations and reflections
         self.reflections = 0
         self.rotations = 0
@@ -406,6 +415,22 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentEllipse is None:
                     self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentEllipse)
+        if self._keys['textBox'] is True:
+            if event.button () == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                start = self.mapToGrid(self.currentPos)
+                if self.currentTextBox is None:
+                    self.currentRectangle = Rectangle(None, start=start, penColour='black', width=2, penStyle=1, brushColour='black', brushStyle=0)
+                    self.scene().addItem(self.currentRectangle)
+            else:
+                rect = self.currentRectangle.mapRectToScene(self.currentRectangle.rect())
+                self.currentTextBox = TextBox(self, start=0, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, rect=rect)
+                if self.currentRectangle is not None:
+                    self.scene().removeItem(self.currentRectangle)
+                    self.currentRectangle = None
+                self._keys['textBox'] = False
 
     def mouseMoveEvent(self, event):
         super(DrawingArea, self).mouseMoveEvent(event)
@@ -417,15 +442,15 @@ class DrawingArea(QtGui.QGraphicsView):
             self.currentX = self.currentPos.x()
             self.currentY = self.currentPos.y()
             if (self._keys['control'] is False):
-                if (self._keys['w'] is True):
+                if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
-                if (self._keys['rectangle'] is True):
+                if self._keys['rectangle'] is True or self._keys['textBox'] is True:
                     self.currentRectangle.updateRectangle(self.mapToGrid(event.pos()))
-                if (self._keys['circle'] is True):
+                if self._keys['circle'] is True:
                     self.currentCircle.updateCircle(self.mapToGrid(event.pos()))
-                if (self._keys['ellipse'] is True):
+                if self._keys['ellipse'] is True:
                     self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
-                if (self._keys['m'] is True):
+                if self._keys['m'] is True:
                 # elif (self._keys['m'] is True):
                     self.moveStopPos = self.mapToGrid(event.pos())
                     for i in self.moveItems:

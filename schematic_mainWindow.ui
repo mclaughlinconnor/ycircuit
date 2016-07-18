@@ -90,6 +90,9 @@
      <addaction name="action_setPenColourRed"/>
      <addaction name="action_setPenColourBlue"/>
      <addaction name="action_setPenColourGreen"/>
+     <addaction name="action_setPenColourCyan"/>
+     <addaction name="action_setPenColourMagenta"/>
+     <addaction name="action_setPenColourYellow"/>
     </widget>
     <widget class="QMenu" name="menu_setPenStyle">
      <property name="title">
@@ -109,6 +112,9 @@
      <addaction name="action_setBrushColourRed"/>
      <addaction name="action_setBrushColourBlue"/>
      <addaction name="action_setBrushColourGreen"/>
+     <addaction name="action_setBrushColourCyan"/>
+     <addaction name="action_setBrushColourMagenta"/>
+     <addaction name="action_setBrushColourYellow"/>
     </widget>
     <widget class="QMenu" name="menu_setFillStyle">
      <property name="title">
@@ -128,7 +134,7 @@
     <addaction name="menu_setFillColour"/>
     <addaction name="menu_setFillStyle"/>
    </widget>
-   <widget class="QMenu" name="menu_Add">
+   <widget class="QMenu" name="menu_AddSymbol">
     <property name="title">
      <string>&amp;Symbol</string>
     </property>
@@ -178,12 +184,13 @@
     <addaction name="action_addRectangle"/>
     <addaction name="action_addCircle"/>
     <addaction name="action_addEllipse"/>
+    <addaction name="action_addTextBox"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuSh_ape"/>
-   <addaction name="menu_Add"/>
+   <addaction name="menu_AddSymbol"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_exportFile">
@@ -256,6 +263,9 @@
   </action>
   <action name="action_setWidth2">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -404,6 +414,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
@@ -413,6 +426,9 @@
   </action>
   <action name="action_setPenStyleSolid">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -486,6 +502,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
@@ -525,6 +544,9 @@
   </action>
   <action name="action_setBrushStyleNone">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -654,6 +676,41 @@
    </property>
    <property name="text">
     <string>Sn&amp;ap to grid</string>
+   </property>
+  </action>
+  <action name="action_addTextBox">
+   <property name="text">
+    <string>&amp;Text box</string>
+   </property>
+  </action>
+  <action name="action_setPenColourCyan">
+   <property name="text">
+    <string>&amp;Cyan</string>
+   </property>
+  </action>
+  <action name="action_setPenColourMagenta">
+   <property name="text">
+    <string>&amp;Magenta</string>
+   </property>
+  </action>
+  <action name="action_setPenColourYellow">
+   <property name="text">
+    <string>&amp;Yellow</string>
+   </property>
+  </action>
+  <action name="action_setBrushColourCyan">
+   <property name="text">
+    <string>&amp;Cyan</string>
+   </property>
+  </action>
+  <action name="action_setBrushColourMagenta">
+   <property name="text">
+    <string>&amp;Magenta</string>
+   </property>
+  </action>
+  <action name="action_setBrushColourYellow">
+   <property name="text">
+    <string>&amp;Yellow</string>
    </property>
   </action>
  </widget>

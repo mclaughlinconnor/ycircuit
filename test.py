@@ -30,33 +30,34 @@ class myMainWindow(QtGui.QMainWindow):
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(lambda x:self.action_setWidth_triggered(2))
-        self.ui.action_setWidth2.setChecked(True)
         self.ui.action_setWidth4.triggered.connect(lambda x:self.action_setWidth_triggered(4))
         self.ui.action_setWidth6.triggered.connect(lambda x:self.action_setWidth_triggered(6))
         self.ui.action_setWidth8.triggered.connect(lambda x:self.action_setWidth_triggered(8))
         self.ui.action_setWidth10.triggered.connect(lambda x:self.action_setWidth_triggered(10))
 
         self.ui.action_setPenColourBlack.triggered.connect(lambda x: self.action_setPenColour_triggered('black'))
-        self.ui.action_setPenColourBlack.setChecked(True)
         self.ui.action_setPenColourRed.triggered.connect(lambda x: self.action_setPenColour_triggered('red'))
         self.ui.action_setPenColourGreen.triggered.connect(lambda x: self.action_setPenColour_triggered('green'))
         self.ui.action_setPenColourBlue.triggered.connect(lambda x: self.action_setPenColour_triggered('blue'))
+        self.ui.action_setPenColourCyan.triggered.connect(lambda x: self.action_setPenColour_triggered('cyan'))
+        self.ui.action_setPenColourMagenta.triggered.connect(lambda x: self.action_setPenColour_triggered('magenta'))
+        self.ui.action_setPenColourYellow.triggered.connect(lambda x: self.action_setPenColour_triggered('yellow'))
 
         self.ui.action_setPenStyleSolid.triggered.connect(lambda x: self.action_setPenStyle_triggered(1))
-        self.ui.action_setPenStyleSolid.setChecked(True)
         self.ui.action_setPenStyleDash.triggered.connect(lambda x: self.action_setPenStyle_triggered(2))
         self.ui.action_setPenStyleDot.triggered.connect(lambda x: self.action_setPenStyle_triggered(3))
         self.ui.action_setPenStyleDashDot.triggered.connect(lambda x: self.action_setPenStyle_triggered(4))
         self.ui.action_setPenStyleDashDotDot.triggered.connect(lambda x: self.action_setPenStyle_triggered(5))
 
         self.ui.action_setBrushColourBlack.triggered.connect(lambda x: self.action_setBrushColour_triggered('black'))
-        self.ui.action_setBrushColourBlack.setChecked(True)
         self.ui.action_setBrushColourRed.triggered.connect(lambda x: self.action_setBrushColour_triggered('red'))
         self.ui.action_setBrushColourGreen.triggered.connect(lambda x: self.action_setBrushColour_triggered('green'))
         self.ui.action_setBrushColourBlue.triggered.connect(lambda x: self.action_setBrushColour_triggered('blue'))
+        self.ui.action_setBrushColourCyan.triggered.connect(lambda x: self.action_setBrushColour_triggered('cyan'))
+        self.ui.action_setBrushColourMagenta.triggered.connect(lambda x: self.action_setBrushColour_triggered('magenta'))
+        self.ui.action_setBrushColourYellow.triggered.connect(lambda x: self.action_setBrushColour_triggered('yellow'))
 
         self.ui.action_setBrushStyleNone.triggered.connect(lambda x: self.action_setBrushStyle_triggered(0))
-        self.ui.action_setBrushStyleNone.setChecked(True)
         self.ui.action_setBrushStyleSolid.triggered.connect(lambda x: self.action_setBrushStyle_triggered(1))
 
         # View menu
@@ -69,6 +70,7 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_addRectangle.triggered.connect(self.ui.drawingArea.addRectangle)
         self.ui.action_addCircle.triggered.connect(self.ui.drawingArea.addCircle)
         self.ui.action_addEllipse.triggered.connect(self.ui.drawingArea.addEllipse)
+        self.ui.action_addTextBox.triggered.connect(self.ui.drawingArea.addTextBox)
 
         # Symbol menu
         self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addWire)
@@ -155,6 +157,9 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_setPenColourRed.setChecked(False)
         self.ui.action_setPenColourGreen.setChecked(False)
         self.ui.action_setPenColourBlue.setChecked(False)
+        self.ui.action_setPenColourCyan.setChecked(False)
+        self.ui.action_setPenColourMagenta.setChecked(False)
+        self.ui.action_setPenColourYellow.setChecked(False)
         if penColour == 'black':
             self.ui.action_setPenColourBlack.setChecked(True)
         if penColour == 'red':
@@ -163,6 +168,12 @@ class myMainWindow(QtGui.QMainWindow):
             self.ui.action_setPenColourGreen.setChecked(True)
         if penColour == 'blue':
             self.ui.action_setPenColourBlue.setChecked(True)
+        if penColour == 'cyan':
+            self.ui.action_setPenColourCyan.setChecked(True)
+        if penColour == 'magenta':
+            self.ui.action_setPenColourMagenta.setChecked(True)
+        if penColour == 'yellow':
+            self.ui.action_setPenColourYellow.setChecked(True)
         if temporary is False:
             self.ui.drawingArea.changePenColourRoutine(penColour)
 
@@ -190,6 +201,9 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_setBrushColourRed.setChecked(False)
         self.ui.action_setBrushColourGreen.setChecked(False)
         self.ui.action_setBrushColourBlue.setChecked(False)
+        self.ui.action_setBrushColourCyan.setChecked(False)
+        self.ui.action_setBrushColourMagenta.setChecked(False)
+        self.ui.action_setBrushColourYellow.setChecked(False)
         if brushColour == 'black':
             self.ui.action_setBrushColourBlack.setChecked(True)
         if brushColour == 'red':
@@ -198,6 +212,12 @@ class myMainWindow(QtGui.QMainWindow):
             self.ui.action_setBrushColourGreen.setChecked(True)
         if brushColour == 'blue':
             self.ui.action_setBrushColourBlue.setChecked(True)
+        if brushColour == 'cyan':
+            self.ui.action_setBrushColourCyan.setChecked(True)
+        if brushColour == 'magenta':
+            self.ui.action_setBrushColourMagenta.setChecked(True)
+        if brushColour == 'yellow':
+            self.ui.action_setBrushColourYellow.setChecked(True)
         if temporary is False:
             self.ui.drawingArea.changeBrushColourRoutine(brushColour)
 
