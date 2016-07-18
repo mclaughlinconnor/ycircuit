@@ -197,6 +197,12 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             if hasattr(item, 'origin'):
                 item.setPos(self.pos() + item.origin)
                 item.origin = item.pos()
+            if not hasattr(item, 'localPen'):
+                item.localPen = QtGui.QPen()
+                item.setLocalPenOptions()
+            if not hasattr(item, 'localBrush'):
+                item.localBrush = QtGui.QBrush()
+                item.setLocalBrushOptions()
 
     def setLocalPenOptions(self, **kwargs):
         for item in self.listOfItems:

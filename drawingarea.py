@@ -149,6 +149,9 @@ class DrawingArea(QtGui.QGraphicsView):
             if saveFile != '':
                 with open(saveFile, 'wb') as file:
                     pickle.dump(saveObject, file, -1)
+            if mode == 'schematic':
+                saveObject.reparentItems()
+                self.scene().removeItem(saveObject)
         elif mode == 'export':
             # Create a rect that's 1.5 times the boundingrect of all items
             sourceRect = self.scene().itemsBoundingRect()
@@ -415,22 +418,22 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentEllipse is None:
                     self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentEllipse)
-        if self._keys['textBox'] is True:
-            if event.button () == QtCore.Qt.LeftButton:
-                self._mouse['1'] = not self._mouse['1']
-            if self._mouse['1'] is True:
-                self.currentPos = event.pos()
-                start = self.mapToGrid(self.currentPos)
-                if self.currentTextBox is None:
-                    self.currentRectangle = Rectangle(None, start=start, penColour='black', width=2, penStyle=1, brushColour='black', brushStyle=0)
-                    self.scene().addItem(self.currentRectangle)
-            else:
-                rect = self.currentRectangle.mapRectToScene(self.currentRectangle.rect())
-                self.currentTextBox = TextBox(self, start=0, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, rect=rect)
-                if self.currentRectangle is not None:
-                    self.scene().removeItem(self.currentRectangle)
-                    self.currentRectangle = None
-                self._keys['textBox'] = False
+        # if self._keys['textBox'] is True:
+        #     if event.button () == QtCore.Qt.LeftButton:
+        #         self._mouse['1'] = not self._mouse['1']
+        #     if self._mouse['1'] is True:
+        #         self.currentPos = event.pos()
+        #         start = self.mapToGrid(self.currentPos)
+        #         if self.currentTextBox is None:
+        #             self.currentRectangle = Rectangle(None, start=start, penColour='black', width=2, penStyle=1, brushColour='black', brushStyle=0)
+        #             self.scene().addItem(self.currentRectangle)
+        #     else:
+        #         rect = self.currentRectangle.mapRectToScene(self.currentRectangle.rect())
+        #         self.currentTextBox = TextBox(self, start=0, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, rect=rect)
+        #         if self.currentRectangle is not None:
+        #             self.scene().removeItem(self.currentRectangle)
+        #             self.currentRectangle = None
+        #         self._keys['textBox'] = False
 
     def mouseMoveEvent(self, event):
         super(DrawingArea, self).mouseMoveEvent(event)
@@ -444,7 +447,8 @@ class DrawingArea(QtGui.QGraphicsView):
             if (self._keys['control'] is False):
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
-                if self._keys['rectangle'] is True or self._keys['textBox'] is True:
+                if self._keys['rectangle'] is True:
+                # if self._keys['rectangle'] is True or self._keys['textBox'] is True:
                     self.currentRectangle.updateRectangle(self.mapToGrid(event.pos()))
                 if self._keys['circle'] is True:
                     self.currentCircle.updateCircle(self.mapToGrid(event.pos()))
