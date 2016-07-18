@@ -188,12 +188,14 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             if hasattr(item, 'transformData'):
                 item.setTransform(item.transformData)
             item.setFlag(item.ItemIsSelectable, False)
+            item.setAcceptHoverEvents(False)
         self.listOfItems = self.childItems()
 
     def reparentItems(self, newParent=None):
         for item in self.listOfItems:
             item.setParentItem(newParent)
             item.setFlag(item.ItemIsSelectable, True)
+            item.setAcceptHoverEvents(True)
             if hasattr(item, 'origin'):
                 item.setPos(self.pos() + item.origin)
                 item.origin = item.pos()

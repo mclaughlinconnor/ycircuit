@@ -2,6 +2,7 @@ from drawingarea import DrawingArea
 from PyQt4 import QtCore, QtGui
 from schematic_mainWindow import Ui_MainWindow
 import sys
+import platform
 import sip
 
 
@@ -236,5 +237,6 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()
-    sip.setdestroyonexit(False)
+    if platform.system() == 'Windows':
+        sip.setdestroyonexit(False)
     app.exec_()
