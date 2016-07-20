@@ -67,6 +67,10 @@ As of this point in time, the following options are available:
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
+An example output image would look something like this:
+
+<img src="./Resources/inverter.png" alt="Image not found ):" style="width: 300px;"/>
+
 ## Organization ##
 -------------------------------------------------------------------------------
 
