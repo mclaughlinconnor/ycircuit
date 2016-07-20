@@ -81,22 +81,27 @@ class DrawingArea(QtGui.QGraphicsView):
         self.currentTextBox = None
 
     def addResistor(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/resistor.pkl')
 
     def addCapacitor(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/capacitor.pkl')
 
     def addGround(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/ground.pkl')
 
     def addDot(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/dot.pkl')
 
     def addTransistor(self, kind='MOS', polarity='N', arrow=False):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 'MOS':
             if polarity == 'N':
@@ -125,16 +130,6 @@ class DrawingArea(QtGui.QGraphicsView):
         if mode == 'symbol' or mode == 'schematic':
             listOfItems = self.scene().items()
             listOfItems = [item for item in listOfItems if item.parentItem() is None]
-            # if mode == 'symbol':
-            #     # If item is already a group, destroy it and add child items to scene
-            #     for item in listOfItems:
-            #         if type(item) is myGraphicsItemGroup:
-            #             # self.scene().destroyItemGroup(item)
-            #             for item2 in item.childItems():
-            #                 item2.setParentItem(None)
-            #             self.scene().removeItem(item)
-            #     listOfItems = self.scene().items()
-            # start = self.mapToGrid(self.currentPos)
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
@@ -257,6 +252,8 @@ class DrawingArea(QtGui.QGraphicsView):
         cursor = self.cursor()
         cursor.setShape(QtCore.Qt.ArrowCursor)
         self.setCursor(cursor)
+        # Save a copy locally so that items don't disappear
+        self.items = self.scene().items()
 
     def moveRoutine(self):
         self.escapeRoutine()
@@ -373,6 +370,8 @@ class DrawingArea(QtGui.QGraphicsView):
     def mouseReleaseEvent(self, event):
         if self._keys['m'] is False:
             super(DrawingArea, self).mouseReleaseEvent(event)
+        if self._keys['c'] is True:
+            self._keys['c'] = False
         # self.oldPos = self.currentPos
         # self.currentPos = event.pos()
         if (self._keys['w'] is True):
@@ -430,9 +429,6 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentTextBox is None:
                     self.currentTextBox = TextBox(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentTextBox)
-                self.textEditor = TextEditor()
-                self.textEditor.show()
-                self.textEditor.accepted.connect(lambda: self.currentTextBox.setPlainText(self.textEditor.ui.textEdit.toPlainText()))
                 self._keys['textBox'] = False
                 cursor = self.cursor()
                 cursor.setShape(QtCore.Qt.ArrowCursor)

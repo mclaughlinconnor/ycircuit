@@ -60,7 +60,85 @@ class Grid(QtGui.QGraphicsItem):
 
 
 class TextEditor(QtGui.QDialog):
-    def __init__(self):
+    def __init__(self, textBox=None):
         super(TextEditor, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+
+        self.ui.textEdit.setFocus(True)
+        if textBox is not None:
+            self.ui.textEdit.setHtml(textBox.toHtml())
+            font = textBox.font()
+            self.ui.textEdit.setFont(font)
+
+        self.ui.textEdit.cursorPositionChanged.connect(self.modifyPushButtons)
+
+        QtGui.QShortcut('Ctrl+Return', self).activated.connect(self.accept)
+
+        self.ui.pushButton_bold.clicked.connect(self.modifyText)
+        self.ui.pushButton_italic.clicked.connect(self.modifyText)
+        self.ui.pushButton_underline.clicked.connect(self.modifyText)
+        self.ui.pushButton_subscript.clicked.connect(self.modifyText)
+        self.ui.pushButton_superscript.clicked.connect(self.modifyText)
+
+    def modifyPushButtons(self):
+        cursor = self.ui.textEdit.textCursor()
+        format = cursor.charFormat()
+        bold, italic, underline, subscript, superscript = True, True, True, True, True
+        if cursor.hasSelection() is True:
+            start, end = cursor.selectionStart(), cursor.selectionEnd()
+        else:
+            start, end = cursor.position() - 1, cursor.position()
+        for i in range(start + 1, end + 1):
+            cursor.setPosition(i)
+            format = cursor.charFormat()
+            if format.fontWeight() != 75:
+                bold = False
+            if format.fontItalic() is False:
+                italic = False
+            if format.fontUnderline() is False:
+                underline = False
+            if format.verticalAlignment() != format.AlignSubScript:
+                subscript = False
+            if format.verticalAlignment() != format.AlignSuperScript:
+                superscript = False
+        self.ui.pushButton_bold.setChecked(bold)
+        self.ui.pushButton_italic.setChecked(italic)
+        self.ui.pushButton_underline.setChecked(underline)
+        self.ui.pushButton_subscript.setChecked(subscript)
+        self.ui.pushButton_superscript.setChecked(superscript)
+        # else:
+        #     self.ui.pushButton_bold.setChecked(format.fontWeight() == 75)
+        #     self.ui.pushButton_italic.setChecked(format.fontItalic())
+        #     self.ui.pushButton_underline.setChecked(format.fontUnderline())
+
+    def modifyText(self):
+        bold = self.ui.pushButton_bold.isChecked()
+        italic = self.ui.pushButton_italic.isChecked()
+        underline = self.ui.pushButton_underline.isChecked()
+        subscript = self.ui.pushButton_subscript.isChecked()
+        superscript = self.ui.pushButton_superscript.isChecked()
+        cursor = self.ui.textEdit.textCursor()
+        format = cursor.charFormat()
+        if bold is True:
+            # 75 is bold weight
+            format.setFontWeight(75)
+        else:
+            # 50 is normal weight
+            format.setFontWeight(50)
+        if italic is True:
+            format.setFontItalic(True)
+        else:
+            format.setFontItalic(False)
+        if underline is True:
+            format.setFontUnderline(True)
+        else:
+            format.setFontUnderline(False)
+        if subscript is True:
+            format.setVerticalAlignment(format.AlignSubScript)
+        elif superscript is True:
+            format.setVerticalAlignment(format.AlignSuperScript)
+        else:
+            format.setVerticalAlignment(format.AlignNormal)
+        cursor.mergeCharFormat(format)
+        self.ui.textEdit.setTextCursor(cursor)
