@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from components import *
-from drawingitems import Grid
+from drawingitems import *
 import cPickle as pickle
 
 
@@ -74,28 +74,34 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def addTextBox(self):
         self.escapeRoutine()
+        cursor = self.cursor()
+        cursor.setShape(QtCore.Qt.IBeamCursor)
+        self.setCursor(cursor)
         self._keys['textBox'] = True
         self.currentTextBox = None
 
     def addResistor(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/resistor.pkl')
 
     def addCapacitor(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/capacitor.pkl')
 
     def addGround(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/ground.pkl')
 
     def addDot(self):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/dot.pkl')
-        # self.currentDot = Dot(start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-        # self.scene().addItem(self.currentDot)
 
     def addTransistor(self, kind='MOS', polarity='N', arrow=False):
+        self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 'MOS':
             if polarity == 'N':
@@ -113,8 +119,6 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.loadRoutine('symbol', './Resources/npnbjt.pkl')
             if polarity == 'P':
                 self.loadRoutine('symbol', './Resources/pnpbjt.pkl')
-            # self.currentTransistor = Transistor(start=start, kind=kind, polarity=polarity, arrow=arrow, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle)
-            # self.scene().addItem(self.currentTransistor)
 
     def saveRoutine(self, mode='export'):
         # Remove grid from the scene to avoid saving it
@@ -126,16 +130,6 @@ class DrawingArea(QtGui.QGraphicsView):
         if mode == 'symbol' or mode == 'schematic':
             listOfItems = self.scene().items()
             listOfItems = [item for item in listOfItems if item.parentItem() is None]
-            # if mode == 'symbol':
-            #     # If item is already a group, destroy it and add child items to scene
-            #     for item in listOfItems:
-            #         if type(item) is myGraphicsItemGroup:
-            #             # self.scene().destroyItemGroup(item)
-            #             for item2 in item.childItems():
-            #                 item2.setParentItem(None)
-            #             self.scene().removeItem(item)
-            #     listOfItems = self.scene().items()
-            # start = self.mapToGrid(self.currentPos)
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
@@ -246,14 +240,20 @@ class DrawingArea(QtGui.QGraphicsView):
             if self._keys['ellipse'] is True:
                 self.scene().removeItem(self.currentEllipse)
             # Remove last text box being drawn
-            # if self._keys['textBox'] is True:
-            #     self.scene().removeItem(self.currentTextBox)
+            if self._keys['textBox'] is True:
+                self.scene().removeItem(self.currentTextBox)
         # Zero all rotations and reflections
         self.reflections = 0
         self.rotations = 0
         # Uncheck all keys
         for keys in self._keys:
             self._keys[keys] = False
+        # Reset cursor
+        cursor = self.cursor()
+        cursor.setShape(QtCore.Qt.ArrowCursor)
+        self.setCursor(cursor)
+        # Save a copy locally so that items don't disappear
+        self.items = self.scene().items()
 
     def moveRoutine(self):
         self.escapeRoutine()
@@ -370,6 +370,8 @@ class DrawingArea(QtGui.QGraphicsView):
     def mouseReleaseEvent(self, event):
         if self._keys['m'] is False:
             super(DrawingArea, self).mouseReleaseEvent(event)
+        if self._keys['c'] is True:
+            self._keys['c'] = False
         # self.oldPos = self.currentPos
         # self.currentPos = event.pos()
         if (self._keys['w'] is True):
@@ -418,22 +420,19 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentEllipse is None:
                     self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentEllipse)
-        # if self._keys['textBox'] is True:
-        #     if event.button () == QtCore.Qt.LeftButton:
-        #         self._mouse['1'] = not self._mouse['1']
-        #     if self._mouse['1'] is True:
-        #         self.currentPos = event.pos()
-        #         start = self.mapToGrid(self.currentPos)
-        #         if self.currentTextBox is None:
-        #             self.currentRectangle = Rectangle(None, start=start, penColour='black', width=2, penStyle=1, brushColour='black', brushStyle=0)
-        #             self.scene().addItem(self.currentRectangle)
-        #     else:
-        #         rect = self.currentRectangle.mapRectToScene(self.currentRectangle.rect())
-        #         self.currentTextBox = TextBox(self, start=0, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, rect=rect)
-        #         if self.currentRectangle is not None:
-        #             self.scene().removeItem(self.currentRectangle)
-        #             self.currentRectangle = None
-        #         self._keys['textBox'] = False
+        if self._keys['textBox'] is True:
+            if event.button () == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                start = self.mapToGrid(self.currentPos)
+                if self.currentTextBox is None:
+                    self.currentTextBox = TextBox(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.scene().addItem(self.currentTextBox)
+                self._keys['textBox'] = False
+                cursor = self.cursor()
+                cursor.setShape(QtCore.Qt.ArrowCursor)
+                self.setCursor(cursor)
 
     def mouseMoveEvent(self, event):
         super(DrawingArea, self).mouseMoveEvent(event)
@@ -448,7 +447,6 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
                 if self._keys['rectangle'] is True:
-                # if self._keys['rectangle'] is True or self._keys['textBox'] is True:
                     self.currentRectangle.updateRectangle(self.mapToGrid(event.pos()))
                 if self._keys['circle'] is True:
                     self.currentCircle.updateCircle(self.mapToGrid(event.pos()))

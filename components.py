@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
 import numpy
+from drawingitems import TextEditor
 
 
 class drawingElement(object):
@@ -115,16 +116,18 @@ class drawingElement(object):
         return p
 
     def hoverEnterEvent(self, event):
-        self.localPen.setColor(QtGui.QColor('gray'))
-        self.setPen(self.localPen)
-        self.localBrush.setColor(QtGui.QColor('gray'))
-        self.setBrush(self.localBrush)
+        pen = QtGui.QPen(self.localPen)
+        pen.setColor(QtGui.QColor('gray'))
+        self.setPen(pen)
+        brush = QtGui.QBrush(self.localBrush)
+        brush.setColor(QtGui.QColor('gray'))
+        self.setBrush(brush)
         self.update()
 
     def hoverLeaveEvent(self, event):
-        self.localPen.setColor(QtGui.QColor(self.localPenColour))
+        # self.localPen.setColor(QtGui.QColor(self.localPenColour))
         self.setPen(self.localPen)
-        self.localBrush.setColor(QtGui.QColor(self.localBrushColour))
+        # self.localBrush.setColor(QtGui.QColor(self.localBrushColour))
         self.setBrush(self.localBrush)
         self.update()
 
@@ -208,27 +211,33 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
 
     def setLocalPenOptions(self, **kwargs):
         for item in self.listOfItems:
+            if not hasattr(item, 'localPen'):
+                item.localPen = QtGui.QPen()
             item.setLocalPenOptions(**kwargs)
 
     def setLocalBrushOptions(self, **kwargs):
         for item in self.listOfItems:
+            if not hasattr(item, 'localBrush'):
+                item.localBrush = QtGui.QBrush()
             item.setLocalBrushOptions(**kwargs)
 
     def hoverEnterEvent(self, event):
         # For some reason calling the children's hoverEnterEvent did not work
         for item in self.listOfItems:
-            item.localPen.setColor(QtGui.QColor('gray'))
-            item.setPen(item.localPen)
-            item.localBrush.setColor(QtGui.QColor('gray'))
-            item.setBrush(item.localBrush)
+            pen = QtGui.QPen(item.localPen)
+            pen.setColor(QtGui.QColor('gray'))
+            item.setPen(pen)
+            brush = QtGui.QBrush(item.localBrush)
+            brush.setColor(QtGui.QColor('gray'))
+            item.setBrush(brush)
         self.update()
 
     def hoverLeaveEvent(self, event):
         # For some reason calling the children's hoverLeaveEvent did not work
         for item in self.listOfItems:
-            item.localPen.setColor(QtGui.QColor(item.localPenColour))
+            # item.localPen.setColor(QtGui.QColor(item.localPenColour))
             item.setPen(item.localPen)
-            item.localBrush.setColor(QtGui.QColor(item.localBrushColour))
+            # item.localBrush.setColor(QtGui.QColor(item.localBrushColour))
             item.setBrush(item.localBrush)
         self.update()
 
@@ -467,3 +476,83 @@ class Circle(Ellipse):
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
+
+class TextBox(QtGui.QGraphicsTextItem, drawingElement):
+    """docstring for TextBox"""
+    def __init__(self, parent=None, start=None, text='', **kwargs):
+        point = QtCore.QPointF(0, 0)
+        if not hasattr(self, 'origin'):
+            super(TextBox, self).__init__(parent)
+            self.setPos(start)
+        else:
+            super(TextBox, self).__init__(parent)
+            self.setPos(self.origin)
+        # Set the fixed vertex to (0, 0) in local coordinates
+        drawingElement.__init__(self, parent, start=point, **kwargs)
+        self.setTextWidth(-1)
+        if text != '':
+            self.setHtml(text)
+        elif hasattr(self, 'htmlText'):
+            self.setHtml(self.htmlText)
+        else:
+            self.showEditor()
+
+    def __getstate__(self):
+        localDict = super(TextBox, self).__getstate__()
+        localDict.pop('textEditor', None)
+        localDict['htmlText'] = self.toHtml()
+        return localDict
+
+    def showEditor(self):
+        self.textEditor = TextEditor(self)
+        self.textEditor.show()
+        self.textEditor.accepted.connect(lambda: self.setHtml(self.textEditor.ui.textEdit.toHtml()))
+
+    def setLocalPenOptions(self, **kwargs):
+        # Necessary for objects with modified bounding rects
+        self.prepareGeometryChange()
+        if 'pen' in kwargs:
+            self.localPen = kwargs['pen']
+            self.localPenWidth = self.localPen.width()
+            self.localPenColour = self.localPen.color()
+            self.localPenStyle = self.localPen.style()
+        if 'width' in kwargs:
+            self.localPenWidth = kwargs['width']
+        if 'penColour' in kwargs:
+            self.localPenColour = kwargs['penColour']
+        if 'penStyle' in kwargs:
+            self.localPenStyle = kwargs['penStyle']
+        self.localPen.setWidth(self.localPenWidth)
+        self.localPen.setColor(QtGui.QColor(self.localPenColour))
+        # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
+        self.localPen.setStyle(self.localPenStyle)
+        if hasattr(self, 'setFont'):
+            font = self.font()
+            font.setPointSize(self.localPenWidth*15)
+            font.setFamily('Helvetica')
+            self.setFont(font)
+        if hasattr(self, 'setDefaultTextColor'):
+            self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
+
+    def hoverEnterEvent(self, event):
+        self.setDefaultTextColor(QtGui.QColor('gray'))
+        self.update()
+
+    def hoverLeaveEvent(self, event):
+        self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
+        self.update()
+
+    def mouseDoubleClickEvent(self, event):
+        super(TextBox, self).mouseDoubleClickEvent(event)
+        self.showEditor()
+
+    def createCopy(self):
+        if self.isSelected() is True:
+            self.setSelected(False)
+        _start = self.pos()
+        newItem = self.__class__(None, _start, text=self.toHtml(), pen=self.localPen, brush=self.localBrush)
+        newItem.setTransform(self.transform())
+        self.scene().addItem(newItem)
+        newItem.setSelected(True)
+        newItem.moveTo(0, 0, 'start')
+        return newItem
