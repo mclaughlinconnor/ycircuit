@@ -69,7 +69,7 @@ At this point, item shapes cannot be edited once they are drawn. Further, wires 
 
 An example output image would look something like this:
 
-<img src="https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/inverter.png" alt="Image not found ):" style="width: 300px;"/>
+![Image not found ):](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/inverter.png "Such a pretty inverter!")
 
 ## Organization ##
 -------------------------------------------------------------------------------
