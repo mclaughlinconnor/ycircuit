@@ -53,6 +53,7 @@ As of this point in time, the following options are available:
     * Rectangle
     * Circle
     * Ellipse
+    * Text box (with support for bold, italics, underline, subscript and superscript)
   * Symbols
     * Wire
     * Resistor
