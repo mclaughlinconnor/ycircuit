@@ -74,7 +74,9 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def addTextBox(self):
         self.escapeRoutine()
-        self.cursor().setShape(QtCore.Qt.IBeamCursor)
+        cursor = self.cursor()
+        cursor.setShape(QtCore.Qt.IBeamCursor)
+        self.setCursor(cursor)
         self._keys['textBox'] = True
         self.currentTextBox = None
 
@@ -252,7 +254,9 @@ class DrawingArea(QtGui.QGraphicsView):
         for keys in self._keys:
             self._keys[keys] = False
         # Reset cursor
-        self.cursor().setShape(QtCore.Qt.ArrowCursor)
+        cursor = self.cursor()
+        cursor.setShape(QtCore.Qt.ArrowCursor)
+        self.setCursor(cursor)
 
     def moveRoutine(self):
         self.escapeRoutine()
@@ -429,7 +433,10 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.textEditor = TextEditor()
                 self.textEditor.show()
                 self.textEditor.accepted.connect(lambda: self.currentTextBox.setPlainText(self.textEditor.ui.textEdit.toPlainText()))
-                self._mouse['1'] = False
+                self._keys['textBox'] = False
+                cursor = self.cursor()
+                cursor.setShape(QtCore.Qt.ArrowCursor)
+                self.setCursor(cursor)
 
     def mouseMoveEvent(self, event):
         super(DrawingArea, self).mouseMoveEvent(event)
