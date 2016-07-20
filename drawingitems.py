@@ -1,4 +1,5 @@
 from PyQt4 import QtCore, QtGui
+from textEditor_gui import Ui_Dialog
 import numpy
 
 
@@ -56,3 +57,10 @@ class Grid(QtGui.QGraphicsItem):
         newX = numpy.round(point.x()/self.spacing)*self.spacing
         newY = numpy.round(point.y()/self.spacing)*self.spacing
         return QtCore.QPointF(newX, newY)
+
+
+class TextEditor(QtGui.QDialog):
+    def __init__(self):
+        super(TextEditor, self).__init__()
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)

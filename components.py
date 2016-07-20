@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
 import numpy
+from drawingitems import TextEditor
 
 
 class drawingElement(object):
@@ -467,3 +468,61 @@ class Circle(Ellipse):
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
+
+class TextBox(QtGui.QGraphicsTextItem, drawingElement):
+    """docstring for TextBox"""
+    def __init__(self, parent=None, start=None, text='', **kwargs):
+        point = QtCore.QPointF(0, 0)
+        if not hasattr(self, 'origin'):
+            super(TextBox, self).__init__(parent)
+            self.setPos(start)
+        else:
+            super(TextBox, self).__init__(parent)
+            self.setPos(self.origin)
+        # Set the fixed vertex to (0, 0) in local coordinates
+        drawingElement.__init__(self, parent, start=point, **kwargs)
+        self.setPlainText(text)
+        self.setTextWidth(-1)
+
+    def setLocalPenOptions(self, **kwargs):
+        # Necessary for objects with modified bounding rects
+        self.prepareGeometryChange()
+        if 'pen' in kwargs:
+            self.localPen = kwargs['pen']
+            self.localPenWidth = self.localPen.width()
+            self.localPenColour = self.localPen.color()
+            self.localPenStyle = self.localPen.style()
+        if 'width' in kwargs:
+            self.localPenWidth = kwargs['width']
+        if 'penColour' in kwargs:
+            self.localPenColour = kwargs['penColour']
+        if 'penStyle' in kwargs:
+            self.localPenStyle = kwargs['penStyle']
+        self.localPen.setWidth(self.localPenWidth)
+        self.localPen.setColor(QtGui.QColor(self.localPenColour))
+        # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
+        self.localPen.setStyle(self.localPenStyle)
+        if hasattr(self, 'setTextWidth'):
+            self.setTextWidth(self.localPenWidth)
+        if hasattr(self, 'setDefaultTextColor'):
+            self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
+
+    def hoverEnterEvent(self, event):
+        self.setDefaultTextColor(QtGui.QColor('gray'))
+        self.update()
+
+    def hoverLeaveEvent(self, event):
+        self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
+        self.update()
+
+    def mouseDoubleClickEvent(self, event):
+        super(TextBox, self).mouseDoubleClickEvent(event)
+        self.textEditor = TextEditor()
+        self.textEditor.ui.textEdit.setPlainText(self.toPlainText())
+        self.textEditor.show()
+        self.textEditor.accepted.connect(lambda: self.setPlainText(self.textEditor.ui.textEdit.toPlainText()))
+
+    def keyPressEvent(self, event):
+        super(TextBox, self).keyPressEvent(event)
+        if event.key() == QtCore.Qt.Key_Escape:
+            self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
