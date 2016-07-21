@@ -53,6 +53,7 @@ As of this point in time, the following options are available:
     * Rectangle
     * Circle
     * Ellipse
+    * Text box (with support for bold, italics, underline, subscript and superscript)
   * Symbols
     * Wire
     * Resistor
@@ -66,6 +67,10 @@ As of this point in time, the following options are available:
       * PNP BJT
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
+
+An example output image would look something like this:
+
+![Image not found ):](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/inverter.png "Such a pretty inverter!")
 
 ## Organization ##
 -------------------------------------------------------------------------------
