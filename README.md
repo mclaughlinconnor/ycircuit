@@ -84,7 +84,8 @@ Currently, the files have the following uses:
   * drawingitems.py: Contains the Grid class for creating the background grid in the GUI and the TextEditor class for handling editing of TextBox objects.
   * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
   * components.py: Defines item classes for creating and manipulating shapes.
-  * Resources/*.pkl: Contains binary files that have the various symbols. Schematics are also currently saved as a .pkl file. Try loading inverter.pkl for an example inverter schematic.
+  * Resources/Symbols/Standard/*.sym: Contains binary files that have the various symbols. User defined symbols go in Resources/Symbols/Custom
+  * Resources/*.sch: Schematics are currently saved as a .sch file. Try loading inverter.sch for an example inverter schematic.
 
 ## TODOs ##
 -------------------------------------------------------------------------------
