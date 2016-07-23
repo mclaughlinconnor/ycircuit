@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 import numpy
 from drawingitems import TextEditor
-
+import sys
 
 class drawingElement(object):
     """Docstring for drawingElement"""
@@ -490,10 +490,15 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         # Set the fixed vertex to (0, 0) in local coordinates
         drawingElement.__init__(self, parent, start=point, **kwargs)
         self.setTextWidth(-1)
+        if not hasattr(self, 'latexImageHtml'):
+            self.latexImageHtml = None
+            self.latexExpression = None
         if text != '':
             self.setHtml(text)
         elif hasattr(self, 'htmlText'):
             self.setHtml(self.htmlText)
+        elif self.latexImageHtml is not None:
+            self.setHtml(self.latexImageHtml)
         else:
             self.showEditor()
 
@@ -506,7 +511,6 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
     def showEditor(self):
         self.textEditor = TextEditor(self)
         self.textEditor.show()
-        self.textEditor.accepted.connect(lambda: self.setHtml(self.textEditor.ui.textEdit.toHtml()))
 
     def setLocalPenOptions(self, **kwargs):
         # Necessary for objects with modified bounding rects

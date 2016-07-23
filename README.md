@@ -23,9 +23,10 @@ YCircuit currently has the following dependencies:
 
   * Python - tested on 2.7.11
   * PyQt4 - for rendering the GUI
+  * matplotlib - for handling LaTeX inputs
   * NumPy - for handling some of the math (may not even be entirely necessary)
 
-I plan to add some additional functionality later that will allow for LaTeX support, so the dependency list may grow. The easiest way to satisfy all dependencies is to use Anaconda (<https://www.continuum.io/downloads>). This is what I use also, and so we can be sure that the environments are (more or less) similar.
+The easiest way to satisfy all dependencies is to use Anaconda (<https://www.continuum.io/downloads>). This is what I use also, and so we can be sure that the environments are (more or less) similar.
 
 ## Usage ##
 -------------------------------------------------------------------------------
@@ -54,6 +55,7 @@ As of this point in time, the following options are available:
     * Circle
     * Ellipse
     * Text box (with support for bold, italics, underline, subscript and superscript)
+      * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
   * Symbols
     * Wire
     * Resistor
@@ -87,4 +89,4 @@ Currently, the files have the following uses:
 ## Feedback ##
 -------------------------------------------------------------------------------
 
-At this point, there probably are a few million bugs in this program. I'd appreciate it if you could file bug reports as and when you encounter them. Thanks! 
+At this point, there probably are a few million bugs in this program. I'd appreciate it if you could file bug reports as and when you encounter them. Thanks!

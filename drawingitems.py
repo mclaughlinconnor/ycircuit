@@ -1,6 +1,14 @@
 from PyQt4 import QtCore, QtGui
 from textEditor_gui import Ui_Dialog
 import numpy
+import uuid
+import matplotlib as mpl
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib import rc
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+## for Palatino and other serif fonts use:
+#rc('font',**{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
 
 
 class Grid(QtGui.QGraphicsItem):
@@ -64,14 +72,24 @@ class TextEditor(QtGui.QDialog):
         super(TextEditor, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        self.textBox = textBox
 
         self.ui.textEdit.setFocus(True)
-        if textBox is not None:
-            self.ui.textEdit.setHtml(textBox.toHtml())
-            font = textBox.font()
+        if self.textBox is not None:
+            if self.textBox.latexExpression is None:
+                self.ui.textEdit.setHtml(self.textBox.toHtml())
+            else:
+                self.ui.textEdit.setPlainText('$' + self.textBox.latexExpression + '$')
+                self.ui.pushButton_latex.setChecked(True)
+                cursor = self.ui.textEdit.textCursor()
+                cursor.setPosition(1)
+                self.ui.textEdit.setTextCursor(cursor)
+            font = self.textBox.font()
             self.ui.textEdit.setFont(font)
+            self.ui.textEdit.setTextColor(QtGui.QColor(self.textBox.localPenColour))
 
         self.ui.textEdit.cursorPositionChanged.connect(self.modifyPushButtons)
+        self.ui.textEdit.textChanged.connect(self.latexDollarDecorators)
 
         QtGui.QShortcut('Ctrl+Return', self).activated.connect(self.accept)
 
@@ -80,37 +98,81 @@ class TextEditor(QtGui.QDialog):
         self.ui.pushButton_underline.clicked.connect(self.modifyText)
         self.ui.pushButton_subscript.clicked.connect(self.modifyText)
         self.ui.pushButton_superscript.clicked.connect(self.modifyText)
+        self.ui.pushButton_latex.clicked.connect(self.modifyText)
+
+    def accept(self):
+        plainText = self.ui.textEdit.toPlainText()
+        if self.ui.pushButton_latex.isChecked():
+            image = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
+            # self.textBox.pixmap = self.textBox.mathTexToQImage(plainText, self.textBox.font().weight())
+            if self.textBox.latexImageHtml is None:
+                saveFile = str(uuid.uuid4()) + '.png'
+                image.save(saveFile, quality=80)
+                htmlString = '<img src="' + saveFile + '">'
+            elif self.textBox.latexExpression != plainText[1:-1]:
+                htmlString = self.textBox.latexImageHtml
+                saveFile = htmlString[10:-2]
+                image.save(saveFile, quality=80)
+            else:
+                htmlString = self.textBox.latexImageHtml
+            self.textBox.latexImageHtml = htmlString
+            self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
+            # self.ui.textEdit.setHtml(htmlString)
+            # print self.ui.textEdit.toHtml()
+            self.textBox.setHtml(htmlString)
+        else:
+            self.textBox.setHtml(self.ui.textEdit.toHtml())
+            self.textBox.latexImageHtml = None
+            self.textBox.latexExpression= None
+        super(TextEditor, self).accept()
 
     def modifyPushButtons(self):
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
-        bold, italic, underline, subscript, superscript = True, True, True, True, True
-        if cursor.hasSelection() is True:
-            start, end = cursor.selectionStart(), cursor.selectionEnd()
-        else:
-            start, end = cursor.position() - 1, cursor.position()
-        for i in range(start + 1, end + 1):
-            cursor.setPosition(i)
-            format = cursor.charFormat()
-            if format.fontWeight() != 75:
-                bold = False
-            if format.fontItalic() is False:
-                italic = False
-            if format.fontUnderline() is False:
-                underline = False
-            if format.verticalAlignment() != format.AlignSubScript:
-                subscript = False
-            if format.verticalAlignment() != format.AlignSuperScript:
-                superscript = False
-        self.ui.pushButton_bold.setChecked(bold)
-        self.ui.pushButton_italic.setChecked(italic)
-        self.ui.pushButton_underline.setChecked(underline)
-        self.ui.pushButton_subscript.setChecked(subscript)
-        self.ui.pushButton_superscript.setChecked(superscript)
-        # else:
-        #     self.ui.pushButton_bold.setChecked(format.fontWeight() == 75)
-        #     self.ui.pushButton_italic.setChecked(format.fontItalic())
-        #     self.ui.pushButton_underline.setChecked(format.fontUnderline())
+        bold, italic, underline = True, True, True
+        subscript, superscript = True, True
+        latex = self.ui.pushButton_latex.isChecked()
+        if latex is not True:
+            if cursor.hasSelection() is True:
+                start, end = cursor.selectionStart(), cursor.selectionEnd()
+            else:
+                start, end = cursor.position() - 1, cursor.position()
+            for i in range(start + 1, end + 1):
+                cursor.setPosition(i)
+                format = cursor.charFormat()
+                if format.fontWeight() != 75:
+                    bold = False
+                if format.fontItalic() is False:
+                    italic = False
+                if format.fontUnderline() is False:
+                    underline = False
+                if format.verticalAlignment() != format.AlignSubScript:
+                    subscript = False
+                if format.verticalAlignment() != format.AlignSuperScript:
+                    superscript = False
+            self.ui.pushButton_bold.setChecked(bold)
+            self.ui.pushButton_italic.setChecked(italic)
+            self.ui.pushButton_underline.setChecked(underline)
+            self.ui.pushButton_subscript.setChecked(subscript)
+            self.ui.pushButton_superscript.setChecked(superscript)
+
+    def latexDollarDecorators(self):
+        latex = self.ui.pushButton_latex.isChecked()
+        if latex is True:
+            plainText = self.ui.textEdit.toPlainText()
+            cursor = self.ui.textEdit.textCursor()
+            if plainText[0] != '$':
+                plainText.insert(0, '$')
+                self.ui.textEdit.setPlainText(plainText)
+                cursor.setPosition(1)
+            if plainText[-1] != '$':
+                plainText.append('$')
+                self.ui.textEdit.setPlainText(plainText)
+                cursor.setPosition(len(plainText)-1)
+            if len(plainText) < 2:
+                self.ui.textEdit.setPlainText('$$')
+                cursor.setPosition(1)
+            self.ui.textEdit.setTextCursor(cursor)
 
     def modifyText(self):
         bold = self.ui.pushButton_bold.isChecked()
@@ -118,27 +180,84 @@ class TextEditor(QtGui.QDialog):
         underline = self.ui.pushButton_underline.isChecked()
         subscript = self.ui.pushButton_subscript.isChecked()
         superscript = self.ui.pushButton_superscript.isChecked()
+        latex = self.ui.pushButton_latex.isChecked()
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
-        if bold is True:
-            # 75 is bold weight
-            format.setFontWeight(75)
+        if latex is not True:
+            if len(self.ui.textEdit.toPlainText()) > 0:
+                if self.ui.textEdit.toPlainText()[0] == '$':
+                    self.ui.textEdit.setHtml('')
+            if bold is True:
+                # 75 is bold weight
+                format.setFontWeight(75)
+            else:
+                # 50 is normal weight
+                format.setFontWeight(50)
+            if italic is True:
+                format.setFontItalic(True)
+            else:
+                format.setFontItalic(False)
+            if underline is True:
+                format.setFontUnderline(True)
+            else:
+                format.setFontUnderline(False)
+            if subscript is True:
+                format.setVerticalAlignment(format.AlignSubScript)
+            elif superscript is True:
+                format.setVerticalAlignment(format.AlignSuperScript)
+            else:
+                format.setVerticalAlignment(format.AlignNormal)
+            cursor.mergeCharFormat(format)
+            self.ui.textEdit.setTextCursor(cursor)
         else:
-            # 50 is normal weight
+            self.ui.pushButton_bold.setChecked(False)
+            self.ui.pushButton_italic.setChecked(False)
+            self.ui.pushButton_underline.setChecked(False)
+            self.ui.pushButton_subscript.setChecked(False)
+            self.ui.pushButton_superscript.setChecked(False)
             format.setFontWeight(50)
-        if italic is True:
-            format.setFontItalic(True)
-        else:
             format.setFontItalic(False)
-        if underline is True:
-            format.setFontUnderline(True)
-        else:
             format.setFontUnderline(False)
-        if subscript is True:
-            format.setVerticalAlignment(format.AlignSubScript)
-        elif superscript is True:
-            format.setVerticalAlignment(format.AlignSuperScript)
-        else:
             format.setVerticalAlignment(format.AlignNormal)
-        cursor.mergeCharFormat(format)
-        self.ui.textEdit.setTextCursor(cursor)
+            cursor.mergeCharFormat(format)
+            self.ui.textEdit.setTextCursor(cursor)
+            self.ui.textEdit.setPlainText('$$')
+            cursor.setPosition(1)
+            self.ui.textEdit.setTextCursor(cursor)
+
+    def mathTexToQImage(self, mathTex, fs, fc):
+        # This function is adapted from http://stackoverflow.com/questions/32035251/displaying-latex-in-pyqt-pyside-qtablewidget
+        # This will likely be moved to a separate thread later because it is slow at startup
+
+        #---- set up a mpl figure instance ----
+
+        fig = mpl.figure.Figure()
+        fig.patch.set_facecolor('none')
+        fig.set_canvas(FigureCanvasAgg(fig))
+        fig.dpi = 640
+        renderer = fig.canvas.get_renderer()
+
+        #---- plot the mathTex expression ----
+
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.axis('off')
+        ax.patch.set_facecolor('none')
+        t = ax.text(0, 0, mathTex, ha='left', va='bottom', color=fc, fontsize=fs)
+
+        #---- fit figure size to text artist ----
+
+        fwidth, fheight = fig.get_size_inches()
+        fig_bbox = fig.get_window_extent(renderer)
+        text_bbox = t.get_window_extent(renderer, fig.dpi)
+
+        tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
+        tight_fheight = text_bbox.height * fheight / fig_bbox.height
+
+        # Added some extra padding because fractions were getting clipped
+        fig.set_size_inches(tight_fwidth, tight_fheight + 0.05)
+
+        #---- convert mpl figure to QPixmap ----
+
+        buf, size = fig.canvas.print_to_buffer()
+        qimage = QtGui.QImage.rgbSwapped(QtGui.QImage(buf, size[0], size[1], QtGui.QImage.Format_ARGB32))
+        return qimage
