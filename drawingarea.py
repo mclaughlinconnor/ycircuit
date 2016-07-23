@@ -5,17 +5,21 @@ import cPickle as pickle
 
 
 class DrawingArea(QtGui.QGraphicsView):
-    """temp docstring"""
+    """The drawing area is subclassed from QGraphicsView to provide additional
+    functionality specific to this schematic drawing tool. Further information about
+    these modifications is present in the method docstrings.
+    """
 
     def __init__(self, parent=None):
+        """Initializes the object and various parameters to default values"""
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
         self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(00, 00, 2000, 1000))
         self.parent = parent
-        self._keys = {'control': False, 'shift': False, 'c': False,
-                      'm': False, 'r': False, 'w': False, 'rectangle': False,
-                      'circle': False, 'ellipse': False, 'textBox': False}
+        self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
+                      'rectangle': False, 'circle': False, 'ellipse': False,
+                      'textBox': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
         self.scene().addItem(self._grid)
@@ -32,47 +36,39 @@ class DrawingArea(QtGui.QGraphicsView):
         self.selectedBrushStyle = 0
         self.items = []
 
-    def keyPressEvent(self, event):
-        super(DrawingArea, self).keyPressEvent(event)
-        keyPressed = event.key()
-        if (keyPressed == QtCore.Qt.Key_Control):
-            # self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
-            self._keys['control'] = True
-        if (keyPressed == QtCore.Qt.Key_Shift):
-            self._keys['shift'] = True
-
     def keyReleaseEvent(self, event):
+        """Run escapeRoutine when the escape button is pressed"""
         super(DrawingArea, self).keyReleaseEvent(event)
         keyPressed = event.key()
-        if (keyPressed == QtCore.Qt.Key_Control):
-            # self.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
-            self._keys['control'] = False
-        if (keyPressed == QtCore.Qt.Key_Shift):
-            self._keys['shift'] = False
         if (keyPressed == QtCore.Qt.Key_Escape):
             self.escapeRoutine()
 
     def addWire(self):
+        """Set _key to wire mode so that a wire is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['w'] = True
         self.currentWire = None
 
     def addRectangle(self):
+        """Set _key to wire mode so that a rectangle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['rectangle'] = True
         self.currentRectangle = None
 
     def addCircle(self):
+        """Set _key to wire mode so that a circle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['circle'] = True
         self.currentCircle = None
 
     def addEllipse(self):
+        """Set _key to wire mode so that an ellipse is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['ellipse'] = True
         self.currentEllipse = None
 
     def addTextBox(self):
+        """Set _key to wire mode so that a textbox is added when LMB is pressed"""
         self.escapeRoutine()
         cursor = self.cursor()
         cursor.setShape(QtCore.Qt.IBeamCursor)
@@ -81,26 +77,31 @@ class DrawingArea(QtGui.QGraphicsView):
         self.currentTextBox = None
 
     def addResistor(self):
+        """Load the standard resistor"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/Symbols/Standard/resistor.sym')
 
     def addCapacitor(self):
+        """Load the standard capacitor"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/Symbols/Standard/capacitor.sym')
 
     def addGround(self):
+        """Load the standard ground symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/Symbols/Standard/ground.sym')
 
     def addDot(self):
+        """Load the standard dot symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         self.loadRoutine('symbol', './Resources/Symbols/Standard/dot.sym')
 
     def addTransistor(self, kind='MOS', polarity='N', arrow=False):
+        """Load the standard transistor symbol based on its kind and polarity"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 'MOS':
@@ -121,6 +122,16 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.loadRoutine('symbol', './Resources/Symbols/Standard/pnpbjt.sym')
 
     def saveRoutine(self, mode='export'):
+        """Handles saving of both symbols and schematics as well as exporting images.
+        For symbols and schematics, items are first parented to a myGraphicsItemGroup.
+        The parent item is then saved into a corresponding .sym (symbol) and
+        .sch (schematic) file. If the save option is a schematic, the items are then
+        unparented.
+
+        For images, a rect slightly larger than the bounding rect of all items is
+        created. This rect is then projected onto a QPixmap at a higher resolution to
+        create the final image.
+        """
         # Remove grid from the scene to avoid saving it
         self.scene().removeItem(self._grid)
         # Return if no items are present
@@ -135,6 +146,7 @@ class DrawingArea(QtGui.QGraphicsView):
             origin = QtCore.QPointF(x, y)
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
+            # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.scenePos() - saveObject.origin
                 item.transformData = item.transform()
@@ -178,6 +190,9 @@ class DrawingArea(QtGui.QGraphicsView):
         # self.scene().render(painter)
 
     def loadRoutine(self, mode='symbol', loadFile=None):
+        """This is the counterpart of the save routine. Used to load both schematics
+        and symbols.
+        """
         if mode == 'symbol' or mode == 'schematic':
             if loadFile is None:
                 if mode == 'symbol':
@@ -190,6 +205,7 @@ class DrawingArea(QtGui.QGraphicsView):
             else:
                 return False
             if mode == 'schematic':
+                # Remove grid from scene, clear the scene and readd the grid
                 self.scene().removeItem(self._grid)
                 self.scene().clear()
                 self.scene().addItem(self._grid)
@@ -197,18 +213,17 @@ class DrawingArea(QtGui.QGraphicsView):
             loadItem.loadItems(mode)
             if mode == 'schematic':
                 loadItem.setPos(loadItem.origin)
-                # self.scene().destroyItemGroup(loadItem)
                 loadItem.reparentItems()
                 self.scene().removeItem(loadItem)
             elif mode == 'symbol':
-                # loadItem.setLocalPenOptions(penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle)
-                # loadItem.setLocalBrushOptions(brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                # Symbols are created with the pen/brush that they were saved in
                 loadItem.setPos(self.mapToGrid(self.currentPos))
                 loadItem.setSelected(True)
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
 
     def escapeRoutine(self):
+        """Resets all variables to the default state"""
         # If mouse had been clicked
         if self._mouse['1'] is True:
             # Unclick mouse
@@ -228,7 +243,7 @@ class DrawingArea(QtGui.QGraphicsView):
                     self.moveItems = []
             else:
                 self.moveItems = []
-            # Remove items created as part of copy
+            # Remove items created as part of copy independent of mouseclick
             if self._keys['c'] is True:
                 for item in self.scene().selectedItems():
                     self.scene().removeItem(item)
@@ -262,28 +277,27 @@ class DrawingArea(QtGui.QGraphicsView):
         self.items = self.scene().items()
 
     def moveRoutine(self):
+        """Preps to begin moving items"""
         self.escapeRoutine()
         self._keys['m'] = True
 
     def copyRoutine(self):
+        """Preps to begin copying items"""
         self.escapeRoutine()
         self._keys['c'] = True
-        for i in self.scene().selectedItems():
-            i.createCopy()
-        # Save a copy locally so that items don't disappear
-        self.items = self.scene().items()
-        # Start moving after creating copy
-        self._keys['m'] = True
 
     def deleteRoutine(self):
+        """Delete selected items"""
         for i in self.scene().selectedItems():
             self.scene().removeItem(i)
 
     def fitToViewRoutine(self):
+        """TODO: Fix this"""
         self.resetMatrix()
         self.ensureVisible(self.scene().itemsBoundingRect())
 
     def toggleGridRoutine(self):
+        """Toggles grid on and off"""
         self.enableGrid = not self.enableGrid
         if self._grid in self.scene().items():
             self.scene().removeItem(self._grid)
@@ -291,6 +305,7 @@ class DrawingArea(QtGui.QGraphicsView):
             self.scene().addItem(self._grid)
 
     def toggleSnapToGridRoutine(self, state):
+        """Toggles drawings snapping to grid"""
         self.snapToGrid = state
 
     def changeWidthRoutine(self, selectedWidth):
@@ -322,32 +337,52 @@ class DrawingArea(QtGui.QGraphicsView):
         self.currentPos = event.pos()
         self.currentX = self.currentPos.x()
         self.currentY = self.currentPos.y()
+        # If copy mode is on
+        if self._keys['c'] is True:
+            # Check to make sure this is the first click
+            if self._mouse['1'] is False:
+                for i in self.scene().selectedItems():
+                    i.createCopy()
+                # Save a copy locally so that items don't disappear
+                self.items = self.scene().items()
+            # Start moving after creating copy
+            self._keys['m'] = True
+        # If move mode is on
         if self._keys['m'] is True:
             self.moveItems = self.scene().selectedItems()
+            # On LMB
             if (event.button() == QtCore.Qt.LeftButton):
+                # Toggle LMB if items have been selected
                 if self.moveItems != []:
                     self._mouse['1'] = not self._mouse['1']
                 else:
                     self._mouse['1'] = False
+            # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
                 self.moveStartPos = self.mapToGrid(event.pos())
                 for i in self.moveItems:
                     i.moveTo(0, 0, 'start')
+            # End moving if LMB is clicked again
             else:
                 for i in self.moveItems:
                     i.moveTo(0, 0, 'done')
-        if self._keys['w'] is False:
-            super(DrawingArea, self).mousePressEvent(event)
+        super(DrawingArea, self).mousePressEvent(event)
 
     def rotateRoutine(self, modifier=None):
+        """Handles rotation and reflection of selected items"""
         self.moveItems = self.scene().selectedItems()
+        # If items have been selected
         if self.moveItems != []:
+            # Add them to a group
             self.moveItemsGroup = self.scene().createItemGroup(self.moveItems)
             if modifier is None:
                 modifier = QtGui.QApplication.keyboardModifiers()
+            # If reflect mode is on
             if modifier == QtCore.Qt.ShiftModifier:
+                # Keep track of number of reflections
                 self.reflections += 1
                 self.reflections %= 2
+                # Reflect items and move them to new origin
                 oldPos = self.moveItemsGroup.sceneBoundingRect(
                 ).center().toPoint()
                 self.moveItemsGroup.scale(-1, 1)
@@ -359,8 +394,11 @@ class DrawingArea(QtGui.QGraphicsView):
                     for item in self.moveItems:
                         item.modifyMoveOrigin(self.moveStartPos, 'R', True)
             else:
+                # Keep track of number of rotations
                 self.rotations += 1
                 self.rotations %= 360/self.rotateAngle
+                # Rotate items and move them to new origin
+                # TODO: Make this work for angles other than 90
                 oldPos = self.moveItemsGroup.sceneBoundingRect(
                 ).center().toPoint()
                 self.moveItemsGroup.rotate(self.rotateAngle)
@@ -371,34 +409,30 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['m'] is True:
                     for item in self.moveItems:
                         item.modifyMoveOrigin(self.moveStartPos, 'r', True)
+            # Remove item group
             self.scene().destroyItemGroup(self.moveItemsGroup)
 
     def mouseReleaseEvent(self, event):
-        if self._keys['m'] is False:
-            super(DrawingArea, self).mouseReleaseEvent(event)
-        if self._keys['c'] is True:
-            self._keys['c'] = False
-        # self.oldPos = self.currentPos
-        # self.currentPos = event.pos()
+        super(DrawingArea, self).mouseReleaseEvent(event)
+        # If wire mode is on
         if (self._keys['w'] is True):
+            # Keep drawing new wire segments
             if (event.button() == QtCore.Qt.LeftButton):
-                # self._mouse['1'] = not self._mouse['1']
                 self._mouse['1'] = True
             if (self._mouse['1'] is True):
                 self.oldPos = self.currentPos
                 self.currentPos = event.pos()
                 self.currentX = self.currentPos.x()
                 self.currentY = self.currentPos.y()
-                # start = QtCore.QPointF(0, 0)
-                # location = self.mapToGrid(self.currentPos)
                 start = self.mapToGrid(self.currentPos)
-                # self.currentWire = Wire(None, start, location)
+                # Create new wire if none exists
                 if self.currentWire is None:
                     self.currentWire = Wire(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentWire)
+                # If wire exists, add segments
                 else:
                     self.currentWire.createSegment(self.mapToGrid(event.pos()))
-                # self.scene().addItem(self.currentWire)
+        # If rectangle mode is on, add a new rectangle
         if self._keys['rectangle'] is True:
             if event.button () == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
@@ -408,6 +442,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentRectangle is None:
                     self.currentRectangle = Rectangle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentRectangle)
+        # If circle mode is on, add a new circle
         if self._keys['circle'] is True:
             if event.button () == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
@@ -417,6 +452,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentCircle is None:
                     self.currentCircle = Circle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentCircle)
+        # If ellipse mode is on, add a new ellipse
         if self._keys['ellipse'] is True:
             if event.button () == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
@@ -426,6 +462,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentEllipse is None:
                     self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentEllipse)
+        # If textbox mode is on, add a new textbox
         if self._keys['textBox'] is True:
             if event.button () == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
@@ -436,6 +473,7 @@ class DrawingArea(QtGui.QGraphicsView):
                     self.currentTextBox = TextBox(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentTextBox)
                 self._keys['textBox'] = False
+                # Change cursor shape to a text editing style
                 cursor = self.cursor()
                 cursor.setShape(QtCore.Qt.ArrowCursor)
                 self.setCursor(cursor)
@@ -444,12 +482,12 @@ class DrawingArea(QtGui.QGraphicsView):
         super(DrawingArea, self).mouseMoveEvent(event)
         self.currentPos = event.pos()
         if (self._mouse['1'] is True):
-            # self.oldPos = self.currentPos
             self.oldX = self.currentX
             self.oldY = self.currentY
             self.currentX = self.currentPos.x()
             self.currentY = self.currentPos.y()
-            if (self._keys['control'] is False):
+            modifiers = QtGui.QApplication.keyboardModifiers()
+            if modifiers != QtCore.Qt.ControlModifier:
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
                 if self._keys['rectangle'] is True:
@@ -459,7 +497,6 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['ellipse'] is True:
                     self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
                 if self._keys['m'] is True:
-                # elif (self._keys['m'] is True):
                     self.moveStopPos = self.mapToGrid(event.pos())
                     for i in self.moveItems:
                         x = self.moveStopPos.x() - self.moveStartPos.x()
@@ -470,12 +507,14 @@ class DrawingArea(QtGui.QGraphicsView):
                                self.oldY - self.currentY)
 
     def contextMenuEvent(self, event):
+        # TODO: Make this work properly
         menu = QtGui.QMenu()
         actionDelete = menu.addAction('&Delete')
         actionDelete.triggered.connect(lambda: self.scene().removeItem(self))
         menu.exec_(event.screenPos())
 
     def mapToGrid(self, point):
+        # Convenience function to map given point on to the grid
         point = self.mapToScene(point)
         if self.snapToGrid is True:
             return self._grid.snapTo(point)
@@ -483,17 +522,17 @@ class DrawingArea(QtGui.QGraphicsView):
             return point
 
     def wheelEvent(self, event):
+        # Pan or zoom depending on keyboard modifiers
         scaleFactor = -event.delta() / 240.
-        if self._keys['control'] is True:
+        modifiers = QtGui.QApplication.keyboardModifiers()
+        if modifiers == QtCore.Qt.ControlModifier:
             self.translate(0, -scaleFactor * 20)
-        elif self._keys['shift'] is True:
+        elif modifiers == QtCore.Qt.ShiftModifier:
             self.translate(-scaleFactor * 20, 0)
         else:
             if scaleFactor < 0:
                 scaleFactor = -1 / scaleFactor
             scaleFactor = 1 + (scaleFactor - 1) / 5.
-            # else:
-            #     scaleFactor = scaleFactor*1.5
             oldPos = self.mapToScene(event.pos())
             self.scale(scaleFactor, scaleFactor)
             self._grid.createGrid()
