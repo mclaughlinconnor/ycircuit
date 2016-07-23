@@ -83,22 +83,22 @@ class DrawingArea(QtGui.QGraphicsView):
     def addResistor(self):
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/resistor.pkl')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/resistor.sym')
 
     def addCapacitor(self):
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/capacitor.pkl')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/capacitor.sym')
 
     def addGround(self):
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/ground.pkl')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/ground.sym')
 
     def addDot(self):
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/dot.pkl')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/dot.sym')
 
     def addTransistor(self, kind='MOS', polarity='N', arrow=False):
         self.escapeRoutine()
@@ -106,19 +106,19 @@ class DrawingArea(QtGui.QGraphicsView):
         if kind == 'MOS':
             if polarity == 'N':
                 if arrow is True:
-                    self.loadRoutine('symbol', './Resources/nfetArrow.pkl')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/nfetArrow.sym')
                 else:
-                    self.loadRoutine('symbol', './Resources/nfetNoArrow.pkl')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/nfetNoArrow.sym')
             else:
                 if arrow is True:
-                    self.loadRoutine('symbol', './Resources/pfetArrow.pkl')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/pfetArrow.sym')
                 else:
-                    self.loadRoutine('symbol', './Resources/pfetNoArrow.pkl')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/pfetNoArrow.sym')
         elif kind == 'BJT':
             if polarity == 'N':
-                self.loadRoutine('symbol', './Resources/npnbjt.pkl')
+                self.loadRoutine('symbol', './Resources/Symbols/Standard/npnbjt.sym')
             if polarity == 'P':
-                self.loadRoutine('symbol', './Resources/pnpbjt.pkl')
+                self.loadRoutine('symbol', './Resources/Symbols/Standard/pnpbjt.sym')
 
     def saveRoutine(self, mode='export'):
         # Remove grid from the scene to avoid saving it
@@ -139,7 +139,10 @@ class DrawingArea(QtGui.QGraphicsView):
                 item.origin = item.scenePos() - saveObject.origin
                 item.transformData = item.transform()
             saveObject.setItems(listOfItems)
-            saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save File', './untitled.pkl', 'Objects (*.pkl)'))
+            if mode == 'symbol':
+                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
+            elif mode == 'schematic':
+                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Schematic', './untitled.sch', 'Schematics (*.sch)'))
             if saveFile != '':
                 with open(saveFile, 'wb') as file:
                     pickle.dump(saveObject, file, -1)
@@ -177,7 +180,10 @@ class DrawingArea(QtGui.QGraphicsView):
     def loadRoutine(self, mode='symbol', loadFile=None):
         if mode == 'symbol' or mode == 'schematic':
             if loadFile is None:
-                loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load File', './', 'Objects (*.pkl)'))
+                if mode == 'symbol':
+                    loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Symbol', './Resources/Symbols/', 'Symbols (*.sym)'))
+                elif mode == 'schematic':
+                    loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Schematic', './', 'Schematics (*.sch)'))
             if loadFile != '':
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)

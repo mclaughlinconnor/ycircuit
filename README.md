@@ -38,8 +38,8 @@ The software is fairly easy to use (partially because of the limited feature set
 As of this point in time, the following options are available:
 
   * Saving and loading
-    * Save and load symbols
-    * Save and load schematics
+    * Save and load symbols (.sym files)
+    * Save and load schematics (.sch files)
     * Export symbol or schematic as a JPEG or PNG
   * Editing
     * Delete
