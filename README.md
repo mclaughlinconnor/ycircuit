@@ -86,6 +86,15 @@ Currently, the files have the following uses:
   * components.py: Defines item classes for creating and manipulating shapes.
   * Resources/*.pkl: Contains binary files that have the various symbols. Schematics are also currently saved as a .pkl file. Try loading inverter.pkl for an example inverter schematic.
 
+## TODOs ##
+-------------------------------------------------------------------------------
+
+This is an (incomplete) list of features that I would like to add at some point (in no particular order):
+
+  * Edit shapes (click and drag to resize rect, for example)
+  * Create projects (so each schematic has its own folder to dump LaTeX images in)
+  * Copying items in one schematic should allow pasting on to another open schematic
+
 ## Feedback ##
 -------------------------------------------------------------------------------
 
