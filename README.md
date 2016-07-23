@@ -81,7 +81,7 @@ Currently, the files have the following uses:
 
   * test.py: Contains mappings from UI callbacks to actual functions. Used for launching the GUI.
   * schematic_mainWindow.*: The UI file contains the output of Qt Designer while the py file is the exported version of the same.
-  * drawingitems.py: Contains the Grid class for creating the background grid in the GUI.
+  * drawingitems.py: Contains the Grid class for creating the background grid in the GUI and the TextEditor class for handling editing of TextBox objects.
   * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
   * components.py: Defines item classes for creating and manipulating shapes.
   * Resources/*.pkl: Contains binary files that have the various symbols. Schematics are also currently saved as a .pkl file. Try loading inverter.pkl for an example inverter schematic.
