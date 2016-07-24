@@ -286,6 +286,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 item.__init__(self, self.scene(), item.origin, item.listOfItems)
                 # Call loadItems if item is also a myGraphicsItemGroup
                 item.loadItems(mode)
+            print item.origin
         self.setItems(self.listOfItems)
 
 

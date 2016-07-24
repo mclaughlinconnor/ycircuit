@@ -122,6 +122,14 @@ class DrawingArea(QtGui.QGraphicsView):
             if polarity == 'P':
                 self.loadRoutine('symbol', './Resources/Symbols/Standard/pnpbjt.sym')
 
+    def addSource(self, kind='DCV'):
+        self.escapeRoutine()
+        start = self.mapToGrid(self.currentPos)
+        if kind == 'DCV':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcVoltageSource.sym')
+        elif kind == 'DCI':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcCurrentSource.sym')
+
     def saveRoutine(self, mode='export'):
         """Handles saving of both symbols and schematics as well as exporting images.
         For symbols and schematics, items are first parented to a myGraphicsItemGroup.
@@ -147,9 +155,11 @@ class DrawingArea(QtGui.QGraphicsView):
             origin = QtCore.QPointF(x, y)
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
+            print saveObject, saveObject.origin
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.scenePos() - saveObject.origin
+                print item, item.origin
                 item.transformData = item.transform()
             saveObject.setItems(listOfItems)
             if mode == 'symbol':
