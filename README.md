@@ -37,36 +37,37 @@ The software is fairly easy to use (partially because of the limited feature set
 
 As of this point in time, the following options are available:
 
-  * Saving and loading
-    * Save and load symbols (.sym files)
-    * Save and load schematics (.sch files)
-    * Export symbol or schematic as a JPEG or PNG
-  * Editing
-    * Delete
-    * Move
-    * Copy
-    * Rotate
-    * Mirror
-    * Change pen colour, style and width
-    * Change fill colour and style
-  * Shapes
-    * Line (Same as Symbols -> Wire)
-    * Rectangle
-    * Circle
-    * Ellipse
-    * Text box (with support for bold, italics, underline, subscript and superscript)
-      * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
-  * Symbols
-    * Wire
-    * Resistor
-    * Capacitor
-    * Ground
-    * Connectivity dot
-    * Transistors
-      * NFET (With and without arrow)
-      * PFET (With and without arrow)
-      * NPN BJT
-      * PNP BJT
+    * Saving and loading
+        * Save and load symbols (.sym files)
+        * Save and load schematics (.sch files)
+        * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file
+    * Editing
+        * Delete
+        * Move
+        * Copy
+        * Rotate
+        * Mirror
+        * Change pen colour, style and width
+        * Change fill colour and style
+    * Shapes
+        * Line (Same as Symbols -> Wire)
+        * Rectangle
+        * Circle
+        * Ellipse
+        * Text box (with support for bold, italics, underline, overline, subscript and superscript)
+            * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
+            * An option for a more coherent look would be to use symbols
+    * Symbols
+        * Wire
+        * Resistor
+        * Capacitor
+        * Ground
+        * Connectivity dot
+        * Transistors
+            * NFET (With and without arrow)
+            * PFET (With and without arrow)
+            * NPN BJT
+            * PNP BJT
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
@@ -85,7 +86,7 @@ Currently, the files have the following uses:
   * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
   * components.py: Defines item classes for creating and manipulating shapes.
   * Resources/Symbols/Standard/*.sym: Contains binary files that have the various symbols. User defined symbols go in Resources/Symbols/Custom
-  * Resources/*.sch: Schematics are currently saved as a .sch file. Try loading inverter.sch for an example inverter schematic.
+  * Schematics are currently saved as a .sch file. Try loading inverter.sch from the Resources/Examples directory for an example inverter schematic.
 
 ## TODOs ##
 -------------------------------------------------------------------------------

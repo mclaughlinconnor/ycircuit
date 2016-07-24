@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore, QtGui, QtSvg
 from components import *
 from drawingitems import *
 import cPickle as pickle
@@ -172,7 +172,7 @@ class DrawingArea(QtGui.QGraphicsView):
         if len(self.scene().items()) == 0:
             self.scene().addItem(self._grid)
             return
-        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF and EPS (*.pdf *.eps);; Images (*.png *.jpg)'))
+        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF and EPS files (*.pdf *.eps);; SVG files(*.svg);; Images (*.png *.jpg *.jpeg *.bmp)'))
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
@@ -180,24 +180,31 @@ class DrawingArea(QtGui.QGraphicsView):
             return
         if saveFile[-3:] in ['pdf', 'eps']:
             mode = 'pdf'
-        else:
+        elif saveFile[-3:] == 'svg':
+            mode = 'svg'
+        elif saveFile[-3:] in ['jpg', 'png', 'bmp', 'jpeg']:
             mode = 'image'
         if mode == 'pdf':
-            sourceRect = self.scene().itemsBoundingRect()
-            scale = 20
-            sourceRect.setWidth(int(scale*sourceRect.width()))
-            sourceRect.setHeight(int(scale*sourceRect.height()))
-            width, height = sourceRect.width(), sourceRect.height()
+            # Initialize printer
             printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
-            printer.setPaperSize(QtCore.QSizeF(width, height), printer.DevicePixel)
+            sourceRect = self.scene().itemsBoundingRect()
+            # Choose appropriate format
             if saveFile[-3:] == 'pdf':
                 printer.setOutputFormat(printer.PdfFormat)
-                printer.setOutputFileName(saveFile)
             if saveFile[-3:] == 'eps':
                 printer.setOutputFormat(printer.PostScriptFormat)
-                printer.setOutputFileName(saveFile)
+            printer.setOutputFileName(saveFile)
             painter = QtGui.QPainter(printer)
-            self.scene().render(painter)
+            self.scene().render(painter, source=sourceRect)
+        elif mode == 'svg':
+            svgGenerator = QtSvg.QSvgGenerator()
+            svgGenerator.setFileName(saveFile)
+            sourceRect = self.scene().itemsBoundingRect()
+            width, height = sourceRect.width(), sourceRect.height()
+            svgGenerator.setSize(QtCore.QSize(width, height))
+            svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
+            painter = QtGui.QPainter(svgGenerator)
+            self.scene().render(painter, source=sourceRect)
         elif mode == 'image':
             # Create a rect that's 1.5 times the boundingrect of all items
             sourceRect = self.scene().itemsBoundingRect()
