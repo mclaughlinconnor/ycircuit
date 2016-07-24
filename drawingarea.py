@@ -2,6 +2,7 @@ from PyQt4 import QtCore, QtGui
 from components import *
 from drawingitems import *
 import cPickle as pickle
+from os import system
 
 
 class DrawingArea(QtGui.QGraphicsView):
@@ -161,7 +162,43 @@ class DrawingArea(QtGui.QGraphicsView):
             if mode == 'schematic':
                 saveObject.reparentItems()
                 self.scene().removeItem(saveObject)
-        elif mode == 'export':
+        # Add the grid back to the scene when saving is done
+        self.scene().addItem(self._grid)
+
+    def exportRoutine(self):
+        # Remove grid from the scene to avoid saving it
+        self.scene().removeItem(self._grid)
+        # Return if no items are present
+        if len(self.scene().items()) == 0:
+            self.scene().addItem(self._grid)
+            return
+        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF and EPS (*.pdf *.eps);; Images (*.png *.jpg)'))
+        # Check that file is valid
+        if saveFile == '':
+            # Add the grid back to the scene
+            self.scene().addItem(self._grid)
+            return
+        if saveFile[-3:] in ['pdf', 'eps']:
+            mode = 'pdf'
+        else:
+            mode = 'image'
+        if mode == 'pdf':
+            sourceRect = self.scene().itemsBoundingRect()
+            scale = 20
+            sourceRect.setWidth(int(scale*sourceRect.width()))
+            sourceRect.setHeight(int(scale*sourceRect.height()))
+            width, height = sourceRect.width(), sourceRect.height()
+            printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
+            printer.setPaperSize(QtCore.QSizeF(width, height), printer.DevicePixel)
+            if saveFile[-3:] == 'pdf':
+                printer.setOutputFormat(printer.PdfFormat)
+                printer.setOutputFileName(saveFile)
+            if saveFile[-3:] == 'eps':
+                printer.setOutputFormat(printer.PostScriptFormat)
+                printer.setOutputFileName(saveFile)
+            painter = QtGui.QPainter(printer)
+            self.scene().render(painter)
+        elif mode == 'image':
             # Create a rect that's 1.5 times the boundingrect of all items
             sourceRect = self.scene().itemsBoundingRect()
             scale = 1.5
@@ -176,18 +213,12 @@ class DrawingArea(QtGui.QGraphicsView):
             painter = QtGui.QPainter(pixmap)
             targetRect = QtCore.QRectF(pixmap.rect())
             self.scene().render(painter, targetRect, sourceRect)
-            saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save File', './untitled.jpg', 'Images (*.png *.jpg)'))
-            if saveFile != '':
-                pixmap.save(saveFile, saveFile[-3:])
-            # Need to stop painting to avoid errors about painter getting deleted
-            painter.end()
+            pixmap.save(saveFile, saveFile[-3:])
+
+        # Need to stop painting to avoid errors about painter getting deleted
+        painter.end()
         # Add the grid back to the scene when saving is done
         self.scene().addItem(self._grid)
-
-        # printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
-        # printer.setOutputFileName('./temp.ps')
-        # painter = QtGui.QPainter(printer)
-        # self.scene().render(painter)
 
     def loadRoutine(self, mode='symbol', loadFile=None):
         """This is the counterpart of the save routine. Used to load both schematics

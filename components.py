@@ -262,11 +262,11 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         for item in self.listOfItems:
             pen = QtGui.QPen(item.localPen)
             pen.setColor(QtGui.QColor('gray'))
-            if hasattr(item, setPen):
+            if hasattr(item, 'setPen'):
                 item.setPen(pen)
             brush = QtGui.QBrush(item.localBrush)
             brush.setColor(QtGui.QColor('gray'))
-            if hasattr(item, setBrush):
+            if hasattr(item, 'setBrush'):
                 item.setBrush(brush)
         self.update()
 
@@ -605,7 +605,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         if hasattr(self, 'setFont'):
             font = self.font()
             font.setPointSize(self.localPenWidth*15)
-            font.setFamily('Helvetica')
+            font.setFamily('Arial')
             self.setFont(font)
         if hasattr(self, 'setDefaultTextColor'):
             self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
@@ -620,7 +620,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         self.setDefaultTextColor(QtGui.QColor('gray'))
         self.update()
 
-    def hoverLeaveEvent(self, event):
+    def hoverLeaveEvent(self, event=None):
         # Create a textedit to conveniently restore the text color
         textEdit = QtGui.QTextEdit()
         textEdit.setHtml(self.toHtml())
@@ -633,6 +633,8 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
         super(TextBox, self).mouseDoubleClickEvent(event)
+        # Reset the text colour from gray
+        self.hoverLeaveEvent()
         self.showEditor()
 
     def createCopy(self):

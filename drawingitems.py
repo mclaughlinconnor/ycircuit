@@ -2,10 +2,11 @@ from PyQt4 import QtCore, QtGui
 from textEditor_gui import Ui_Dialog
 import numpy
 import uuid
+import platform
 import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rc('font',**{'family':'sans-serif','sans-serif':['helvetica']})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
@@ -96,15 +97,16 @@ class TextEditor(QtGui.QDialog):
         self.ui.pushButton_bold.clicked.connect(self.modifyText)
         self.ui.pushButton_italic.clicked.connect(self.modifyText)
         self.ui.pushButton_underline.clicked.connect(self.modifyText)
+        self.ui.pushButton_overline.clicked.connect(self.modifyText)
         self.ui.pushButton_subscript.clicked.connect(self.modifyText)
         self.ui.pushButton_superscript.clicked.connect(self.modifyText)
+        self.ui.pushButton_symbol.clicked.connect(self.modifyText)
         self.ui.pushButton_latex.clicked.connect(self.modifyText)
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
         if self.ui.pushButton_latex.isChecked():
             image = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-            # self.textBox.pixmap = self.textBox.mathTexToQImage(plainText, self.textBox.font().weight())
             if self.textBox.latexImageHtml is None:
                 saveFile = str(uuid.uuid4()) + '.png'
                 image.save(saveFile, quality=80)
@@ -117,8 +119,6 @@ class TextEditor(QtGui.QDialog):
                 htmlString = self.textBox.latexImageHtml
             self.textBox.latexImageHtml = htmlString
             self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
-            # self.ui.textEdit.setHtml(htmlString)
-            # print self.ui.textEdit.toHtml()
             self.textBox.setHtml(htmlString)
         else:
             self.textBox.setHtml(self.ui.textEdit.toHtml())
@@ -129,8 +129,8 @@ class TextEditor(QtGui.QDialog):
     def modifyPushButtons(self):
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
-        bold, italic, underline = True, True, True
-        subscript, superscript = True, True
+        bold, italic, underline, overline = True, True, True, True
+        subscript, superscript, symbol = True, True, True
         latex = self.ui.pushButton_latex.isChecked()
         if latex is not True:
             if cursor.hasSelection() is True:
@@ -146,15 +146,21 @@ class TextEditor(QtGui.QDialog):
                     italic = False
                 if format.fontUnderline() is False:
                     underline = False
+                if format.fontOverline() is False:
+                    overline = False
                 if format.verticalAlignment() != format.AlignSubScript:
                     subscript = False
                 if format.verticalAlignment() != format.AlignSuperScript:
                     superscript = False
+                if str(format.fontFamily()) != 'Symbol':
+                    symbol = False
             self.ui.pushButton_bold.setChecked(bold)
             self.ui.pushButton_italic.setChecked(italic)
             self.ui.pushButton_underline.setChecked(underline)
+            self.ui.pushButton_overline.setChecked(overline)
             self.ui.pushButton_subscript.setChecked(subscript)
             self.ui.pushButton_superscript.setChecked(superscript)
+            self.ui.pushButton_symbol.setChecked(symbol)
 
     def latexDollarDecorators(self):
         latex = self.ui.pushButton_latex.isChecked()
@@ -178,8 +184,10 @@ class TextEditor(QtGui.QDialog):
         bold = self.ui.pushButton_bold.isChecked()
         italic = self.ui.pushButton_italic.isChecked()
         underline = self.ui.pushButton_underline.isChecked()
+        overline = self.ui.pushButton_overline.isChecked()
         subscript = self.ui.pushButton_subscript.isChecked()
         superscript = self.ui.pushButton_superscript.isChecked()
+        symbol = self.ui.pushButton_symbol.isChecked()
         latex = self.ui.pushButton_latex.isChecked()
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
@@ -201,23 +209,34 @@ class TextEditor(QtGui.QDialog):
                 format.setFontUnderline(True)
             else:
                 format.setFontUnderline(False)
+            if overline is True:
+                format.setFontOverline(True)
+            else:
+                format.setFontOverline(False)
             if subscript is True:
                 format.setVerticalAlignment(format.AlignSubScript)
             elif superscript is True:
                 format.setVerticalAlignment(format.AlignSuperScript)
             else:
                 format.setVerticalAlignment(format.AlignNormal)
+            if symbol is True:
+                format.setFontFamily('Symbol')
+            else:
+                format.setFontFamily(self.textBox.font().family())
             cursor.mergeCharFormat(format)
             self.ui.textEdit.setTextCursor(cursor)
         else:
             self.ui.pushButton_bold.setChecked(False)
             self.ui.pushButton_italic.setChecked(False)
             self.ui.pushButton_underline.setChecked(False)
+            self.ui.pushButton_overline.setChecked(False)
             self.ui.pushButton_subscript.setChecked(False)
             self.ui.pushButton_superscript.setChecked(False)
+            self.ui.pushButton_symbol.setChecked(False)
             format.setFontWeight(50)
             format.setFontItalic(False)
             format.setFontUnderline(False)
+            format.setFontOverline(False)
             format.setVerticalAlignment(format.AlignNormal)
             cursor.mergeCharFormat(format)
             self.ui.textEdit.setTextCursor(cursor)

@@ -17,7 +17,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,1">
+      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,0,0,1">
        <property name="spacing">
         <number>5</number>
        </property>
@@ -148,6 +148,46 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_overline">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+	font-size: 18px;
+	text-decoration: overline;
+}</string>
+         </property>
+         <property name="text">
+          <string>O</string>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+O</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="pushButton_subscript">
          <property name="minimumSize">
           <size>
@@ -165,13 +205,15 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true"/>
+          <string notr="true">QPushButton {
+	font-size: 15px;
+}</string>
          </property>
          <property name="text">
           <string>Sub</string>
          </property>
          <property name="shortcut">
-          <string>Ctrl+U</string>
+          <string>Ctrl+-</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -202,13 +244,15 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true"/>
+          <string notr="true">QPushButton {
+	font-size: 15px;
+}</string>
          </property>
          <property name="text">
           <string>Sup</string>
          </property>
          <property name="shortcut">
-          <string>Ctrl+U</string>
+          <string>Ctrl+=</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -222,7 +266,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_latex">
+        <widget class="QPushButton" name="pushButton_symbol">
          <property name="minimumSize">
           <size>
            <width>40</width>
@@ -239,13 +283,52 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="styleSheet">
-          <string notr="true"/>
+          <string notr="true">font: 11pt &quot;Symbol&quot;;</string>
+         </property>
+         <property name="text">
+          <string>abc</string>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+S</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_latex">
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+	font-size: 15px;
+}</string>
          </property>
          <property name="text">
           <string>LaTeX</string>
          </property>
          <property name="shortcut">
-          <string>Ctrl+U</string>
+          <string>Ctrl+L</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
