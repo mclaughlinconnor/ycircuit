@@ -64,10 +64,10 @@ As of this point in time, the following options are available:
     * Ground
     * Connectivity dot
     * Transistors
-      * NFET (With and without arrow)
-      * PFET (With and without arrow)
-      * NPN BJT
-      * PNP BJT
+        * NFET (With and without arrow)
+        * PFET (With and without arrow)
+        * NPN BJT
+        * PNP BJT
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
