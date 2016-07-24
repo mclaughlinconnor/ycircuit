@@ -55,8 +55,8 @@ As of this point in time, the following options are available:
     * Circle
     * Ellipse
     * Text box (with support for bold, italics, underline, overline, subscript and superscript)
-      * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
-      * An option for a more coherent look would be to use symbols
+        * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
+        * An option for a more coherent look would be to use symbols
   * Symbols
     * Wire
     * Resistor
