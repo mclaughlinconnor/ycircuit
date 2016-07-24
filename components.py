@@ -1,10 +1,12 @@
 from PyQt4 import QtCore, QtGui
 import numpy
 from drawingitems import TextEditor
-
+import sys
 
 class drawingElement(object):
-    """Docstring for drawingElement"""
+    """The drawingElement forms part of the basis for all drawing classes.
+    It contains methods for setting pen and brush options, moving, copying etc.
+    """
     def __init__(self, parent=None, start=None, **kwargs):
         super(drawingElement, self).__init__()
         self.parent = parent
@@ -18,17 +20,26 @@ class drawingElement(object):
         self.setAcceptHoverEvents(True)
 
     def __getstate__(self):
+        """Pen and brush objects are not picklable so remove them"""
         localDict = self.__dict__
         localDict.pop('localPen', None)
         localDict.pop('localBrush', None)
         return localDict
 
     def __setstate__(self, state):
+        """Since pen and brush objects were removed, we need to add them back"""
         state['localPen'] = QtGui.QPen()
         state['localBrush'] = QtGui.QBrush()
         self.__dict__ = state
 
     def setLocalPenOptions(self, **kwargs):
+        """Sets pen options for the current object.
+        The following keyword arguments are accepted:
+        pen: QtGui.QPen instance of a pen
+        width: int specifying width of the line to be drawn
+        penColour: string specifying colour of the line to be drawn
+        penStyle: int specifying style of the line to be drawn
+        """
         # Necessary for objects with modified bounding rects
         self.prepareGeometryChange()
         if 'pen' in kwargs:
@@ -50,6 +61,12 @@ class drawingElement(object):
             self.setPen(self.localPen)
 
     def setLocalBrushOptions(self, **kwargs):
+        """Sets brush options for the current object.
+        The following keyword arguments are accepted:
+        brush: QtGui.QBrush instance of a brush
+        brushColour: string specifying colour of the fill
+        brushStyle: int specifying style of the fill
+        """
         # Necessary for objects with modified bounding rects
         self.prepareGeometryChange()
         if 'brush' in kwargs:
@@ -89,6 +106,7 @@ class drawingElement(object):
         self.setSelected(True)
 
     def modifyMoveOrigin(self, startPos, mode='r', moving=False):
+        """Calculates new origin for when object is rotated/mirrored"""
         if moving is True:
             if mode == 'R':
                 self.originX = 2*startPos.x() - self.originX
@@ -100,11 +118,15 @@ class drawingElement(object):
             self.moveTo(0, 0, 'move')
 
     def createCopy(self):
+        # Deselect item
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
+        # Create copy with same pen and brush and start location
         newItem = self.__class__(None, _start, pen=self.localPen, brush=self.localBrush)
+        # Apply any transforms (rotations, reflections etc.)
         newItem.setTransform(self.transform())
+        # Add new item to scene and then select it
         self.scene().addItem(newItem)
         newItem.setSelected(True)
         newItem.moveTo(0, 0, 'start')
@@ -116,6 +138,7 @@ class drawingElement(object):
         return p
 
     def hoverEnterEvent(self, event):
+        """Turns the item gray when mouse enters its bounding rect"""
         pen = QtGui.QPen(self.localPen)
         pen.setColor(QtGui.QColor('gray'))
         self.setPen(pen)
@@ -125,6 +148,9 @@ class drawingElement(object):
         self.update()
 
     def hoverLeaveEvent(self, event):
+        """Restores the item's original pen and brush when mouse leaves
+        its bounding rect
+        """
         # self.localPen.setColor(QtGui.QColor(self.localPenColour))
         self.setPen(self.localPen)
         # self.localBrush.setColor(QtGui.QColor(self.localBrushColour))
@@ -134,7 +160,8 @@ class drawingElement(object):
 
 class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
     """Subclassed from QGraphicsItem. Provides additional methods so that
-    the parent item remembers all the items that are its children."""
+    the parent item remembers all the items that are its children.
+    """
     def __init__(self, parent=None, scene=None, start=None, listOfItems=None):
         super(myGraphicsItemGroup, self).__init__(parent, scene)
         self.listOfItems = listOfItems
@@ -151,6 +178,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         self.setAcceptHoverEvents(True)
 
     def paint(self, painter, *args):
+        """Call child paint methods individually"""
         if not isinstance(self.parentItem(), myGraphicsItemGroup):
             if self.isSelected() is True:
                 pen = QtGui.QPen()
@@ -165,9 +193,13 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         return self.mapRectFromScene(rect)
 
     def __setstate__(self, state):
+        """Reimplemented from drawingElement because group does not have
+        pen and brush of its own.
+        """
         self.__dict__ = state
 
     def createCopy(self):
+        """Call child copy methods individually after creating new parent"""
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
@@ -178,14 +210,15 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             newItem.listOfItems.append(itemCopy)
         newItem.setItems(newItem.listOfItems)
         newItem.setTransform(self.transform())
-        # self.scene().addItem(newItem)
         newItem.setSelected(True)
         newItem.moveTo(0, 0, 'start')
         return newItem
 
     def setItems(self, listOfItems):
+        """Add all items in listOfItems as children"""
         for item in listOfItems:
             item.setParentItem(self)
+            # For when children are being loaded from a file
             if hasattr(item, 'origin'):
                 item.setPos(item.origin)
             if hasattr(item, 'transformData'):
@@ -195,6 +228,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         self.listOfItems = self.childItems()
 
     def reparentItems(self, newParent=None):
+        """Sets parent of all child items to newParent"""
         for item in self.listOfItems:
             item.setParentItem(newParent)
             item.setFlag(item.ItemIsSelectable, True)
@@ -210,12 +244,14 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 item.setLocalBrushOptions()
 
     def setLocalPenOptions(self, **kwargs):
+        """Set pen individually for each child item"""
         for item in self.listOfItems:
             if not hasattr(item, 'localPen'):
                 item.localPen = QtGui.QPen()
             item.setLocalPenOptions(**kwargs)
 
     def setLocalBrushOptions(self, **kwargs):
+        """Set brush individually for each child item"""
         for item in self.listOfItems:
             if not hasattr(item, 'localBrush'):
                 item.localBrush = QtGui.QBrush()
@@ -226,34 +262,30 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         for item in self.listOfItems:
             pen = QtGui.QPen(item.localPen)
             pen.setColor(QtGui.QColor('gray'))
-            item.setPen(pen)
+            if hasattr(item, 'setPen'):
+                item.setPen(pen)
             brush = QtGui.QBrush(item.localBrush)
             brush.setColor(QtGui.QColor('gray'))
-            item.setBrush(brush)
+            if hasattr(item, 'setBrush'):
+                item.setBrush(brush)
         self.update()
 
     def hoverLeaveEvent(self, event):
         # For some reason calling the children's hoverLeaveEvent did not work
         for item in self.listOfItems:
-            # item.localPen.setColor(QtGui.QColor(item.localPenColour))
             item.setPen(item.localPen)
-            # item.localBrush.setColor(QtGui.QColor(item.localBrushColour))
             item.setBrush(item.localBrush)
         self.update()
 
     def loadItems(self, mode='symbol'):
+        """Initializes items in self.listOfItems."""
         for item in self.listOfItems:
             if not isinstance(item, myGraphicsItemGroup):
                 item.__init__(self, item.origin, penColour=item.localPenColour, width=item.localPenWidth, penStyle=item.localPenStyle, brushColour=item.localBrushColour, brushStyle=item.localBrushStyle)
             else:
-                # item.__init__(self, self.scene(), QtCore.QPointF(0, 0), item.listOfItems)
                 item.__init__(self, self.scene(), item.origin, item.listOfItems)
-                # item.loadItems(mode)
-                # item.setPos(item.origin)
+                # Call loadItems if item is also a myGraphicsItemGroup
                 item.loadItems(mode)
-                # item.setPos(item.origin)
-            # self.addToGroup(item)
-            # item.setParentItem(self)
         self.setItems(self.listOfItems)
 
 
@@ -262,6 +294,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
     added convenience functions and enables object-like interaction"""
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
+        # For when wire is being loaded from a file, oldPath already exists
         if not hasattr(self, 'oldPath'):
             super(Wire, self).__init__(QtGui.QPainterPath(point), parent)
         else:
@@ -273,6 +306,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
 
     def __getstate__(self):
         localDict = super(Wire, self).__getstate__()
+        # Add a list of all points part of the wire
         polyPathList = self.oldPath.toSubpathPolygons()
         polyPathPointList = []
         for poly in polyPathList:
@@ -284,6 +318,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         state['localPen'] = QtGui.QPen()
         state['localBrush'] = QtGui.QBrush()
         self.__dict__ = state
+        # Add a polygon corresponding to the list of saved points
         a = QtGui.QPolygonF(state['polyPathPointList'][0])
         self.oldPath2 = QtGui.QPainterPath()
         for item in state['polyPathPointList']:
@@ -292,6 +327,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         self.oldPath = self.__dict__.pop('oldPath2', None)
 
     def updateWire(self, newEnd):
+        # Update existing segment to end at newEnd
         newEnd = self.mapFromScene(newEnd)
         self.setPath(self.oldPath)
         path = self.path()
@@ -299,6 +335,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         self.setPath(path)
 
     def createSegment(self, newEnd):
+        # Create a new segment (e.g. when LMB is clicked)
         newEnd = self.mapFromScene(newEnd)
         self.oldPath.lineTo(newEnd)
         self.setPath(self.oldPath)
@@ -307,6 +344,9 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         self.setPath(self.oldPath)
 
     def createCopy(self):
+        """Reimplemented from drawingElement. Sets path and origin of the copy
+        to that of the original.
+        """
         newWire = super(Wire, self).createCopy()
         newWire.setPath(self.path())
         newWire.oldPath = newWire.path()
@@ -316,7 +356,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
-    """docstring for Rectangle"""
+    """Class responsible for drawing rectangular objects"""
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
@@ -331,6 +371,7 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
         drawingElement.__init__(self, parent, start=point, **kwargs)
 
     def boundingRect(self):
+        # Make the bounding rect a little bigger so it is easier to see
         pad = 10
         bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, pad)
         topRight = self.rect().topRight() + QtCore.QPointF(pad, -pad)
@@ -338,7 +379,7 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
         return rect
 
     def paint(self, painter, *args):
-        # super(Rectangle, self).paint(painter, *args)
+        # We have to manually draw out the bounding rect
         if self.isSelected() is False:
             super(Rectangle, self).paint(painter, *args)
         else:
@@ -351,16 +392,21 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
             painter.drawRect(self.rect())
 
     def updateRectangle(self, end):
+        # Update the end point of the rectangle to end
         end = self.mapFromScene(end)
         rect = QtCore.QRectF(self.start, end)
         self.setRect(rect)
         self.oldRect = rect
+        # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
         for item in collidingItems:
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
     def createCopy(self):
+        """Reimplemented from drawingElement. Sets the rect and origin of the
+        copy the same as the current rect.
+        """
         newRectangle = super(Rectangle, self).createCopy()
         newRectangle.setRect(self.rect())
         newRectangle.oldRect = newRectangle.rect()
@@ -375,7 +421,7 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
 
 
 class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
-    """docstring for Ellipse"""
+    """Class responsible for drawing elliptical objects"""
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
@@ -390,6 +436,7 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         self.oldRect = self.rect()
 
     def boundingRect(self):
+        # Make the bounding rect a little bigger so that it is easier to see
         pad = 10
         # Not sure why this is different from the Rectangle boundingRect
         bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, -pad)
@@ -398,7 +445,7 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         return rect
 
     def paint(self, painter, *args):
-        # super(Rectangle, self).paint(painter, *args)
+        # We have to manually draw out the bounding rect
         if self.isSelected() is False:
             super(Ellipse, self).paint(painter, *args)
         else:
@@ -411,16 +458,20 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
             painter.drawEllipse(self.rect())
 
     def updateEllipse(self, end):
+        # Update the end point of the ellipse to end
         end = self.mapFromScene(end)
         rect = QtCore.QRectF(self.start, end)
         self.setRect(rect)
         self.oldRect = rect
+        # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
         for item in collidingItems:
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
     def createCopy(self):
+        """Reimplemented from drawingElement. Sets the rect and origin of the
+        copy the same as the current ellipse."""
         newEllipse = super(Ellipse, self).createCopy()
         newEllipse.setRect(self.rect())
         newEllipse.oldRect = newEllipse.rect()
@@ -435,11 +486,12 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
 
 
 class Circle(Ellipse):
-    """docstring for Circle"""
+    """This is a special case of the Ellipse class where a = b."""
     def __init__(self, parent=None, start=None, **kwargs):
         super(Circle, self).__init__(parent, start, **kwargs)
 
     def boundingRect(self):
+        # Make the bounding rect a little bigger so that it is easier to see
         pad = 10
         # This is the same as that for rectangle
         bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, pad)
@@ -448,7 +500,9 @@ class Circle(Ellipse):
         return rect
 
     def updateCircle(self, end):
+        # Update the opposite end of the diameter of the circle to end
         distanceLine = end - self.mapToScene(self.start)
+        # Calculate the angle made by the diameter to +ve X-axis
         if distanceLine.x() == 0:
             if distanceLine.y() < 0:
                 theta = 270
@@ -471,6 +525,7 @@ class Circle(Ellipse):
         self.setTransformOriginPoint(self.start)
         self.setRotation(theta)
         self.oldRect = self.rect()
+        # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
         for item in collidingItems:
             if item.isObscuredBy(self):
@@ -478,7 +533,18 @@ class Circle(Ellipse):
 
 
 class TextBox(QtGui.QGraphicsTextItem, drawingElement):
-    """docstring for TextBox"""
+    """Responsible for showing formatted text as well as LaTeX images.
+    The current formatting options are supported:
+        1. Bold
+        2. Italic
+        3. Underline
+        4. Subscript
+        5. Superscript
+    LaTeX images are displayed in place of the text.
+    TODO: Fix size issues with rendered LaTeX images
+    TODO: Grey out LaTeX images on mouse hover
+    TODO: Delete corresponding LaTeX image files when textbox is deleted
+    """
     def __init__(self, parent=None, start=None, text='', **kwargs):
         point = QtCore.QPointF(0, 0)
         if not hasattr(self, 'origin'):
@@ -490,25 +556,35 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         # Set the fixed vertex to (0, 0) in local coordinates
         drawingElement.__init__(self, parent, start=point, **kwargs)
         self.setTextWidth(-1)
+        # Instantiate variables if none exist already
+        if not hasattr(self, 'latexImageHtml'):
+            self.latexImageHtml = None
+            self.latexExpression = None
         if text != '':
             self.setHtml(text)
         elif hasattr(self, 'htmlText'):
             self.setHtml(self.htmlText)
+        elif self.latexImageHtml is not None:
+            self.setHtml(self.latexImageHtml)
         else:
             self.showEditor()
 
     def __getstate__(self):
         localDict = super(TextBox, self).__getstate__()
         localDict.pop('textEditor', None)
+        # Add htmlText to the dict
         localDict['htmlText'] = self.toHtml()
         return localDict
 
     def showEditor(self):
         self.textEditor = TextEditor(self)
         self.textEditor.show()
-        self.textEditor.accepted.connect(lambda: self.setHtml(self.textEditor.ui.textEdit.toHtml()))
 
     def setLocalPenOptions(self, **kwargs):
+        """Reimplemented from drawingElement. QGraphicsTextItem objects do not
+        have pens and brushes. Further, they have fonts whose sizes and widths
+        can be changed.
+        """
         # Necessary for objects with modified bounding rects
         self.prepareGeometryChange()
         if 'pen' in kwargs:
@@ -529,21 +605,36 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         if hasattr(self, 'setFont'):
             font = self.font()
             font.setPointSize(self.localPenWidth*15)
-            font.setFamily('Helvetica')
+            font.setFamily('Arial')
             self.setFont(font)
         if hasattr(self, 'setDefaultTextColor'):
             self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
 
     def hoverEnterEvent(self, event):
+        # Create a textedit to conveniently change the text color
+        textEdit = QtGui.QTextEdit()
+        textEdit.setHtml(self.toHtml())
+        textEdit.selectAll()
+        textEdit.setTextColor(QtGui.QColor('gray'))
+        self.setHtml(textEdit.toHtml())
         self.setDefaultTextColor(QtGui.QColor('gray'))
         self.update()
 
-    def hoverLeaveEvent(self, event):
+    def hoverLeaveEvent(self, event=None):
+        # Create a textedit to conveniently restore the text color
+        textEdit = QtGui.QTextEdit()
+        textEdit.setHtml(self.toHtml())
+        textEdit.selectAll()
+        textEdit.setTextColor(QtGui.QColor(self.localPenColour))
+        self.setHtml(textEdit.toHtml())
         self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
         self.update()
 
     def mouseDoubleClickEvent(self, event):
+        # Show the editor on double click
         super(TextBox, self).mouseDoubleClickEvent(event)
+        # Reset the text colour from gray
+        self.hoverLeaveEvent()
         self.showEditor()
 
     def createCopy(self):

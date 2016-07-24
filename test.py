@@ -19,7 +19,7 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_loadSchematic.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('schematic'))
         self.ui.action_saveSymbol.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbol'))
         self.ui.action_loadSymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbol'))
-        self.ui.action_exportFile.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('export'))
+        self.ui.action_exportFile.triggered.connect(self.ui.drawingArea.exportRoutine)
         self.ui.action_quit.triggered.connect(self.close)
 
         # Edit menu
