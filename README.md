@@ -37,37 +37,37 @@ The software is fairly easy to use (partially because of the limited feature set
 
 As of this point in time, the following options are available:
 
-    * Saving and loading
-        * Save and load symbols (.sym files)
-        * Save and load schematics (.sch files)
-        * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file
-    * Editing
-        * Delete
-        * Move
-        * Copy
-        * Rotate
-        * Mirror
-        * Change pen colour, style and width
-        * Change fill colour and style
-    * Shapes
-        * Line (Same as Symbols -> Wire)
-        * Rectangle
-        * Circle
-        * Ellipse
-        * Text box (with support for bold, italics, underline, overline, subscript and superscript)
-            * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
-            * An option for a more coherent look would be to use symbols
-    * Symbols
-        * Wire
-        * Resistor
-        * Capacitor
-        * Ground
-        * Connectivity dot
-        * Transistors
-            * NFET (With and without arrow)
-            * PFET (With and without arrow)
-            * NPN BJT
-            * PNP BJT
+  * Saving and loading
+    * Save and load symbols (.sym files)
+    * Save and load schematics (.sch files)
+    * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file
+  * Editing
+    * Delete
+    * Move
+    * Copy
+    * Rotate
+    * Mirror
+    * Change pen colour, style and width
+    * Change fill colour and style
+  * Shapes
+    * Line (Same as Symbols -> Wire)
+    * Rectangle
+    * Circle
+    * Ellipse
+    * Text box (with support for bold, italics, underline, overline, subscript and superscript)
+      * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
+      * An option for a more coherent look would be to use symbols
+  * Symbols
+    * Wire
+    * Resistor
+    * Capacitor
+    * Ground
+    * Connectivity dot
+    * Transistors
+      * NFET (With and without arrow)
+      * PFET (With and without arrow)
+      * NPN BJT
+      * PNP BJT
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
