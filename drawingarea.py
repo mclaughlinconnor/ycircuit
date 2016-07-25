@@ -160,7 +160,6 @@ class DrawingArea(QtGui.QGraphicsView):
             for item in listOfItems:
                 item.origin = item.scenePos() - saveObject.origin
                 print item, item.origin
-                item.transformData = item.transform()
             saveObject.setItems(listOfItems)
             if mode == 'symbol':
                 saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
@@ -418,6 +417,19 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def rotateRoutine(self, modifier=None):
         """Handles rotation and reflection of selected items"""
+        # listOfItems = self.scene().selectedItems()
+        # listOfItems = [item for item in listOfItems if item.parentItem() is None]
+        # x = min([item.scenePos().x() for item in listOfItems])
+        # y = min([item.scenePos().y() for item in listOfItems])
+        # origin = QtCore.QPointF(x, y)
+        # self.moveItemsGroup = myGraphicsItemGroup(None, self.scene(), origin)
+        # self.moveItemsGroup.origin = origin
+        # # Set relative origins of child items
+        # for item in listOfItems:
+        #     item.origin = item.scenePos() - self.moveItemsGroup.origin
+        # self.moveItemsGroup.setItems(listOfItems)
+        # self.moveItems = listOfItems
+
         self.moveItems = self.scene().selectedItems()
         # If items have been selected
         if self.moveItems != []:
@@ -457,6 +469,11 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['m'] is True:
                     for item in self.moveItems:
                         item.modifyMoveOrigin(self.moveStartPos, 'r', True)
+                # transform_ = QtGui.QTransform()
+                # origin = self.moveItemsGroup.mapFromScene(self.currentPos)
+                # transform_.translate(origin.x(), origin.y())
+                # transform_.rotate(self.rotateAngle)
+                # self.moveItemsGroup.setTransform(transform_)
             # Remove item group
             self.scene().destroyItemGroup(self.moveItemsGroup)
 
@@ -545,14 +562,15 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['ellipse'] is True:
                     self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
                 if self._keys['m'] is True:
+                    # transform_ = QtGui.QTransform()
+                    # origin = self.moveItemsGroup.mapFromScene(event.pos())
+                    # transform_.translate(origin.x(), origin.y())
+                    # self.moveItemsGroup.setTransform(transform_)
                     self.moveStopPos = self.mapToGrid(event.pos())
                     for i in self.moveItems:
                         x = self.moveStopPos.x() - self.moveStartPos.x()
                         y = self.moveStopPos.y() - self.moveStartPos.y()
                         i.moveTo(x, y, 'move')
-            else:
-                self.translate(self.oldX - self.currentX,
-                               self.oldY - self.currentY)
 
     def contextMenuEvent(self, event):
         # TODO: Make this work properly

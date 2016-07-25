@@ -24,6 +24,7 @@ class drawingElement(object):
         localDict = self.__dict__
         localDict.pop('localPen', None)
         localDict.pop('localBrush', None)
+        localDict['transformData'] = self.transform()
         return localDict
 
     def __setstate__(self, state):
@@ -523,8 +524,10 @@ class Circle(Ellipse):
         sideLength = numpy.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
         square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength/2), QtCore.QSizeF(sideLength, sideLength))
         self.setRect(square)
-        self.setTransformOriginPoint(self.start)
-        self.setRotation(theta)
+        self.transform_ = QtGui.QTransform()
+        self.transform_.translate(0, 0)
+        self.transform_.rotate(theta)
+        self.setTransform(self.transform_)
         self.oldRect = self.rect()
         # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
