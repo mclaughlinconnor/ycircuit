@@ -130,6 +130,14 @@ class DrawingArea(QtGui.QGraphicsView):
             self.loadRoutine('symbol', './Resources/Symbols/Standard/dcVoltageSource.sym')
         elif kind == 'DCI':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/dcCurrentSource.sym')
+        elif kind == 'VCVS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/vcvs.sym')
+        elif kind == 'VCCS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/vccs.sym')
+        elif kind == 'CCVS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/ccvs.sym')
+        elif kind == 'CCCS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
 
     def saveRoutine(self, mode='export'):
         """Handles saving of both symbols and schematics as well as exporting images.
