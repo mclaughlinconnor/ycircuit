@@ -52,7 +52,7 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -161,12 +161,44 @@
      <addaction name="action_addNPNBJT"/>
      <addaction name="action_addPNPBJT"/>
     </widget>
+    <widget class="QMenu" name="menuSources">
+     <property name="title">
+      <string>&amp;Sources</string>
+     </property>
+     <widget class="QMenu" name="menu_DC">
+      <property name="title">
+       <string>&amp;DC</string>
+      </property>
+      <addaction name="action_addDCVoltageSource"/>
+      <addaction name="action_addDCCurrentSource"/>
+     </widget>
+     <widget class="QMenu" name="menu_AC">
+      <property name="title">
+       <string>&amp;AC</string>
+      </property>
+      <addaction name="action_addACVoltageSource"/>
+      <addaction name="action_addACCurrentSource"/>
+     </widget>
+     <widget class="QMenu" name="menu_Controlled">
+      <property name="title">
+       <string>&amp;Controlled</string>
+      </property>
+      <addaction name="action_addVCVS"/>
+      <addaction name="action_addVCCS"/>
+      <addaction name="action_addCCVS"/>
+      <addaction name="action_addCCCS"/>
+     </widget>
+     <addaction name="menu_DC"/>
+     <addaction name="menu_AC"/>
+     <addaction name="menu_Controlled"/>
+    </widget>
     <addaction name="action_addWire"/>
     <addaction name="action_addResistor"/>
     <addaction name="action_addCapacitor"/>
     <addaction name="action_addGround"/>
     <addaction name="action_addDot"/>
     <addaction name="menu_Transistor"/>
+    <addaction name="menuSources"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
@@ -711,6 +743,70 @@
   <action name="action_setBrushColourYellow">
    <property name="text">
     <string>&amp;Yellow</string>
+   </property>
+  </action>
+  <action name="action_addDCVoltageSource">
+   <property name="text">
+    <string>&amp;Voltage</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds a DC voltage source</string>
+   </property>
+  </action>
+  <action name="action_addDCCurrentSource">
+   <property name="text">
+    <string>&amp;Current</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds a DC current source</string>
+   </property>
+  </action>
+  <action name="action_addACVoltageSource">
+   <property name="text">
+    <string>&amp;Voltage</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds an AC voltage source</string>
+   </property>
+  </action>
+  <action name="action_addACCurrentSource">
+   <property name="text">
+    <string>&amp;Current</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds an AC current source</string>
+   </property>
+  </action>
+  <action name="action_addVCVS">
+   <property name="text">
+    <string>VCVS</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds a VCVS</string>
+   </property>
+  </action>
+  <action name="action_addVCCS">
+   <property name="text">
+    <string>VCCS</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds a VCCS</string>
+   </property>
+  </action>
+  <action name="action_addCCVS">
+   <property name="text">
+    <string>CCVS</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds a CCVS</string>
+   </property>
+  </action>
+  <action name="action_addCCCS">
+   <property name="text">
+    <string>CCCS</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds a CCCS</string>
    </property>
   </action>
  </widget>

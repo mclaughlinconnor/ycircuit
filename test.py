@@ -85,6 +85,12 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_addPMOSWithoutArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', False))
         self.ui.action_addNPNBJT.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('BJT', 'N', True))
         self.ui.action_addPNPBJT.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('BJT', 'P', True))
+        self.ui.action_addDCVoltageSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('DCV'))
+        self.ui.action_addDCCurrentSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('DCI'))
+        self.ui.action_addVCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCVS'))
+        self.ui.action_addVCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCCS'))
+        self.ui.action_addCCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCVS'))
+        self.ui.action_addCCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCCS'))
 
     def menu_Edit_hovered(self):
         widthList = []

@@ -29,13 +29,14 @@ class DrawingArea(QtGui.QGraphicsView):
         self.snapToGrid = True
         self.reflections = 0
         self.rotations = 0
-        self.rotateAngle = 90
+        self.rotateAngle = 30
         self.selectedWidth = 2
         self.selectedPenColour = 'black'
         self.selectedPenStyle = 1
         self.selectedBrushColour = 'black'
         self.selectedBrushStyle = 0
         self.items = []
+        self.moveItems = []
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -122,6 +123,22 @@ class DrawingArea(QtGui.QGraphicsView):
             if polarity == 'P':
                 self.loadRoutine('symbol', './Resources/Symbols/Standard/pnpbjt.sym')
 
+    def addSource(self, kind='DCV'):
+        self.escapeRoutine()
+        start = self.mapToGrid(self.currentPos)
+        if kind == 'DCV':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcVoltageSource.sym')
+        elif kind == 'DCI':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcCurrentSource.sym')
+        elif kind == 'VCVS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/vcvs.sym')
+        elif kind == 'VCCS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/vccs.sym')
+        elif kind == 'CCVS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/ccvs.sym')
+        elif kind == 'CCCS':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
+
     def saveRoutine(self, mode='export'):
         """Handles saving of both symbols and schematics as well as exporting images.
         For symbols and schematics, items are first parented to a myGraphicsItemGroup.
@@ -142,15 +159,17 @@ class DrawingArea(QtGui.QGraphicsView):
         if mode == 'symbol' or mode == 'schematic':
             listOfItems = self.scene().items()
             listOfItems = [item for item in listOfItems if item.parentItem() is None]
+            print listOfItems
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
+            print saveObject, saveObject.origin
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.scenePos() - saveObject.origin
-                item.transformData = item.transform()
+                print item, item.origin
             saveObject.setItems(listOfItems)
             if mode == 'symbol':
                 saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
@@ -277,7 +296,8 @@ class DrawingArea(QtGui.QGraphicsView):
                         self.rotateRoutine()
                 if (hasattr(self, 'moveItems')):
                     for i in self.moveItems:
-                        i.moveTo(0, 0, 'cancel')
+                        # i.moveTo(0, 0, 'cancel')
+                        i.moveTo(None, 'cancel')
                     self.moveItems = []
             else:
                 self.moveItems = []
@@ -317,6 +337,7 @@ class DrawingArea(QtGui.QGraphicsView):
     def moveRoutine(self):
         """Preps to begin moving items"""
         self.escapeRoutine()
+        self.updateMoveItems()
         self._keys['m'] = True
 
     def copyRoutine(self):
@@ -397,22 +418,26 @@ class DrawingArea(QtGui.QGraphicsView):
                     self._mouse['1'] = False
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
-                self.moveStartPos = self.mapToGrid(event.pos())
+                # self.moveStartPos = self.mapToGrid(event.pos())
                 for i in self.moveItems:
-                    i.moveTo(0, 0, 'start')
+                    # i.moveTo(0, 0, 'start')
+                    i.moveTo(self.mapToGrid(event.pos()), 'start')
             # End moving if LMB is clicked again
             else:
                 for i in self.moveItems:
-                    i.moveTo(0, 0, 'done')
+                    # i.moveTo(0, 0, 'done')
+                    i.moveTo(self.mapToGrid(event.pos()), 'done')
         super(DrawingArea, self).mousePressEvent(event)
+
+    def updateMoveItems(self):
+        """Simple function that generates a list of selected items"""
+        self.moveItems = self.scene().selectedItems()
 
     def rotateRoutine(self, modifier=None):
         """Handles rotation and reflection of selected items"""
-        self.moveItems = self.scene().selectedItems()
+        self.updateMoveItems()
         # If items have been selected
         if self.moveItems != []:
-            # Add them to a group
-            self.moveItemsGroup = self.scene().createItemGroup(self.moveItems)
             if modifier is None:
                 modifier = QtGui.QApplication.keyboardModifiers()
             # If reflect mode is on
@@ -420,35 +445,14 @@ class DrawingArea(QtGui.QGraphicsView):
                 # Keep track of number of reflections
                 self.reflections += 1
                 self.reflections %= 2
-                # Reflect items and move them to new origin
-                oldPos = self.moveItemsGroup.sceneBoundingRect(
-                ).center().toPoint()
-                self.moveItemsGroup.scale(-1, 1)
-                newPos = self.moveItemsGroup.sceneBoundingRect(
-                ).center().toPoint()
-                delta = newPos - oldPos
-                self.moveItemsGroup.translate(delta.x(), delta.y())
-                if self._keys['m'] is True:
-                    for item in self.moveItems:
-                        item.modifyMoveOrigin(self.moveStartPos, 'R', True)
+                for item in self.moveItems:
+                    item.reflect(self._keys['m'], self.mapToGrid(self.currentPos))
             else:
                 # Keep track of number of rotations
                 self.rotations += 1
                 self.rotations %= 360/self.rotateAngle
-                # Rotate items and move them to new origin
-                # TODO: Make this work for angles other than 90
-                oldPos = self.moveItemsGroup.sceneBoundingRect(
-                ).center().toPoint()
-                self.moveItemsGroup.rotate(self.rotateAngle)
-                newPos = self.moveItemsGroup.sceneBoundingRect(
-                ).center().toPoint()
-                delta = newPos - oldPos
-                self.moveItemsGroup.translate(-delta.y(), delta.x())
-                if self._keys['m'] is True:
-                    for item in self.moveItems:
-                        item.modifyMoveOrigin(self.moveStartPos, 'r', True)
-            # Remove item group
-            self.scene().destroyItemGroup(self.moveItemsGroup)
+                for item in self.moveItems:
+                    item.rotateBy(self._keys['m'], self.mapToGrid(self.currentPos), self.rotateAngle)
 
     def mouseReleaseEvent(self, event):
         super(DrawingArea, self).mouseReleaseEvent(event)
@@ -535,14 +539,8 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['ellipse'] is True:
                     self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
                 if self._keys['m'] is True:
-                    self.moveStopPos = self.mapToGrid(event.pos())
-                    for i in self.moveItems:
-                        x = self.moveStopPos.x() - self.moveStartPos.x()
-                        y = self.moveStopPos.y() - self.moveStartPos.y()
-                        i.moveTo(x, y, 'move')
-            else:
-                self.translate(self.oldX - self.currentX,
-                               self.oldY - self.currentY)
+                    for item in self.moveItems:
+                        item.moveTo(self.mapToGrid(event.pos()), 'move')
 
     def contextMenuEvent(self, event):
         # TODO: Make this work properly

@@ -18,12 +18,15 @@ class drawingElement(object):
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         self.setAcceptHoverEvents(True)
+        self.reflections = 0
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
         localDict = self.__dict__
         localDict.pop('localPen', None)
         localDict.pop('localBrush', None)
+        localDict['transformData'] = self.transform()
+        print self.transform().m11(), self.transform().m12(), self.transform().m13(), self.transform().m21(), self.transform().m22(), self.transform().m23(), self.transform().m31(), self.transform().m32(), self.transform().m33()
         return localDict
 
     def __setstate__(self, state):
@@ -82,40 +85,69 @@ class drawingElement(object):
         if hasattr(self, 'setBrush'):
             self.setBrush(self.localBrush)
 
-    def moveTo(self, xOffset, yOffset, status):
+    def moveTo(self, newPoint, status):
+        """Move by changing the pos of the item relative to the origin"""
         if status == 'start':
-            self.oldOriginX = self.x()
-            self.oldOriginY = self.y()
-            self.originX = self.x()
-            self.originY = self.y()
+            self.oldPos = self.pos()
+            self.origin = newPoint - self.oldPos
         elif status == 'move':
-            self.newOriginX = self.originX + xOffset
-            self.newOriginY = self.originY + yOffset
-            self.setX(self.newOriginX)
-            self.setY(self.newOriginY)
-        elif status == 'cancel':
-            self.setX(self.oldOriginX)
-            self.setY(self.oldOriginY)
+            if self.parentItem() is not None:
+                self.setPos(self.mapFromParent(newPoint) - self.origin)
+            else:
+                self.setPos(newPoint - self.origin)
         elif status == 'done':
-            self.setX(self.newOriginX)
-            self.setY(self.newOriginY)
-            self.originX = self.newOriginX
-            self.originY = self.newOriginY
+            if self.parentItem() is not None:
+                self.setPos(self.mapFromParent(newPoint) - self.origin)
+            else:
+                self.setPos(newPoint - self.origin)
+            self.transformData = self.transform()
             self.setSelected(False)
-            return
+        elif status == 'cancel':
+            self.transformData = self.transform()
+            self.setPos(self.oldPos)
         self.setSelected(True)
 
-    def modifyMoveOrigin(self, startPos, mode='r', moving=False):
-        """Calculates new origin for when object is rotated/mirrored"""
+    def rotateBy(self, moving, origin, angle):
+        """Rotate using the item's transformation matrix instead of the
+        deprecated QGraphicsItem.rotate() function
+        """
+        transform_ = self.transform()
+        if hasattr(self, 'reflections'):
+            if self.reflections != 0:
+                angle = -angle
         if moving is True:
-            if mode == 'R':
-                self.originX = 2*startPos.x() - self.originX
-            elif mode == 'r':
-                self.originX, self.originY = startPos.x() - self.originY +\
-                                             startPos.y(),\
-                                             startPos.y() + self.originX -\
-                                             startPos.x()
-            self.moveTo(0, 0, 'move')
+            origin = self.mapFromScene(origin)
+        else:
+            origin = QtCore.QPointF(0, 0)
+        transform_.translate(origin.x(), origin.y())
+        transform_.rotate(angle)
+        transform_.translate(-origin.x(), -origin.y())
+        self.setTransform(transform_)
+        self.transformData = self.transform()  # Backwards compatibility
+
+    def reflect(self, moving, origin):
+        """Mirror using the item's transformation matrix instead of the
+        deprecated QGraphicsItem.scale() function
+        """
+        if not hasattr(self, 'reflections'):
+            # The first time this is called, reflections will be 1
+            self.reflections = 1
+        else:
+            self.reflections += 1
+            self.reflections %= 2
+        transform_ = self.transform()
+        if moving is True:
+            origin = self.mapFromScene(origin)
+        else:
+            origin = QtCore.QPointF(0, 0)
+        transform_.translate(origin.x(), origin.y())
+        rotation_ = 180/numpy.pi * numpy.arctan2(-transform_.m21(), transform_.m11())
+        transform_.rotate(-rotation_)
+        transform_.scale(-1, 1)
+        transform_.rotate(rotation_)
+        transform_.translate(-origin.x(), -origin.y())
+        self.setTransform(transform_)
+        self.transformData = self.transform()  # Backwards compatibility
 
     def createCopy(self):
         # Deselect item
@@ -129,7 +161,7 @@ class drawingElement(object):
         # Add new item to scene and then select it
         self.scene().addItem(newItem)
         newItem.setSelected(True)
-        newItem.moveTo(0, 0, 'start')
+        newItem.moveTo(self.scenePos(), 'start')
         return newItem
 
     def opaqueArea(self):
@@ -139,23 +171,22 @@ class drawingElement(object):
 
     def hoverEnterEvent(self, event):
         """Turns the item gray when mouse enters its bounding rect"""
-        pen = QtGui.QPen(self.localPen)
-        pen.setColor(QtGui.QColor('gray'))
-        self.setPen(pen)
-        brush = QtGui.QBrush(self.localBrush)
-        brush.setColor(QtGui.QColor('gray'))
-        self.setBrush(brush)
-        self.update()
+        self.changeColourToGray(True)
 
     def hoverLeaveEvent(self, event):
         """Restores the item's original pen and brush when mouse leaves
         its bounding rect
         """
-        # self.localPen.setColor(QtGui.QColor(self.localPenColour))
-        self.setPen(self.localPen)
-        # self.localBrush.setColor(QtGui.QColor(self.localBrushColour))
-        self.setBrush(self.localBrush)
-        self.update()
+        self.changeColourToGray(False)
+
+    def changeColourToGray(self, gray=False):
+        pen = QtGui.QPen(self.localPen)
+        brush = QtGui.QBrush(self.localBrush)
+        if gray == True:
+            pen.setColor(QtGui.QColor('gray'))
+            brush.setColor(QtGui.QColor('gray'))
+        self.setPen(pen)
+        self.setBrush(brush)
 
 
 class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
@@ -210,8 +241,9 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             newItem.listOfItems.append(itemCopy)
         newItem.setItems(newItem.listOfItems)
         newItem.setTransform(self.transform())
+        newItem.origin = self.origin
         newItem.setSelected(True)
-        newItem.moveTo(0, 0, 'start')
+        newItem.moveTo(self.scenePos(), 'start')
         return newItem
 
     def setItems(self, listOfItems):
@@ -258,24 +290,14 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             item.setLocalBrushOptions(**kwargs)
 
     def hoverEnterEvent(self, event):
-        # For some reason calling the children's hoverEnterEvent did not work
-        for item in self.listOfItems:
-            pen = QtGui.QPen(item.localPen)
-            pen.setColor(QtGui.QColor('gray'))
-            if hasattr(item, 'setPen'):
-                item.setPen(pen)
-            brush = QtGui.QBrush(item.localBrush)
-            brush.setColor(QtGui.QColor('gray'))
-            if hasattr(item, 'setBrush'):
-                item.setBrush(brush)
-        self.update()
+        self.changeColourToGray(True)
 
     def hoverLeaveEvent(self, event):
-        # For some reason calling the children's hoverLeaveEvent did not work
+        self.changeColourToGray(False)
+
+    def changeColourToGray(self, gray=False):
         for item in self.listOfItems:
-            item.setPen(item.localPen)
-            item.setBrush(item.localBrush)
-        self.update()
+            item.changeColourToGray(gray)
 
     def loadItems(self, mode='symbol'):
         """Initializes items in self.listOfItems."""
@@ -286,6 +308,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 item.__init__(self, self.scene(), item.origin, item.listOfItems)
                 # Call loadItems if item is also a myGraphicsItemGroup
                 item.loadItems(mode)
+            print item.origin
         self.setItems(self.listOfItems)
 
 
@@ -522,8 +545,10 @@ class Circle(Ellipse):
         sideLength = numpy.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
         square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength/2), QtCore.QSizeF(sideLength, sideLength))
         self.setRect(square)
-        self.setTransformOriginPoint(self.start)
-        self.setRotation(theta)
+        self.transform_ = QtGui.QTransform()
+        self.transform_.translate(0, 0)
+        self.transform_.rotate(theta)
+        self.setTransform(self.transform_)
         self.oldRect = self.rect()
         # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
@@ -645,5 +670,5 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
-        newItem.moveTo(0, 0, 'start')
+        newItem.moveTo(self.scenePos(), 'start')
         return newItem
