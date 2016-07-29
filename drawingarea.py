@@ -2,7 +2,8 @@ from PyQt4 import QtCore, QtGui, QtSvg
 from components import *
 from drawingitems import *
 import cPickle as pickle
-from os import system
+import os
+from numpy import ceil, floor
 
 
 class DrawingArea(QtGui.QGraphicsView):
@@ -159,7 +160,6 @@ class DrawingArea(QtGui.QGraphicsView):
         if mode == 'symbol' or mode == 'schematic':
             listOfItems = self.scene().items()
             listOfItems = [item for item in listOfItems if item.parentItem() is None]
-            print listOfItems
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
@@ -206,6 +206,7 @@ class DrawingArea(QtGui.QGraphicsView):
         if mode == 'pdf':
             # Initialize printer
             printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
+            printer.setFullPage(True)
             sourceRect = self.scene().itemsBoundingRect()
             # Choose appropriate format
             if saveFile[-3:] == 'pdf':
@@ -245,6 +246,30 @@ class DrawingArea(QtGui.QGraphicsView):
         painter.end()
         # Add the grid back to the scene when saving is done
         self.scene().addItem(self._grid)
+        if saveFile[-3:] == 'eps':
+            printerSize = printer.paperSize(printer.DevicePixel)
+            self.fixEPSBoundingBox(saveFile, printerSize, sourceRect)
+
+    def fixEPSBoundingBox(self, saveFile, printerSize, sourceRect):
+        # Adapted from https://github.com/jeremysanders/veusz/blob/master/veusz/document/export.py
+        width, height = sourceRect.width(), sourceRect.height()
+        tempFile = '%s.eps.temp' % (saveFile[:-4])
+        with open(saveFile, 'rU') as fIn:
+            with open(tempFile, 'w') as fOut:
+                for line in fIn:
+                    if line[:14] == '%%BoundingBox:':
+                        parts = line.split()
+                        origwidth = float(parts[3])
+                        origheight = float(parts[4])
+                        if width/height >= printerSize.width()/printerSize.height():
+                            stretch = origwidth/width
+                            line = '%s %i %i %i %i\n' %(parts[0], 0, int(floor(origheight-stretch*height)), int(ceil(origwidth)), int(ceil(origheight)))
+                        else:
+                            stretch = origheight/height
+                            line = '%s %i %i %i %i\n' %(parts[0], 0, 0, int(ceil(stretch*width)), int(ceil(origheight)))
+                    fOut.write(line)
+        os.remove(saveFile)
+        os.rename(tempFile, saveFile)
 
     def loadRoutine(self, mode='symbol', loadFile=None):
         """This is the counterpart of the save routine. Used to load both schematics
