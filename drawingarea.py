@@ -31,7 +31,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self.reflections = 0
         self.rotations = 0
         self.rotateAngle = 30
-        self.selectedWidth = 2
+        self.selectedWidth = 4
         self.selectedPenColour = 'black'
         self.selectedPenStyle = 1
         self.selectedBrushColour = 'black'
@@ -141,15 +141,11 @@ class DrawingArea(QtGui.QGraphicsView):
             self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
 
     def saveRoutine(self, mode='export'):
-        """Handles saving of both symbols and schematics as well as exporting images.
-        For symbols and schematics, items are first parented to a myGraphicsItemGroup.
+        """Handles saving of both symbols and schematics. For symbols and
+        schematics, items are first parented to a myGraphicsItemGroup.
         The parent item is then saved into a corresponding .sym (symbol) and
         .sch (schematic) file. If the save option is a schematic, the items are then
         unparented.
-
-        For images, a rect slightly larger than the bounding rect of all items is
-        created. This rect is then projected onto a QPixmap at a higher resolution to
-        create the final image.
         """
         # Remove grid from the scene to avoid saving it
         self.scene().removeItem(self._grid)
@@ -185,6 +181,11 @@ class DrawingArea(QtGui.QGraphicsView):
         self.scene().addItem(self._grid)
 
     def exportRoutine(self):
+        """
+        For images, a rect slightly larger than the bounding rect of all items is
+        created. This rect is then projected onto a QPixmap at a higher resolution to
+        create the final image.
+        """
         # Remove grid from the scene to avoid saving it
         self.scene().removeItem(self._grid)
         # Return if no items are present
@@ -208,7 +209,6 @@ class DrawingArea(QtGui.QGraphicsView):
             printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
             printer.setFullPage(True)
             sourceRect = self.scene().itemsBoundingRect()
-            print sourceRect
             # Choose appropriate format
             if saveFile[-3:] == 'pdf':
                 printer.setOutputFormat(printer.PdfFormat)
