@@ -26,7 +26,6 @@ class drawingElement(object):
         localDict.pop('localPen', None)
         localDict.pop('localBrush', None)
         localDict['transformData'] = self.transform()
-        print self.transform().m11(), self.transform().m12(), self.transform().m13(), self.transform().m21(), self.transform().m22(), self.transform().m23(), self.transform().m31(), self.transform().m32(), self.transform().m33()
         return localDict
 
     def __setstate__(self, state):
@@ -149,17 +148,19 @@ class drawingElement(object):
         self.setTransform(transform_)
         self.transformData = self.transform()  # Backwards compatibility
 
-    def createCopy(self):
+    def createCopy(self, parent=None):
         # Deselect item
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
         # Create copy with same pen and brush and start location
-        newItem = self.__class__(None, _start, pen=self.localPen, brush=self.localBrush)
+        newItem = self.__class__(parent, _start, pen=self.localPen, brush=self.localBrush)
         # Apply any transforms (rotations, reflections etc.)
         newItem.setTransform(self.transform())
-        # Add new item to scene and then select it
-        self.scene().addItem(newItem)
+        if parent is None:
+            # Add new item to scene if no parent exists
+            self.scene().addItem(newItem)
+        # Select item
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
         return newItem
@@ -229,21 +230,27 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         """
         self.__dict__ = state
 
-    def createCopy(self):
+    def createCopy(self, parent=None):
         """Call child copy methods individually after creating new parent"""
-        if self.isSelected() is True:
-            self.setSelected(False)
+        self.setSelected(False)
         _start = self.pos()
-        newItem = self.__class__(None, self.scene(), _start)
+        # If parent exists, will get added to parent's scene
+        if parent is None:
+            newItem = self.__class__(parent, self.scene(), _start)
+        else:
+            newItem = self.__class__(parent, None, _start)
         newItem.listOfItems = []
         for item in self.listOfItems:
-            itemCopy = item.createCopy()
+            itemCopy = item.createCopy(newItem)
             newItem.listOfItems.append(itemCopy)
         newItem.setItems(newItem.listOfItems)
         newItem.setTransform(self.transform())
         newItem.origin = self.origin
         newItem.setSelected(True)
-        newItem.moveTo(self.scenePos(), 'start')
+        if newItem.parentItem() is None:
+            newItem.moveTo(self.scenePos(), 'start')
+        else:
+            newItem.setPos(newItem.origin)
         return newItem
 
     def setItems(self, listOfItems):
@@ -308,7 +315,6 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 item.__init__(self, self.scene(), item.origin, item.listOfItems)
                 # Call loadItems if item is also a myGraphicsItemGroup
                 item.loadItems(mode)
-            print item.origin
         self.setItems(self.listOfItems)
 
 
@@ -364,13 +370,17 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         self.setPath(self.oldPath)
 
     def cancelSegment(self):
-        self.setPath(self.oldPath)
+        # Remove from scene if no segment exists
+        if self.oldPath.toSubpathPolygons() == []:
+            self.scene().removeItem(self)
+        else:
+            self.setPath(self.oldPath)
 
-    def createCopy(self):
+    def createCopy(self, parent=None):
         """Reimplemented from drawingElement. Sets path and origin of the copy
         to that of the original.
         """
-        newWire = super(Wire, self).createCopy()
+        newWire = super(Wire, self).createCopy(parent)
         newWire.setPath(self.path())
         newWire.oldPath = newWire.path()
         if hasattr(self, 'origin'):
@@ -426,11 +436,11 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
-    def createCopy(self):
+    def createCopy(self, parent=None):
         """Reimplemented from drawingElement. Sets the rect and origin of the
         copy the same as the current rect.
         """
-        newRectangle = super(Rectangle, self).createCopy()
+        newRectangle = super(Rectangle, self).createCopy(parent)
         newRectangle.setRect(self.rect())
         newRectangle.oldRect = newRectangle.rect()
         if hasattr(self, 'origin'):
@@ -492,10 +502,10 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
-    def createCopy(self):
+    def createCopy(self, parent=None):
         """Reimplemented from drawingElement. Sets the rect and origin of the
         copy the same as the current ellipse."""
-        newEllipse = super(Ellipse, self).createCopy()
+        newEllipse = super(Ellipse, self).createCopy(parent)
         newEllipse.setRect(self.rect())
         newEllipse.oldRect = newEllipse.rect()
         if hasattr(self, 'origin'):
@@ -629,7 +639,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         self.localPen.setStyle(self.localPenStyle)
         if hasattr(self, 'setFont'):
             font = self.font()
-            font.setPointSize(self.localPenWidth*15)
+            font.setPointSize(self.localPenWidth*10)
             font.setFamily('Arial')
             self.setFont(font)
         if hasattr(self, 'setDefaultTextColor'):
@@ -662,11 +672,11 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         self.hoverLeaveEvent()
         self.showEditor()
 
-    def createCopy(self):
+    def createCopy(self, parent=None):
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
-        newItem = self.__class__(None, _start, text=self.toHtml(), pen=self.localPen, brush=self.localBrush)
+        newItem = self.__class__(parent, _start, text=self.toHtml(), pen=self.localPen, brush=self.localBrush)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
