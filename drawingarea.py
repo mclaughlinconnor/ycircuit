@@ -208,6 +208,7 @@ class DrawingArea(QtGui.QGraphicsView):
             printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
             printer.setFullPage(True)
             sourceRect = self.scene().itemsBoundingRect()
+            print sourceRect
             # Choose appropriate format
             if saveFile[-3:] == 'pdf':
                 printer.setOutputFormat(printer.PdfFormat)
@@ -228,11 +229,12 @@ class DrawingArea(QtGui.QGraphicsView):
         elif mode == 'image':
             # Create a rect that's 1.5 times the boundingrect of all items
             sourceRect = self.scene().itemsBoundingRect()
-            scale = 1.5
+            scale = 1.1
             sourceRect.setWidth(int(scale*sourceRect.width()))
             sourceRect.setHeight(int(scale*sourceRect.height()))
             width, height = sourceRect.width(), sourceRect.height()
-            sourceRect.translate(-width/scale/4., -height/scale/4.)
+            if not scale < 1:
+                sourceRect.translate(-width*(scale - 1)/2., -height*(scale - 1)/2.)
             # Create a pixmap object
             pixmap = QtGui.QPixmap(QtCore.QSize(4*width, 4*height))
             # Set background to white
@@ -499,6 +501,8 @@ class DrawingArea(QtGui.QGraphicsView):
                 # If wire exists, add segments
                 else:
                     self.currentWire.createSegment(self.mapToGrid(event.pos()))
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
         if self._keys['rectangle'] is True:
             if event.button () == QtCore.Qt.LeftButton:
@@ -509,6 +513,8 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentRectangle is None:
                     self.currentRectangle = Rectangle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentRectangle)
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
         # If circle mode is on, add a new circle
         if self._keys['circle'] is True:
             if event.button () == QtCore.Qt.LeftButton:
@@ -519,6 +525,8 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentCircle is None:
                     self.currentCircle = Circle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentCircle)
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
         # If ellipse mode is on, add a new ellipse
         if self._keys['ellipse'] is True:
             if event.button () == QtCore.Qt.LeftButton:
@@ -529,6 +537,8 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentEllipse is None:
                     self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     self.scene().addItem(self.currentEllipse)
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
         # If textbox mode is on, add a new textbox
         if self._keys['textBox'] is True:
             if event.button () == QtCore.Qt.LeftButton:
@@ -544,6 +554,8 @@ class DrawingArea(QtGui.QGraphicsView):
                 cursor = self.cursor()
                 cursor.setShape(QtCore.Qt.ArrowCursor)
                 self.setCursor(cursor)
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
 
     def mouseMoveEvent(self, event):
         super(DrawingArea, self).mouseMoveEvent(event)

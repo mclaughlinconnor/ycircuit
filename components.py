@@ -341,13 +341,16 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         state['localPen'] = QtGui.QPen()
         state['localBrush'] = QtGui.QBrush()
         self.__dict__ = state
-        # Add a polygon corresponding to the list of saved points
-        a = QtGui.QPolygonF(state['polyPathPointList'][0])
-        self.oldPath2 = QtGui.QPainterPath()
-        for item in state['polyPathPointList']:
-            poly = QtGui.QPolygonF(item)
-            self.oldPath2.addPolygon(poly)
-        self.oldPath = self.__dict__.pop('oldPath2', None)
+        try:
+            # Add a polygon corresponding to the list of saved points
+            a = QtGui.QPolygonF(state['polyPathPointList'][0])
+            self.oldPath2 = QtGui.QPainterPath()
+            for item in state['polyPathPointList']:
+                poly = QtGui.QPolygonF(item)
+                self.oldPath2.addPolygon(poly)
+            self.oldPath = self.__dict__.pop('oldPath2', None)
+        except:
+            pass
 
     def updateWire(self, newEnd):
         # Update existing segment to end at newEnd
@@ -364,7 +367,11 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         self.setPath(self.oldPath)
 
     def cancelSegment(self):
-        self.setPath(self.oldPath)
+        # Remove from scene if no segment exists
+        if self.oldPath.toSubpathPolygons() == []:
+            self.scene().removeItem(self)
+        else:
+            self.setPath(self.oldPath)
 
     def createCopy(self):
         """Reimplemented from drawingElement. Sets path and origin of the copy
