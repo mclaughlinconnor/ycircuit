@@ -161,11 +161,11 @@ class DrawingArea(QtGui.QGraphicsView):
             origin = QtCore.QPointF(x, y)
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
-            print saveObject, saveObject.origin
+            # print saveObject, saveObject.origin
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.scenePos() - saveObject.origin
-                print item, item.origin
+                # print item, item.origin
             saveObject.setItems(listOfItems)
             if mode == 'symbol':
                 saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
