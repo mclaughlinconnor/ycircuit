@@ -32,16 +32,10 @@ class Grid(QtGui.QGraphicsItem):
         pen = QtGui.QPen()
         pen.setWidth(0.75*self.displaySpacing/self.spacing)
         painter.setPen(pen)
-        for i in self.xDisplayPoints:
-            for j in self.yDisplayPoints:
-                self.point = QtCore.QPoint(i, j)
-                painter.drawPoint(self.point)
+        painter.drawPoints(self.gridPolygonRegular)
         pen.setWidth(1.25*self.displaySpacing/self.spacing)
         painter.setPen(pen)
-        for i in self.xDisplayPoints[self.xDisplayPoints % 100 == 0]:
-            for j in self.yDisplayPoints[self.yDisplayPoints % 100 == 0]:
-                self.point = QtCore.QPoint(i, j)
-                painter.drawPoint(self.point)
+        painter.drawPoints(self.gridPolygonLarge)
 
     def createGrid(self, **kwargs):
         if 'spacing' in kwargs:
@@ -61,6 +55,14 @@ class Grid(QtGui.QGraphicsItem):
             self.displaySpacing = self.spacing
         self.xDisplayPoints = numpy.arange(xL, xH, self.displaySpacing)
         self.yDisplayPoints = numpy.arange(yL, yH, self.displaySpacing)
+        self.gridPolygonRegular = QtGui.QPolygon()
+        for x in self.xDisplayPoints:
+            for y in self.yDisplayPoints:
+                self.gridPolygonRegular.append(QtCore.QPoint(x, y))
+        self.gridPolygonLarge = QtGui.QPolygon()
+        for x in self.xDisplayPoints[self.xDisplayPoints % 100 == 0]:
+            for y in self.yDisplayPoints[self.yDisplayPoints % 100 == 0]:
+                self.gridPolygonLarge.append(QtCore.QPoint(x, y))
 
     def snapTo(self, point):
         newX = numpy.round(point.x()/self.spacing)*self.spacing
