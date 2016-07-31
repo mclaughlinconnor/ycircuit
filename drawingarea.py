@@ -446,14 +446,16 @@ class DrawingArea(QtGui.QGraphicsView):
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
                 # self.moveStartPos = self.mapToGrid(event.pos())
+                point = self.mapToGrid(event.pos())
                 for i in self.moveItems:
                     # i.moveTo(0, 0, 'start')
-                    i.moveTo(self.mapToGrid(event.pos()), 'start')
+                    i.moveTo(point, 'start')
             # End moving if LMB is clicked again
             else:
+                point = self.mapToGrid(event.pos())
                 for i in self.moveItems:
                     # i.moveTo(0, 0, 'done')
-                    i.moveTo(self.mapToGrid(event.pos()), 'done')
+                    i.moveTo(point, 'done')
         super(DrawingArea, self).mousePressEvent(event)
 
     def updateMoveItems(self):
@@ -472,14 +474,16 @@ class DrawingArea(QtGui.QGraphicsView):
                 # Keep track of number of reflections
                 self.reflections += 1
                 self.reflections %= 2
+                point = self.mapToGrid(self.currentPos)
                 for item in self.moveItems:
-                    item.reflect(self._keys['m'], self.mapToGrid(self.currentPos))
+                    item.reflect(self._keys['m'], point)
             else:
                 # Keep track of number of rotations
                 self.rotations += 1
                 self.rotations %= 360/self.rotateAngle
+                point = self.mapToGrid(self.currentPos)
                 for item in self.moveItems:
-                    item.rotateBy(self._keys['m'], self.mapToGrid(self.currentPos), self.rotateAngle)
+                    item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
     def mouseReleaseEvent(self, event):
         super(DrawingArea, self).mouseReleaseEvent(event)
@@ -576,8 +580,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['ellipse'] is True:
                     self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
                 if self._keys['m'] is True:
+                    point = self.mapToGrid(event.pos())
                     for item in self.moveItems:
-                        item.moveTo(self.mapToGrid(event.pos()), 'move')
+                        item.moveTo(point, 'move')
 
     def contextMenuEvent(self, event):
         # TODO: Make this work properly
