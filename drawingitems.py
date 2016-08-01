@@ -30,41 +30,61 @@ class Grid(QtGui.QGraphicsItem):
 
     def paint(self, painter, *args):
         pen = QtGui.QPen()
-        pen.setWidth(0.75*self.displaySpacing/self.spacing)
+        # pen.setWidth(0.75*self.displaySpacing/self.spacing)
+        pen.setWidth(max(1,0.75*numpy.log10(self.displaySpacing)))
         painter.setPen(pen)
-        for i in self.xDisplayPoints:
-            for j in self.yDisplayPoints:
-                self.point = QtCore.QPoint(i, j)
-                painter.drawPoint(self.point)
-        pen.setWidth(1.25*self.displaySpacing/self.spacing)
+        painter.drawPoints(self.gridPolygonRegular)
+        # pen.setWidth(1.25*self.displaySpacing/self.spacing)
+        pen.setWidth(max(2,1.5*numpy.log10(self.displaySpacing)))
         painter.setPen(pen)
-        for i in self.xDisplayPoints[self.xDisplayPoints % 100 == 0]:
-            for j in self.yDisplayPoints[self.yDisplayPoints % 100 == 0]:
-                self.point = QtCore.QPoint(i, j)
-                painter.drawPoint(self.point)
+        painter.drawPoints(self.gridPolygonLarge)
 
     def createGrid(self, **kwargs):
         if 'spacing' in kwargs:
             self.spacing = kwargs['spacing']
-        topLeft = self.view.mapToScene(self.view.rect().topLeft())
-        bottomRight = self.view.mapToScene(self.view.rect().bottomRight())
-        xL = int(topLeft.x()/self.displaySpacing)*self.displaySpacing
-        xL = numpy.minimum(xL, 0)
-        xH = int(bottomRight.x()/self.displaySpacing)*self.displaySpacing
-        xH = numpy.maximum(xH, int(self.scene().sceneRect().width()))
-        yL = int(topLeft.y()/self.displaySpacing)*self.displaySpacing
-        yL = numpy.minimum(yL, 0)
-        yH = int(bottomRight.y()/self.displaySpacing)*self.displaySpacing
-        yH = numpy.maximum(yH, int(self.scene().sceneRect().height()))
-        self.displaySpacing = self.spacing*(xH - xL)/1000
-        if self.displaySpacing < self.spacing:
-            self.displaySpacing = self.spacing
-        self.xDisplayPoints = numpy.arange(xL, xH, self.displaySpacing)
-        self.yDisplayPoints = numpy.arange(yL, yH, self.displaySpacing)
+        # xL = int(topLeft.x()/self.displaySpacing)*self.displaySpacing
+        # xL = numpy.minimum(xL, 0)
+        # xH = int(bottomRight.x()/self.displaySpacing)*self.displaySpacing
+        # xH = numpy.maximum(xH, int(self.scene().sceneRect().width()))
+        # yL = int(topLeft.y()/self.displaySpacing)*self.displaySpacing
+        # yL = numpy.minimum(yL, 0)
+        # yH = int(bottomRight.y()/self.displaySpacing)*self.displaySpacing
+        # yH = numpy.maximum(yH, int(self.scene().sceneRect().height()))
+        # self.displaySpacing = self.spacing*(xH - xL)/1000
+        # self.xDisplayPoints = numpy.arange(xL, xH, self.displaySpacing)
+        # self.yDisplayPoints = numpy.arange(yL, yH, self.displaySpacing)
+        topLeft = self.snapTo(self.view.mapToScene(self.view.rect().topLeft()))
+        bottomRight = self.snapTo(self.view.mapToScene(self.view.rect().bottomRight()))
+        if (bottomRight - topLeft).x() > (bottomRight - topLeft).y():
+            self.extent = (bottomRight - topLeft).toPoint().x()
+        else:
+            self.extent = (bottomRight - topLeft).toPoint().y()
+        self.displaySpacing = 10**(numpy.floor(numpy.log10(self.extent)))
+        if self.extent/self.displaySpacing < 3:
+            self.displaySpacing /= 10
+        if self.displaySpacing <= self.spacing:
+            self.displaySpacing = self.spacing*10
+        topLeft = self.snapTo(self.view.mapToScene(self.view.rect().topLeft()), self.displaySpacing)
+        bottomRight = self.snapTo(self.view.mapToScene(self.view.rect().bottomRight()), self.displaySpacing)
+        padding = 2*self.displaySpacing
+        self.xDisplayPoints = numpy.arange(topLeft.x()-padding, bottomRight.x()+padding, self.displaySpacing/5)
+        self.yDisplayPoints = numpy.arange(topLeft.y()-padding, bottomRight.y()+padding, self.displaySpacing/5)
+        self.gridPolygonRegular = QtGui.QPolygon()
+        for x in self.xDisplayPoints:
+            for y in self.yDisplayPoints:
+                self.gridPolygonRegular.append(QtCore.QPoint(x, y))
+        self.gridPolygonLarge = QtGui.QPolygon()
+        for x in self.xDisplayPoints[self.xDisplayPoints % self.displaySpacing*10 == 0]:
+            for y in self.yDisplayPoints[self.yDisplayPoints % self.displaySpacing*10 == 0]:
+                self.gridPolygonLarge.append(QtCore.QPoint(x, y))
 
-    def snapTo(self, point):
-        newX = numpy.round(point.x()/self.spacing)*self.spacing
-        newY = numpy.round(point.y()/self.spacing)*self.spacing
+    def snapTo(self, point, spacing=None):
+        if spacing is None:
+            newX = numpy.round(point.x()/self.spacing)*self.spacing
+            newY = numpy.round(point.y()/self.spacing)*self.spacing
+        else:
+            newX = numpy.round(point.x()/spacing)*spacing
+            newY = numpy.round(point.y()/spacing)*spacing
         return QtCore.QPointF(newX, newY)
 
 

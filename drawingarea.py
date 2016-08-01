@@ -17,7 +17,7 @@ class DrawingArea(QtGui.QGraphicsView):
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
         self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
-        self.scene().setSceneRect(QtCore.QRectF(00, 00, 2000, 1000))
+        self.scene().setSceneRect(QtCore.QRectF(0, 0, 2000, 2000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
                       'rectangle': False, 'circle': False, 'ellipse': False,
@@ -161,11 +161,11 @@ class DrawingArea(QtGui.QGraphicsView):
             origin = QtCore.QPointF(x, y)
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
-            print saveObject, saveObject.origin
+            # print saveObject, saveObject.origin
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.scenePos() - saveObject.origin
-                print item, item.origin
+                # print item, item.origin
             saveObject.setItems(listOfItems)
             if mode == 'symbol':
                 saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
@@ -299,6 +299,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 loadItem.setPos(loadItem.origin)
                 loadItem.reparentItems()
                 self.scene().removeItem(loadItem)
+                self.fitToViewRoutine()
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
                 loadItem.setPos(self.mapToGrid(self.currentPos))
@@ -378,9 +379,16 @@ class DrawingArea(QtGui.QGraphicsView):
             self.scene().removeItem(i)
 
     def fitToViewRoutine(self):
-        """TODO: Fix this"""
-        self.resetMatrix()
-        self.ensureVisible(self.scene().itemsBoundingRect())
+        """Resizes viewport so that all items drawn are visible"""
+        if len(self.scene().items()) == 1:
+            # Fit to (0, 0, 800, 800) if nothing is present
+            rect = QtCore.QRectF(0, 0, 500, 500)
+            self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+        else:
+            self.scene().removeItem(self._grid)
+            self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+            self.scene().addItem(self._grid)
+        self._grid.createGrid()
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
@@ -446,14 +454,16 @@ class DrawingArea(QtGui.QGraphicsView):
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
                 # self.moveStartPos = self.mapToGrid(event.pos())
+                point = self.mapToGrid(event.pos())
                 for i in self.moveItems:
                     # i.moveTo(0, 0, 'start')
-                    i.moveTo(self.mapToGrid(event.pos()), 'start')
+                    i.moveTo(point, 'start')
             # End moving if LMB is clicked again
             else:
+                point = self.mapToGrid(event.pos())
                 for i in self.moveItems:
                     # i.moveTo(0, 0, 'done')
-                    i.moveTo(self.mapToGrid(event.pos()), 'done')
+                    i.moveTo(point, 'done')
         super(DrawingArea, self).mousePressEvent(event)
 
     def updateMoveItems(self):
@@ -472,14 +482,16 @@ class DrawingArea(QtGui.QGraphicsView):
                 # Keep track of number of reflections
                 self.reflections += 1
                 self.reflections %= 2
+                point = self.mapToGrid(self.currentPos)
                 for item in self.moveItems:
-                    item.reflect(self._keys['m'], self.mapToGrid(self.currentPos))
+                    item.reflect(self._keys['m'], point)
             else:
                 # Keep track of number of rotations
                 self.rotations += 1
                 self.rotations %= 360/self.rotateAngle
+                point = self.mapToGrid(self.currentPos)
                 for item in self.moveItems:
-                    item.rotateBy(self._keys['m'], self.mapToGrid(self.currentPos), self.rotateAngle)
+                    item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
     def mouseReleaseEvent(self, event):
         super(DrawingArea, self).mouseReleaseEvent(event)
@@ -576,8 +588,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['ellipse'] is True:
                     self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
                 if self._keys['m'] is True:
+                    point = self.mapToGrid(event.pos())
                     for item in self.moveItems:
-                        item.moveTo(self.mapToGrid(event.pos()), 'move')
+                        item.moveTo(point, 'move')
 
     def contextMenuEvent(self, event):
         # TODO: Make this work properly
