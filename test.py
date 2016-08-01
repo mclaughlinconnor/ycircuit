@@ -243,6 +243,7 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()
+    form.ui.drawingArea.fitToViewRoutine()
     if platform.system() == 'Windows':
         sip.setdestroyonexit(False)
     app.exec_()

@@ -17,7 +17,7 @@ class DrawingArea(QtGui.QGraphicsView):
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
         self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
-        self.scene().setSceneRect(QtCore.QRectF(00, 00, 2000, 1000))
+        self.scene().setSceneRect(QtCore.QRectF(0, 0, 2000, 2000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
                       'rectangle': False, 'circle': False, 'ellipse': False,
@@ -299,6 +299,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 loadItem.setPos(loadItem.origin)
                 loadItem.reparentItems()
                 self.scene().removeItem(loadItem)
+                self.fitToViewRoutine()
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
                 loadItem.setPos(self.mapToGrid(self.currentPos))
@@ -378,9 +379,16 @@ class DrawingArea(QtGui.QGraphicsView):
             self.scene().removeItem(i)
 
     def fitToViewRoutine(self):
-        """TODO: Fix this"""
-        self.resetMatrix()
-        self.ensureVisible(self.scene().itemsBoundingRect())
+        """Resizes viewport so that all items drawn are visible"""
+        if len(self.scene().items()) == 1:
+            # Fit to (0, 0, 800, 800) if nothing is present
+            rect = QtCore.QRectF(0, 0, 500, 500)
+            self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+        else:
+            self.scene().removeItem(self._grid)
+            self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+            self.scene().addItem(self._grid)
+        self._grid.createGrid()
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
