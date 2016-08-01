@@ -52,7 +52,7 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -213,6 +213,7 @@
      <string>Sh&amp;ape</string>
     </property>
     <addaction name="action_addLine"/>
+    <addaction name="action_addArc"/>
     <addaction name="action_addRectangle"/>
     <addaction name="action_addCircle"/>
     <addaction name="action_addEllipse"/>
@@ -810,6 +811,11 @@
    </property>
    <property name="toolTip">
     <string>Adds a CCCS</string>
+   </property>
+  </action>
+  <action name="action_addArc">
+   <property name="text">
+    <string>&amp;Arc</string>
    </property>
   </action>
  </widget>

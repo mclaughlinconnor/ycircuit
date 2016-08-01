@@ -20,8 +20,8 @@ class DrawingArea(QtGui.QGraphicsView):
         self.scene().setSceneRect(QtCore.QRectF(0, 0, 2000, 2000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
-                      'rectangle': False, 'circle': False, 'ellipse': False,
-                      'textBox': False}
+                      'arc': False, 'rectangle': False, 'circle': False,
+                      'ellipse': False, 'textBox': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
         self.scene().addItem(self._grid)
@@ -51,6 +51,12 @@ class DrawingArea(QtGui.QGraphicsView):
         self.escapeRoutine()
         self._keys['w'] = True
         self.currentWire = None
+
+    def addArc(self):
+        """Set _key to arc mode so that an arc is added when LMB is pressed"""
+        self.escapeRoutine()
+        self._keys['arc'] = True
+        self.currentArc = None
 
     def addRectangle(self):
         """Set _key to wire mode so that a rectangle is added when LMB is pressed"""
@@ -337,6 +343,9 @@ class DrawingArea(QtGui.QGraphicsView):
             if self._keys['w'] is True:
                 # self.scene().removeItem(self.currentWire)
                 self.currentWire.cancelSegment()
+            # Remove last arc being drawn
+            if self._keys['arc'] is True:
+                self.currentArc.cancelSegment()
             # Remove last rectangle being drawn
             if self._keys['rectangle'] is True:
                 self.scene().removeItem(self.currentRectangle)
@@ -495,8 +504,8 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def mouseReleaseEvent(self, event):
         super(DrawingArea, self).mouseReleaseEvent(event)
-        # If wire mode is on
-        if (self._keys['w'] is True):
+        # If wire or arc mode are on
+        if self._keys['w'] is True or self._keys['arc'] is True:
             # Keep drawing new wire segments
             if (event.button() == QtCore.Qt.LeftButton):
                 self._mouse['1'] = True
@@ -506,13 +515,22 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.currentX = self.currentPos.x()
                 self.currentY = self.currentPos.y()
                 start = self.mapToGrid(self.currentPos)
-                # Create new wire if none exists
-                if self.currentWire is None:
-                    self.currentWire = Wire(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                    self.scene().addItem(self.currentWire)
-                # If wire exists, add segments
-                else:
-                    self.currentWire.createSegment(self.mapToGrid(event.pos()))
+                if self._keys['w'] is True:
+                    # Create new wire if none exists
+                    if self.currentWire is None:
+                        self.currentWire = Wire(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                        self.scene().addItem(self.currentWire)
+                    # If wire exists, add segments
+                    else:
+                        self.currentWire.createSegment(self.mapToGrid(event.pos()))
+                elif self._keys['arc'] is True:
+                    # Create new arc if none exists
+                    if self.currentArc is None:
+                        self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                        self.scene().addItem(self.currentArc)
+                    # If arc exists, add segments
+                    else:
+                        self.currentArc.createSegment(self.mapToGrid(event.pos()))
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
@@ -581,6 +599,8 @@ class DrawingArea(QtGui.QGraphicsView):
             if modifiers != QtCore.Qt.ControlModifier:
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
+                if self._keys['arc'] is True:
+                    self.currentArc.updateWire(self.mapToGrid(event.pos()))
                 if self._keys['rectangle'] is True:
                     self.currentRectangle.updateRectangle(self.mapToGrid(event.pos()))
                 if self._keys['circle'] is True:

@@ -682,3 +682,34 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
         return newItem
+
+
+class Arc(Wire):
+    # TODO: MAKE THIS WORK
+    """This is a special case of the Circle class where angle is variable."""
+    def __init__(self, parent=None, start=None, **kwargs):
+        super(Arc, self).__init__(parent, start, **kwargs)
+        self.clicks = 0
+
+    def updateWire(self, newEnd):
+        if self.clicks == 0:
+            super(Arc, self).updateWire(newEnd)
+        elif self.clicks == 1:
+            self.setPath(QtGui.QPainterPath())
+            newEnd = self.mapFromScene(newEnd)
+            start = self.mapFromScene(self.start)
+            diameter = newEnd.x() - start.x() + (start.y() - newEnd.y())**2/(newEnd.x() - start.x())
+            topLeft = QtCore.QPointF(newEnd.x() - diameter, newEnd.y() - diameter/2)
+            startAngle = 180 - 2*180/numpy.pi*numpy.arctan2((newEnd.y()-start.y()), (newEnd.x()-start.x()))
+            path = self.path()
+            path.arcTo(topLeft.x(), topLeft.y(), diameter, diameter, startAngle, -2*startAngle)
+            self.setPath(path)
+
+    def cancelSegment(self):
+        pass
+
+    def createSegment(self, event):
+        if self.clicks == 0:
+            super(Arc, self).createSegment(event)
+        self.clicks += 1
+        self.clicks %= 3
