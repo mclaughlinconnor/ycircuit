@@ -164,7 +164,7 @@ class DrawingArea(QtGui.QGraphicsView):
             # print saveObject, saveObject.origin
             # Set relative origins of child items
             for item in listOfItems:
-                item.origin = item.scenePos() - saveObject.origin
+                item.origin = item.pos() - saveObject.origin
                 # print item, item.origin
             saveObject.setItems(listOfItems)
             if mode == 'symbol':

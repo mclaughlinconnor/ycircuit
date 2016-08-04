@@ -21,6 +21,12 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="DrawingArea" name="drawingArea">
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
       <property name="renderHints">
        <set>QPainter::Antialiasing|QPainter::TextAntialiasing</set>
       </property>
@@ -52,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
