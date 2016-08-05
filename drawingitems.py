@@ -53,8 +53,8 @@ class Grid(QtGui.QGraphicsItem):
         # self.displaySpacing = self.spacing*(xH - xL)/1000
         # self.xDisplayPoints = numpy.arange(xL, xH, self.displaySpacing)
         # self.yDisplayPoints = numpy.arange(yL, yH, self.displaySpacing)
-        topLeft = self.snapTo(self.view.mapToScene(self.view.rect().topLeft()))
-        bottomRight = self.snapTo(self.view.mapToScene(self.view.rect().bottomRight()))
+        topLeft = self.snapTo(self.mapToScene(QtCore.QPointF(self.view.rect().topLeft())))
+        bottomRight = self.snapTo(self.mapToScene(QtCore.QPointF(self.view.rect().bottomRight())))
         if (bottomRight - topLeft).x() > (bottomRight - topLeft).y():
             self.extent = (bottomRight - topLeft).toPoint().x()
         else:
@@ -64,8 +64,8 @@ class Grid(QtGui.QGraphicsItem):
             self.displaySpacing /= 10
         if self.displaySpacing <= self.spacing:
             self.displaySpacing = self.spacing*10
-        topLeft = self.snapTo(self.view.mapToScene(self.view.rect().topLeft()), self.displaySpacing)
-        bottomRight = self.snapTo(self.view.mapToScene(self.view.rect().bottomRight()), self.displaySpacing)
+        topLeft = self.snapTo(topLeft, self.displaySpacing)
+        bottomRight = self.snapTo(bottomRight, self.displaySpacing)
         padding = 2*self.displaySpacing
         self.xDisplayPoints = numpy.arange(topLeft.x()-padding, bottomRight.x()+padding, self.displaySpacing/5)
         self.yDisplayPoints = numpy.arange(topLeft.y()-padding, bottomRight.y()+padding, self.displaySpacing/5)
