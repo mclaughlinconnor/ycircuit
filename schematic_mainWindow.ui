@@ -178,13 +178,6 @@
       <addaction name="action_addDCVoltageSource"/>
       <addaction name="action_addDCCurrentSource"/>
      </widget>
-     <widget class="QMenu" name="menu_AC">
-      <property name="title">
-       <string>&amp;AC</string>
-      </property>
-      <addaction name="action_addACVoltageSource"/>
-      <addaction name="action_addACCurrentSource"/>
-     </widget>
      <widget class="QMenu" name="menu_Controlled">
       <property name="title">
        <string>&amp;Controlled</string>
@@ -195,7 +188,7 @@
       <addaction name="action_addCCCS"/>
      </widget>
      <addaction name="menu_DC"/>
-     <addaction name="menu_AC"/>
+     <addaction name="action_addACSource"/>
      <addaction name="menu_Controlled"/>
     </widget>
     <addaction name="action_addWire"/>
@@ -219,6 +212,7 @@
      <string>Sh&amp;ape</string>
     </property>
     <addaction name="action_addLine"/>
+    <addaction name="action_addArc"/>
     <addaction name="action_addRectangle"/>
     <addaction name="action_addCircle"/>
     <addaction name="action_addEllipse"/>
@@ -770,22 +764,6 @@
     <string>Adds a DC current source</string>
    </property>
   </action>
-  <action name="action_addACVoltageSource">
-   <property name="text">
-    <string>&amp;Voltage</string>
-   </property>
-   <property name="toolTip">
-    <string>Adds an AC voltage source</string>
-   </property>
-  </action>
-  <action name="action_addACCurrentSource">
-   <property name="text">
-    <string>&amp;Current</string>
-   </property>
-   <property name="toolTip">
-    <string>Adds an AC current source</string>
-   </property>
-  </action>
   <action name="action_addVCVS">
    <property name="text">
     <string>VCVS</string>
@@ -816,6 +794,16 @@
    </property>
    <property name="toolTip">
     <string>Adds a CCCS</string>
+   </property>
+  </action>
+  <action name="action_addArc">
+   <property name="text">
+    <string>&amp;Arc</string>
+   </property>
+  </action>
+  <action name="action_addACSource">
+   <property name="text">
+    <string>&amp;AC</string>
    </property>
   </action>
  </widget>

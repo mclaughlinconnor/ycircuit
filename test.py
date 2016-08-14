@@ -68,6 +68,7 @@ class myMainWindow(QtGui.QMainWindow):
 
         # Shape menu
         self.ui.action_addLine.triggered.connect(self.ui.drawingArea.addWire)
+        self.ui.action_addArc.triggered.connect(self.ui.drawingArea.addArc)
         self.ui.action_addRectangle.triggered.connect(self.ui.drawingArea.addRectangle)
         self.ui.action_addCircle.triggered.connect(self.ui.drawingArea.addCircle)
         self.ui.action_addEllipse.triggered.connect(self.ui.drawingArea.addEllipse)
@@ -87,6 +88,7 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_addPNPBJT.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('BJT', 'P', True))
         self.ui.action_addDCVoltageSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('DCV'))
         self.ui.action_addDCCurrentSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('DCI'))
+        self.ui.action_addACSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('AC'))
         self.ui.action_addVCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCVS'))
         self.ui.action_addVCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCCS'))
         self.ui.action_addCCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCVS'))

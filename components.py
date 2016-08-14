@@ -682,3 +682,49 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
         return newItem
+
+
+class Arc(Wire):
+    # TODO: MAKE THIS WORK
+    """This is a special case of the Circle class where angle is variable."""
+    def __init__(self, parent=None, start=None, **kwargs):
+        super(Arc, self).__init__(parent, start, **kwargs)
+        # self.listOfConcave = []
+        # self.listOfRects = []
+        self.concave = False
+        self.setFocus()
+
+    def updateArc(self, newEnd):
+        # Update the opposite end of the diameter of the circle to end
+        self.setFocus()
+        start = self.mapFromScene(self.scenePos())
+        start = self.oldPath.currentPosition()
+        distanceLine = newEnd - self.scenePos()
+        distanceLine = newEnd - self.mapToScene(start)
+        a, b = distanceLine.x(), distanceLine.y()
+        # self.setPath(QtGui.QPainterPath(start))
+        self.setPath(self.oldPath)
+        path = self.path()
+        if self.concave is False:
+            self.rect_ = QtCore.QRectF(start + QtCore.QPointF(-a, 0), QtCore.QSizeF(2*a, 2*b))
+            path.arcTo(self.rect_, 90, -90)
+        else:
+            self.rect_ = QtCore.QRectF(start + QtCore.QPointF(0, -b), QtCore.QSizeF(2*a, 2*b))
+            path.arcTo(self.rect_, 180, 90)
+        self.setPath(path)
+
+    def createSegment(self, newEnd):
+        # Create a new segment (e.g. when LMB is clicked)
+        newEnd = self.mapFromScene(newEnd)
+        if self.concave is False:
+            self.oldPath.arcTo(self.rect_, 90, -90)
+        else:
+            self.oldPath.arcTo(self.rect_, 180, 90)
+        self.oldPath.moveTo(newEnd)
+        self.setPath(self.oldPath)
+
+    def keyReleaseEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Alt:
+            # self.concave = False
+            self.concave = not(self.concave)
+        super(Arc, self).keyReleaseEvent(event)
