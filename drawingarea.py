@@ -137,6 +137,8 @@ class DrawingArea(QtGui.QGraphicsView):
             self.loadRoutine('symbol', './Resources/Symbols/Standard/dcVoltageSource.sym')
         elif kind == 'DCI':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/dcCurrentSource.sym')
+        elif kind == 'AC':
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/acSource.sym')
         elif kind == 'VCVS':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/vcvs.sym')
         elif kind == 'VCCS':
@@ -600,7 +602,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
                 if self._keys['arc'] is True:
-                    self.currentArc.updateWire(self.mapToGrid(event.pos()))
+                    self.currentArc.updateArc(self.mapToGrid(event.pos()))
                 if self._keys['rectangle'] is True:
                     self.currentRectangle.updateRectangle(self.mapToGrid(event.pos()))
                 if self._keys['circle'] is True:
