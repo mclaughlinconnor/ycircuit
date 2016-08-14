@@ -2,7 +2,8 @@
 
 # Form implementation generated from reading ui file 'schematic_mainWindow.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created: Thu Aug  4 15:06:08 2016
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,16 +12,7 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    def _fromUtf8(s):
-        return s
-
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+    _fromUtf8 = lambda s: s
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -34,6 +26,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtGui.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.drawingArea = DrawingArea(self.centralwidget)
+        self.drawingArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.drawingArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.drawingArea.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.TextAntialiasing)
         self.drawingArea.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
         self.drawingArea.setCacheMode(QtGui.QGraphicsView.CacheBackground)
@@ -45,7 +39,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.drawingArea)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 25))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))
@@ -327,6 +321,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
+<<<<<<< HEAD
         MainWindow.setWindowTitle(_translate("MainWindow", "Schematic draw", None))
         self.menu_File.setTitle(_translate("MainWindow", "&File", None))
         self.menu_Edit.setTitle(_translate("MainWindow", "&Edit", None))
