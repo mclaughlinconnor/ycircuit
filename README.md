@@ -69,6 +69,10 @@ As of this point in time, the following options are available:
         * PFET (With and without arrow)
         * NPN BJT
         * PNP BJT
+    * Sources
+        * DC (both voltage and current)
+        * AC
+        * Controlled sources (all 4 types)
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
