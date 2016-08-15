@@ -532,7 +532,7 @@ class DrawingArea(QtGui.QGraphicsView):
                         self.scene().addItem(self.currentArc)
                     # If arc exists, add segments
                     else:
-                        self.currentArc.createSegment(self.mapToGrid(event.pos()))
+                        self.currentArc.updateArc(self.mapToGrid(event.pos()), click=True)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
