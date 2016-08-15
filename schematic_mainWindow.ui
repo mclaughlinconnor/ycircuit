@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -211,8 +211,15 @@
     <property name="title">
      <string>Sh&amp;ape</string>
     </property>
+    <widget class="QMenu" name="menu_Arc">
+     <property name="title">
+      <string>&amp;Arc</string>
+     </property>
+     <addaction name="action_addArc3Point"/>
+     <addaction name="action_addArc4Point"/>
+    </widget>
     <addaction name="action_addLine"/>
-    <addaction name="action_addArc"/>
+    <addaction name="menu_Arc"/>
     <addaction name="action_addRectangle"/>
     <addaction name="action_addCircle"/>
     <addaction name="action_addEllipse"/>
@@ -796,14 +803,19 @@
     <string>Adds a CCCS</string>
    </property>
   </action>
-  <action name="action_addArc">
-   <property name="text">
-    <string>&amp;Arc</string>
-   </property>
-  </action>
   <action name="action_addACSource">
    <property name="text">
     <string>&amp;AC</string>
+   </property>
+  </action>
+  <action name="action_addArc3Point">
+   <property name="text">
+    <string>&amp;3-point</string>
+   </property>
+  </action>
+  <action name="action_addArc4Point">
+   <property name="text">
+    <string>&amp;4-point</string>
    </property>
   </action>
  </widget>

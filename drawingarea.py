@@ -52,10 +52,11 @@ class DrawingArea(QtGui.QGraphicsView):
         self._keys['w'] = True
         self.currentWire = None
 
-    def addArc(self):
+    def addArc(self, points=3):
         """Set _key to arc mode so that an arc is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['arc'] = True
+        self.arcPoints = points
         self.currentArc = None
 
     def addRectangle(self):
@@ -528,11 +529,11 @@ class DrawingArea(QtGui.QGraphicsView):
                 elif self._keys['arc'] is True:
                     # Create new arc if none exists
                     if self.currentArc is None:
-                        self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                        self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, points=self.arcPoints)
                         self.scene().addItem(self.currentArc)
                     # If arc exists, add segments
                     else:
-                        self.currentArc.createSegment(self.mapToGrid(event.pos()))
+                        self.currentArc.updateArc(self.mapToGrid(event.pos()), click=True)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle

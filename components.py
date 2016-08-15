@@ -685,46 +685,51 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
 
 
 class Arc(Wire):
-    # TODO: MAKE THIS WORK
-    """This is a special case of the Circle class where angle is variable."""
+    """This is a special case of the Wire class where repeated clicks change the curvature
+    of the wire."""
     def __init__(self, parent=None, start=None, **kwargs):
         super(Arc, self).__init__(parent, start, **kwargs)
-        # self.listOfConcave = []
-        # self.listOfRects = []
-        self.concave = False
+        if 'points' in kwargs:
+            self.points = kwargs['points']
+        self.clicks = 0
         self.setFocus()
 
-    def updateArc(self, newEnd):
-        # Update the opposite end of the diameter of the circle to end
+    def updateArc(self, newEnd, click=False):
         self.setFocus()
-        start = self.mapFromScene(self.scenePos())
-        start = self.oldPath.currentPosition()
-        distanceLine = newEnd - self.scenePos()
-        distanceLine = newEnd - self.mapToScene(start)
-        a, b = distanceLine.x(), distanceLine.y()
-        # self.setPath(QtGui.QPainterPath(start))
+        newEnd = self.mapFromScene(newEnd)
+        if click is True:
+            self.clicks += 1
+            self.clicks %= self.points
+        if self.clicks == 0:
+            self.endPoint = newEnd
+            self.controlPoint = newEnd
+            self.controlPointAlt = newEnd
+        elif self.clicks == 1:
+            self.controlPoint = newEnd
+            self.controlPointAlt = newEnd
+        elif self.clicks == 2:
+            if self.points == 3:
+                self.createSegment()
+                self.clicks = 0
+                return True
+            elif self.points == 4:
+                self.controlPointAlt = newEnd
+        elif self.clicks == 3:
+            self.createSegment()
+            self.clicks = 0
+            return True
         self.setPath(self.oldPath)
         path = self.path()
-        if self.concave is False:
-            self.rect_ = QtCore.QRectF(start + QtCore.QPointF(-a, 0), QtCore.QSizeF(2*a, 2*b))
-            path.arcTo(self.rect_, 90, -90)
-        else:
-            self.rect_ = QtCore.QRectF(start + QtCore.QPointF(0, -b), QtCore.QSizeF(2*a, 2*b))
-            path.arcTo(self.rect_, 180, 90)
+        if self.points == 3:
+            path.quadTo(self.controlPoint, self.endPoint)
+        elif self.points == 4:
+            path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(path)
 
-    def createSegment(self, newEnd):
+    def createSegment(self):
         # Create a new segment (e.g. when LMB is clicked)
-        newEnd = self.mapFromScene(newEnd)
-        if self.concave is False:
-            self.oldPath.arcTo(self.rect_, 90, -90)
-        else:
-            self.oldPath.arcTo(self.rect_, 180, 90)
-        self.oldPath.moveTo(newEnd)
+        if self.points == 3:
+            self.oldPath.quadTo(self.controlPoint, self.endPoint)
+        elif self.points == 4:
+            self.oldPath.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(self.oldPath)
-
-    def keyReleaseEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Alt:
-            # self.concave = False
-            self.concave = not(self.concave)
-        super(Arc, self).keyReleaseEvent(event)
