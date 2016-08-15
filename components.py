@@ -685,10 +685,12 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
 
 
 class Arc(Wire):
-    # TODO: MAKE THIS WORK
-    """This is a special case of the Circle class where angle is variable."""
+    """This is a special case of the Wire class where repeated clicks change the curvature
+    of the wire."""
     def __init__(self, parent=None, start=None, **kwargs):
         super(Arc, self).__init__(parent, start, **kwargs)
+        if 'points' in kwargs:
+            self.points = kwargs['points']
         self.clicks = 0
         self.setFocus()
 
@@ -697,22 +699,37 @@ class Arc(Wire):
         newEnd = self.mapFromScene(newEnd)
         if click is True:
             self.clicks += 1
-            self.clicks %= 3
+            self.clicks %= self.points
         if self.clicks == 0:
             self.endPoint = newEnd
             self.controlPoint = newEnd
+            self.controlPointAlt = newEnd
         elif self.clicks == 1:
             self.controlPoint = newEnd
+            self.controlPointAlt = newEnd
         elif self.clicks == 2:
+            if self.points == 3:
+                self.createSegment()
+                self.clicks = 0
+                return True
+            elif self.points == 4:
+                self.controlPointAlt = newEnd
+        elif self.clicks == 3:
             self.createSegment()
             self.clicks = 0
             return True
         self.setPath(self.oldPath)
         path = self.path()
-        path.quadTo(self.controlPoint, self.endPoint)
+        if self.points == 3:
+            path.quadTo(self.controlPoint, self.endPoint)
+        elif self.points == 4:
+            path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(path)
 
     def createSegment(self):
         # Create a new segment (e.g. when LMB is clicked)
-        self.oldPath.quadTo(self.controlPoint, self.endPoint)
+        if self.points == 3:
+            self.oldPath.quadTo(self.controlPoint, self.endPoint)
+        elif self.points == 4:
+            self.oldPath.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(self.oldPath)

@@ -68,7 +68,8 @@ class myMainWindow(QtGui.QMainWindow):
 
         # Shape menu
         self.ui.action_addLine.triggered.connect(self.ui.drawingArea.addWire)
-        self.ui.action_addArc.triggered.connect(self.ui.drawingArea.addArc)
+        self.ui.action_addArc3Point.triggered.connect(lambda x: self.ui.drawingArea.addArc(3))
+        self.ui.action_addArc4Point.triggered.connect(lambda x: self.ui.drawingArea.addArc(4))
         self.ui.action_addRectangle.triggered.connect(self.ui.drawingArea.addRectangle)
         self.ui.action_addCircle.triggered.connect(self.ui.drawingArea.addCircle)
         self.ui.action_addEllipse.triggered.connect(self.ui.drawingArea.addEllipse)
