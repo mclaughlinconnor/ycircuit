@@ -474,7 +474,7 @@ class Ui_MainWindow(object):
         self.action_addCCCS.setText(_translate("MainWindow", "CCCS", None))
         self.action_addCCCS.setToolTip(_translate("MainWindow", "Adds a CCCS", None))
         self.action_addACSource.setText(_translate("MainWindow", "&AC", None))
-        self.action_addArc3Point.setText(_translate("MainWindow", "3-point", None))
-        self.action_addArc4Point.setText(_translate("MainWindow", "4-point", None))
+        self.action_addArc3Point.setText(_translate("MainWindow", "&3-point", None))
+        self.action_addArc4Point.setText(_translate("MainWindow", "&4-point", None))
 
 from drawingarea import DrawingArea

@@ -54,6 +54,7 @@ As of this point in time, the following options are available:
     * Rectangle
     * Circle
     * Ellipse
+    * Arcs (3-point and 4-point Bezier curves)
     * Text box (with support for bold, italics, underline, overline, subscript and superscript)
         * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
         * An option for a more coherent look would be to use symbols
@@ -68,6 +69,10 @@ As of this point in time, the following options are available:
         * PFET (With and without arrow)
         * NPN BJT
         * PNP BJT
+    * Sources
+        * DC (both voltage and current)
+        * AC
+        * Controlled sources (all 4 types)
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
