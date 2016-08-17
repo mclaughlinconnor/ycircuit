@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui
-from textEditor_gui import Ui_Dialog
+from src.gui.textEditor_gui import Ui_Dialog
 import numpy
 import uuid
 import platform

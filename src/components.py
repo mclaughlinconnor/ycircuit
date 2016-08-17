@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
 import numpy
-from drawingitems import TextEditor
+from src.drawingitems import TextEditor
 import sys
 
 class drawingElement(object):

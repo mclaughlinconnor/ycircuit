@@ -1,9 +1,29 @@
 from PyQt4 import QtCore, QtGui, QtSvg
-from components import *
-from drawingitems import *
+from src.components import *
+from src.drawingitems import *
 import cPickle as pickle
 import os
 from numpy import ceil, floor
+# from src import components
+# import sys
+# sys.modules['components'] = components
+
+
+class Delete(QtGui.QUndoCommand):
+    def __init__(self, parent=None, scene=None, listOfItems=None):
+        super(Delete, self).__init__(parent)
+        self.scene = scene
+        self.listOfItems = listOfItems
+        for item in self.listOfItems:
+            item.changeColourToGray(False)
+
+    def redo(self):
+        for item in self.listOfItems:
+            self.scene.removeItem(item)
+
+    def undo(self):
+        for item in self.listOfItems:
+            self.scene.addItem(item)
 
 
 class DrawingArea(QtGui.QGraphicsView):
@@ -28,6 +48,8 @@ class DrawingArea(QtGui.QGraphicsView):
         self._grid.createGrid()
         self.enableGrid = True
         self.snapToGrid = True
+        self.undoStack = QtGui.QUndoStack(self)
+        self.undoStack.setUndoLimit(100)
         self.reflections = 0
         self.rotations = 0
         self.rotateAngle = 30
@@ -387,8 +409,10 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def deleteRoutine(self):
         """Delete selected items"""
-        for i in self.scene().selectedItems():
-            self.scene().removeItem(i)
+        del1 = Delete(None, self.scene(), self.scene().selectedItems())
+        self.undoStack.push(del1)
+        # for i in self.scene().selectedItems():
+        #     self.scene().removeItem(i)
 
     def fitToViewRoutine(self):
         """Resizes viewport so that all items drawn are visible"""

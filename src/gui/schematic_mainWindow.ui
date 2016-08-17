@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>Resources/icon.jpg</normaloff>Resources/icon.jpg</iconset>
+    <normaloff>../../Resources/icon.jpg</normaloff>../../Resources/icon.jpg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>23</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -129,11 +129,15 @@
      <addaction name="action_setBrushStyleNone"/>
      <addaction name="action_setBrushStyleSolid"/>
     </widget>
+    <addaction name="action_undo"/>
+    <addaction name="action_redo"/>
+    <addaction name="separator"/>
     <addaction name="action_delete"/>
     <addaction name="action_move"/>
     <addaction name="action_copy"/>
     <addaction name="action_rotate"/>
     <addaction name="action_mirror"/>
+    <addaction name="separator"/>
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
     <addaction name="menu_setPenStyle"/>
@@ -577,6 +581,9 @@
    </property>
   </action>
   <action name="action_setBrushColourGreen">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Green</string>
    </property>
@@ -726,31 +733,49 @@
    </property>
   </action>
   <action name="action_setPenColourCyan">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Cyan</string>
    </property>
   </action>
   <action name="action_setPenColourMagenta">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Magenta</string>
    </property>
   </action>
   <action name="action_setPenColourYellow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Yellow</string>
    </property>
   </action>
   <action name="action_setBrushColourCyan">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Cyan</string>
    </property>
   </action>
   <action name="action_setBrushColourMagenta">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Magenta</string>
    </property>
   </action>
   <action name="action_setBrushColourYellow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Yellow</string>
    </property>
@@ -818,12 +843,34 @@
     <string>&amp;4-point</string>
    </property>
   </action>
+  <action name="action_undo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo the previous action</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="action_redo">
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="toolTip">
+    <string>Redo the previously undid action</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>DrawingArea</class>
    <extends>QGraphicsView</extends>
-   <header>drawingarea</header>
+   <header>src.drawingarea</header>
   </customwidget>
  </customwidgets>
  <resources/>
