@@ -189,6 +189,14 @@ class drawingElement(object):
         self.setPen(pen)
         self.setBrush(brush)
 
+    def undoEdit(self):
+        """Handled by classes individually"""
+        pass
+
+    def redoEdit(self):
+        """Handled by classes individually"""
+        pass
+
 
 class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
     """Subclassed from QGraphicsItem. Provides additional methods so that
@@ -223,6 +231,12 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         for item in self.listOfItems:
             rect = rect.united(item.sceneBoundingRect())
         return self.mapRectFromScene(rect)
+
+    def sceneBoundingRect(self):
+        rect = self.listOfItems[0].sceneBoundingRect()
+        for item in self.listOfItems:
+            rect = rect.united(item.sceneBoundingRect())
+        return rect
 
     def __setstate__(self, state):
         """Reimplemented from drawingElement because group does not have
@@ -282,6 +296,17 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 item.localBrush = QtGui.QBrush()
                 item.setLocalBrushOptions()
 
+    # def getLocalPenOptions(self, option):
+    #     """Get child local pen options as a list"""
+    #     if option == 'width':
+    #         list_ = []
+    #         for item in self.listOfItems:
+    #             if isinstance(item, myGraphicsItemGroup):
+    #                 list_.append(item.getLocalPenOptions(option))
+    #             else:
+    #                 list_.append(item.localPenWidth)
+    #     return list_
+
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
         for item in self.listOfItems:
@@ -316,6 +341,14 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 # Call loadItems if item is also a myGraphicsItemGroup
                 item.loadItems(mode)
         self.setItems(self.listOfItems)
+
+    def undoEdit(self):
+        for item in self.listOfItems:
+            item.undoEdit()
+
+    def redoEdit(self):
+        for item in self.listOfItems:
+            item.redoEdit()
 
 
 class Wire(QtGui.QGraphicsPathItem, drawingElement):
@@ -386,6 +419,23 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         if hasattr(self, 'origin'):
             newWire.origin = self.origin
         return newWire
+
+
+    def undoEdit(self):
+        if len(self.oldPath.toSubpathPolygons()) == 0:
+            return False
+        lastPoly = self.oldPath.toSubpathPolygons()[-1]
+        lastPoly.remove(lastPoly.size()-1)
+        otherPoly = self.oldPath.toSubpathPolygons()[:-1]
+        path = QtGui.QPainterPath()
+        for i in otherPoly:
+            path.addPolygon(i)
+        path.addPolygon(lastPoly)
+        self.oldPath = path
+        self.update()
+
+    def redoEdit(self):
+        pass
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
@@ -699,7 +749,7 @@ class Arc(Wire):
         newEnd = self.mapFromScene(newEnd)
         if click is True:
             self.clicks += 1
-            self.clicks %= self.points
+        self.clicks %= self.points
         if self.clicks == 0:
             self.endPoint = newEnd
             self.controlPoint = newEnd
@@ -710,13 +760,13 @@ class Arc(Wire):
         elif self.clicks == 2:
             if self.points == 3:
                 self.createSegment()
-                self.clicks = 0
+                self.clicks = 3
                 return True
             elif self.points == 4:
                 self.controlPointAlt = newEnd
         elif self.clicks == 3:
             self.createSegment()
-            self.clicks = 0
+            self.clicks = 4
             return True
         self.setPath(self.oldPath)
         path = self.path()
@@ -733,3 +783,25 @@ class Arc(Wire):
         elif self.points == 4:
             self.oldPath.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(self.oldPath)
+
+    def undoEdit(self):
+        if self.clicks == 1:
+            self.undoneEndPoint = self.endPoint
+        elif self.clicks == 2:
+            self.undoneControlPoint = self.controlPoint
+        elif self.clicks == 3:
+            self.undoneControlPointAlt = self.controlPointAlt
+        if self.clicks > 0:
+            self.clicks -= 1
+
+    def redoEdit(self):
+        if hasattr(self, 'undoneEndPoint'):
+            self.clicks += 1
+            if self.clicks == 1:
+                self.endPoint = self.undoneEndPoint
+            elif self.clicks == 2:
+                self.controlPoint = self.undoneControlPoint
+            elif self.clicks == 3:
+                self.controlPointAlt = self.undoneControlPointAlt
+        else:
+            pass

@@ -1,29 +1,13 @@
 from PyQt4 import QtCore, QtGui, QtSvg
 from src.components import *
 from src.drawingitems import *
+from src.commands import *
 import cPickle as pickle
 import os
 from numpy import ceil, floor
 # from src import components
 # import sys
 # sys.modules['components'] = components
-
-
-class Delete(QtGui.QUndoCommand):
-    def __init__(self, parent=None, scene=None, listOfItems=None):
-        super(Delete, self).__init__(parent)
-        self.scene = scene
-        self.listOfItems = listOfItems
-        for item in self.listOfItems:
-            item.changeColourToGray(False)
-
-    def redo(self):
-        for item in self.listOfItems:
-            self.scene.removeItem(item)
-
-    def undo(self):
-        for item in self.listOfItems:
-            self.scene.addItem(item)
 
 
 class DrawingArea(QtGui.QGraphicsView):
@@ -439,29 +423,40 @@ class DrawingArea(QtGui.QGraphicsView):
         self.snapToGrid = state
 
     def changeWidthRoutine(self, selectedWidth):
-        self.selectedWidth = selectedWidth
-        for i in self.scene().selectedItems():
-            i.setLocalPenOptions(width=self.selectedWidth)
+        if selectedWidth != self.selectedWidth:
+            self.selectedWidth = selectedWidth
+            if self.scene().selectedItems() != []:
+                changePen = ChangePen(None, self.scene().selectedItems(), width=self.selectedWidth)
+                self.undoStack.push(changePen)
 
     def changePenColourRoutine(self, selectedPenColour):
-        self.selectedPenColour = selectedPenColour
-        for i in self.scene().selectedItems():
-            i.setLocalPenOptions(penColour=self.selectedPenColour)
+        if selectedPenColour != self.selectedPenColour:
+            self.selectedPenColour = selectedPenColour
+            print self.undoStack.count()
+            if self.scene().selectedItems() != []:
+                changePen = ChangePen(None, self.scene().selectedItems(), penColour=self.selectedPenColour)
+                self.undoStack.push(changePen)
 
     def changePenStyleRoutine(self, selectedPenStyle):
-        self.selectedPenStyle = selectedPenStyle
-        for i in self.scene().selectedItems():
-            i.setLocalPenOptions(penStyle=self.selectedPenStyle)
+        if selectedPenStyle != self.selectedPenStyle:
+            self.selectedPenStyle = selectedPenStyle
+            if self.scene().selectedItems() != []:
+                changePen = ChangePen(None, self.scene().selectedItems(), penStyle=self.selectedPenStyle)
+                self.undoStack.push(changePen)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
-        self.selectedBrushColour = selectedBrushColour
-        for i in self.scene().selectedItems():
-            i.setLocalBrushOptions(brushColour=self.selectedBrushColour)
+        if selectedBrushColour != self.selectedBrushColour:
+            self.selectedBrushColour = selectedBrushColour
+            if self.scene().selectedItems() != []:
+                changeBrush = ChangeBrush(None, self.scene().selectedItems(), brushColour=self.selectedBrushColour)
+                self.undoStack.push(changeBrush)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
-        self.selectedBrushStyle = selectedBrushStyle
-        for i in self.scene().selectedItems():
-            i.setLocalBrushOptions(brushStyle=self.selectedBrushStyle)
+        if selectedBrushStyle != self.selectedBrushStyle:
+            self.selectedBrushStyle = selectedBrushStyle
+            if self.scene().selectedItems() != []:
+                changeBrush = ChangeBrush(None, self.scene().selectedItems(), brushStyle=self.selectedBrushStyle)
+                self.undoStack.push(changeBrush)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
@@ -546,18 +541,26 @@ class DrawingArea(QtGui.QGraphicsView):
                     # Create new wire if none exists
                     if self.currentWire is None:
                         self.currentWire = Wire(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                        self.scene().addItem(self.currentWire)
+                        add = Add(None, self.scene(), self.currentWire)
+                        self.undoStack.push(add)
+                        # self.scene().addItem(self.currentWire)
                     # If wire exists, add segments
                     else:
                         self.currentWire.createSegment(self.mapToGrid(event.pos()))
+                        edit = Edit(None, self.scene(), self.currentWire)
+                        self.undoStack.push(edit)
                 elif self._keys['arc'] is True:
                     # Create new arc if none exists
                     if self.currentArc is None:
                         self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, points=self.arcPoints)
-                        self.scene().addItem(self.currentArc)
+                        add = Add(None, self.scene(), self.currentArc)
+                        self.undoStack.push(add)
+                        # self.scene().addItem(self.currentArc)
                     # If arc exists, add segments
                     else:
                         self.currentArc.updateArc(self.mapToGrid(event.pos()), click=True)
+                        edit = Edit(None, self.scene(), self.currentArc)
+                        self.undoStack.push(edit)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
@@ -569,7 +572,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 start = self.mapToGrid(self.currentPos)
                 if self.currentRectangle is None:
                     self.currentRectangle = Rectangle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                    self.scene().addItem(self.currentRectangle)
+                    add = Add(None, self.scene(), self.currentRectangle)
+                    self.undoStack.push(add)
+                    # self.scene().addItem(self.currentRectangle)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If circle mode is on, add a new circle
@@ -581,7 +586,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 start = self.mapToGrid(self.currentPos)
                 if self.currentCircle is None:
                     self.currentCircle = Circle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                    self.scene().addItem(self.currentCircle)
+                    add = Add(None, self.scene(), self.currentCircle)
+                    self.undoStack.push(add)
+                    # self.scene().addItem(self.currentCircle)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If ellipse mode is on, add a new ellipse
@@ -593,7 +600,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 start = self.mapToGrid(self.currentPos)
                 if self.currentEllipse is None:
                     self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                    self.scene().addItem(self.currentEllipse)
+                    add = Add(None, self.scene(), self.currentEllipse)
+                    self.undoStack.push(add)
+                    # self.scene().addItem(self.currentEllipse)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If textbox mode is on, add a new textbox
@@ -605,7 +614,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 start = self.mapToGrid(self.currentPos)
                 if self.currentTextBox is None:
                     self.currentTextBox = TextBox(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                    self.scene().addItem(self.currentTextBox)
+                    add = Add(None, self.scene(), self.currentTextBox)
+                    self.undoStack.push(add)
+                    # self.scene().addItem(self.currentTextBox)
                 self._keys['textBox'] = False
                 # Change cursor shape to a text editing style
                 cursor = self.cursor()
