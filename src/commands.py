@@ -35,13 +35,27 @@ class AddMulti(QtGui.QUndoCommand):
 
 
 class Add(QtGui.QUndoCommand):
-    def __init__(self, parent=None, scene=None, item=None):
+    def __init__(self, parent=None, scene=None, item=None, **kwargs):
         super(Add, self).__init__(parent)
         self.scene = scene
         self.item = item
+        if 'symbol' in kwargs:
+            self.symbol = kwargs['symbol']
+            if 'origin' in kwargs:
+                self.origin = kwargs['origin']
+            else:
+                self.origin = QtCore.QPointF(0, 0)
+        else:
+            self.symbol = False
 
     def redo(self):
-        self.scene.addItem(self.item)
+        if self.symbol is False:
+            """If item is a regular item"""
+            self.scene.addItem(self.item)
+        else:
+            """Or if item is a symbol to be loaded"""
+            self.item.__init__(None, self.scene, self.origin, self.item.listOfItems)
+            self.item.loadItems('symbol')
         self.scene.update(self.scene.sceneRect())
 
     def undo(self):
@@ -60,6 +74,83 @@ class Edit(QtGui.QUndoCommand):
 
     def undo(self):
         self.item.undoEdit()
+
+
+class Move(QtGui.QUndoCommand):
+    def __init__(self, parent=None, scene=None, listOfItems=None, startPoint=None, stopPoint=None):
+        super(Move, self).__init__(parent)
+        self.scene = scene
+        self.listOfItems = listOfItems
+        self.startPoint = startPoint
+        self.stopPoint = stopPoint
+
+    def redo(self):
+        for item in self.listOfItems:
+            item.moveTo(self.stopPoint, 'done')
+
+    def undo(self):
+        for item in self.listOfItems:
+            item.moveTo(self.startPoint, 'done')
+
+
+class Copy(QtGui.QUndoCommand):
+    def __init__(self, parent=None, scene=None, listOfItems=None, point=None):
+        super(Copy, self).__init__(parent)
+        self.scene = scene
+        self.listOfItems = listOfItems
+        self.point = point
+
+    def redo(self):
+        for item in self.listOfItems:
+            if item not in self.scene.items():
+                self.scene.addItem(item)
+            else:
+                item.moveTo(self.point, 'done')
+
+    def undo(self):
+        for item in self.listOfItems:
+            self.scene.removeItem(item)
+
+
+class Rotate(QtGui.QUndoCommand):
+    def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None, angle=None):
+        super(Rotate, self).__init__(parent)
+        self.scene = scene
+        self.listOfItems = listOfItems
+        self.moving = moving
+        self.point = point
+        self.angle = angle
+        self.listOfPoints = {}
+        for item in self.listOfItems:
+            self.listOfPoints[str(item)] = item.mapFromScene(self.point)
+
+    def redo(self):
+        for item in self.listOfItems:
+            item.rotateBy(self.moving, self.listOfPoints[str(item)], self.angle)
+
+    def undo(self):
+        for item in self.listOfItems:
+            item.rotateBy(self.moving, self.listOfPoints[str(item)], -self.angle)
+
+
+class Mirror(QtGui.QUndoCommand):
+    def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None):
+        super(Mirror, self).__init__(parent)
+        self.scene = scene
+        self.listOfItems = listOfItems
+        self.moving = moving
+        self.point = point
+        self.listOfPoints = {}
+        for item in self.listOfItems:
+            self.listOfPoints[str(item)] = item.mapFromScene(self.point)
+
+    def redo(self):
+        for item in self.listOfItems:
+            item.reflect(self.moving, self.listOfPoints[str(item)])
+
+    def undo(self):
+        for item in self.listOfItems:
+            item.reflect(self.moving, self.listOfPoints[str(item)])
 
 
 class ChangePen(QtGui.QUndoCommand):

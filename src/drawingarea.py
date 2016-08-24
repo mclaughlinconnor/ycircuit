@@ -308,8 +308,11 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.scene().removeItem(self._grid)
                 self.scene().clear()
                 self.scene().addItem(self._grid)
-            loadItem.__init__(None, self.scene(), QtCore.QPointF(0, 0), loadItem.listOfItems)
-            loadItem.loadItems(mode)
+                loadItem.__init__(None, self.scene(), QtCore.QPointF(0, 0), loadItem.listOfItems)
+                loadItem.loadItems(mode)
+            elif mode == 'symbol':
+                add = Add(None, self.scene(), loadItem, symbol=True, origin=self.mapToGrid(self.currentPos))
+                self.undoStack.push(add)
             if mode == 'schematic':
                 loadItem.setPos(loadItem.origin)
                 loadItem.reparentItems()
@@ -330,13 +333,15 @@ class DrawingArea(QtGui.QGraphicsView):
             self._mouse['1'] = False
             # Undo move commands
             if self._keys['m'] is True:
+                self.undoStack.endMacro()
+                self.undoStack.undo()
                 # Undo reflection command if items were being moved
-                if self.reflections == 1:
-                    self.rotateRoutine(QtCore.Qt.ShiftModifier)
+                # if self.reflections == 1:
+                #     self.rotateRoutine(QtCore.Qt.ShiftModifier)
                 # Undo rotation command if items were being moved
-                if self.rotations != 0:
-                    for i in range(360/self.rotateAngle - self.rotations):
-                        self.rotateRoutine()
+                # if self.rotations != 0:
+                #     for i in range(360/self.rotateAngle - self.rotations):
+                #         self.rotateRoutine()
                 if (hasattr(self, 'moveItems')):
                     for i in self.moveItems:
                         # i.moveTo(0, 0, 'cancel')
@@ -395,8 +400,6 @@ class DrawingArea(QtGui.QGraphicsView):
         """Delete selected items"""
         del1 = Delete(None, self.scene(), self.scene().selectedItems())
         self.undoStack.push(del1)
-        # for i in self.scene().selectedItems():
-        #     self.scene().removeItem(i)
 
     def fitToViewRoutine(self):
         """Resizes viewport so that all items drawn are visible"""
@@ -432,7 +435,6 @@ class DrawingArea(QtGui.QGraphicsView):
     def changePenColourRoutine(self, selectedPenColour):
         if selectedPenColour != self.selectedPenColour:
             self.selectedPenColour = selectedPenColour
-            print self.undoStack.count()
             if self.scene().selectedItems() != []:
                 changePen = ChangePen(None, self.scene().selectedItems(), penColour=self.selectedPenColour)
                 self.undoStack.push(changePen)
@@ -485,16 +487,21 @@ class DrawingArea(QtGui.QGraphicsView):
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
                 # self.moveStartPos = self.mapToGrid(event.pos())
-                point = self.mapToGrid(event.pos())
+                self.moveStartPoint = self.mapToGrid(event.pos())
                 for i in self.moveItems:
-                    # i.moveTo(0, 0, 'start')
-                    i.moveTo(point, 'start')
+                    i.moveTo(self.moveStartPoint, 'start')
+                # Create a macro and save all rotate/mirror commands
+                self.undoStack.beginMacro('')
             # End moving if LMB is clicked again
             else:
                 point = self.mapToGrid(event.pos())
-                for i in self.moveItems:
-                    # i.moveTo(0, 0, 'done')
-                    i.moveTo(point, 'done')
+                if self._keys['c'] is False:
+                    move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
+                    self.undoStack.push(move)
+                else:
+                    copy_ = Copy(None, self.scene(), self.scene().selectedItems(), point=point)
+                    self.undoStack.push(copy_)
+                self.undoStack.endMacro()
         super(DrawingArea, self).mousePressEvent(event)
 
     def updateMoveItems(self):
@@ -514,15 +521,19 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.reflections += 1
                 self.reflections %= 2
                 point = self.mapToGrid(self.currentPos)
-                for item in self.moveItems:
-                    item.reflect(self._keys['m'], point)
+                mirror = Mirror(None, self.scene(), self.moveItems, self._keys['m'], point)
+                self.undoStack.push(mirror)
+                # for item in self.moveItems:
+                #     item.reflect(self._keys['m'], point)
             else:
                 # Keep track of number of rotations
                 self.rotations += 1
                 self.rotations %= 360/self.rotateAngle
                 point = self.mapToGrid(self.currentPos)
-                for item in self.moveItems:
-                    item.rotateBy(self._keys['m'], point, self.rotateAngle)
+                rotate = Rotate(None, self.scene(), self.moveItems, self._keys['m'], point, self.rotateAngle)
+                self.undoStack.push(rotate)
+                # for item in self.moveItems:
+                #     item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
     def mouseReleaseEvent(self, event):
         super(DrawingArea, self).mouseReleaseEvent(event)
@@ -541,8 +552,6 @@ class DrawingArea(QtGui.QGraphicsView):
                     # Create new wire if none exists
                     if self.currentWire is None:
                         self.currentWire = Wire(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                        # add = Add(None, self.scene(), self.currentWire)
-                        # self.undoStack.push(add)
                         self.scene().addItem(self.currentWire)
                     # If wire exists, add segments
                     else:
@@ -552,12 +561,9 @@ class DrawingArea(QtGui.QGraphicsView):
                     # Create new arc if none exists
                     if self.currentArc is None:
                         self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, points=self.arcPoints)
-                        # add = Add(None, self.scene(), self.currentArc)
-                        # self.undoStack.push(add)
                         self.scene().addItem(self.currentArc)
                     # If arc exists, add segments
                     else:
-                        # self.currentArc.updateArc(self.mapToGrid(event.pos()), click=True)
                         edit = Edit(None, self.scene(), self.currentArc, start)
                         self.undoStack.push(edit)
             for item in self.scene().selectedItems():

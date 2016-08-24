@@ -254,8 +254,10 @@ class Ui_MainWindow(object):
         self.action_addArc4Point = QtGui.QAction(MainWindow)
         self.action_addArc4Point.setObjectName(_fromUtf8("action_addArc4Point"))
         self.action_undo = QtGui.QAction(MainWindow)
+        self.action_undo.setEnabled(False)
         self.action_undo.setObjectName(_fromUtf8("action_undo"))
         self.action_redo = QtGui.QAction(MainWindow)
+        self.action_redo.setEnabled(False)
         self.action_redo.setObjectName(_fromUtf8("action_redo"))
         self.menu_File.addAction(self.action_saveSchematic)
         self.menu_File.addAction(self.action_loadSchematic)
@@ -496,6 +498,6 @@ class Ui_MainWindow(object):
         self.action_undo.setShortcut(_translate("MainWindow", "Ctrl+Z", None))
         self.action_redo.setText(_translate("MainWindow", "Redo", None))
         self.action_redo.setToolTip(_translate("MainWindow", "Redo the previously undid action", None))
-        self.action_redo.setShortcut(_translate("MainWindow", "Ctrl+Shift+Z", None))
+        self.action_redo.setShortcut(_translate("MainWindow", "Ctrl+Y", None))
 
 from src.drawingarea import DrawingArea

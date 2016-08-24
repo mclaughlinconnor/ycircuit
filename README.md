@@ -33,7 +33,7 @@ The easiest way to satisfy all dependencies is to use Anaconda (<https://www.con
 
 The software is fairly easy to use (partially because of the limited feature set). To start the software, run the following command
 
-`python test.py`
+`python top.py`
 
 As of this point in time, the following options are available:
 

@@ -115,7 +115,8 @@ class drawingElement(object):
             if self.reflections != 0:
                 angle = -angle
         if moving is True:
-            origin = self.mapFromScene(origin)
+            # origin = self.mapFromScene(origin)
+            origin = origin
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
@@ -136,7 +137,8 @@ class drawingElement(object):
             self.reflections %= 2
         transform_ = self.transform()
         if moving is True:
-            origin = self.mapFromScene(origin)
+            # origin = self.mapFromScene(origin)
+            origin = origin
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())

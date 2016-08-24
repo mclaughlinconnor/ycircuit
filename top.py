@@ -25,6 +25,8 @@ class myMainWindow(QtGui.QMainWindow):
         # Edit menu
         self.ui.action_undo.triggered.connect(self.ui.drawingArea.undoStack.undo)
         self.ui.action_redo.triggered.connect(self.ui.drawingArea.undoStack.redo)
+        self.ui.drawingArea.undoStack.canRedoChanged.connect(self.ui.action_redo.setEnabled)
+        self.ui.drawingArea.undoStack.canUndoChanged.connect(self.ui.action_undo.setEnabled)
         self.ui.action_rotate.triggered.connect(self.ui.drawingArea.rotateRoutine)
         self.ui.action_mirror.triggered.connect(lambda x:self.ui.drawingArea.rotateRoutine(modifier=QtCore.Qt.ShiftModifier))
         self.ui.action_move.triggered.connect(self.ui.drawingArea.moveRoutine)

@@ -844,6 +844,9 @@
    </property>
   </action>
   <action name="action_undo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Undo</string>
    </property>
@@ -855,6 +858,9 @@
    </property>
   </action>
   <action name="action_redo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Redo</string>
    </property>
@@ -862,7 +868,7 @@
     <string>Redo the previously undid action</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+Z</string>
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>
