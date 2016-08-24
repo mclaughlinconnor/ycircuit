@@ -42,6 +42,8 @@ As of this point in time, the following options are available:
     * Save and load schematics (.sch files)
     * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file
   * Editing
+    * Undo
+    * Redo
     * Delete
     * Move
     * Copy
@@ -88,7 +90,7 @@ Currently, the files have the following uses:
   * top.py: Contains mappings from UI callbacks to actual functions. Used for launching the GUI.
   * src/
     * gui/
-        * schematic_mainWindow.*: The UI file contains the output of Qt Designer while the py file is the exported version of the same.
+        * ycircuit_mainWindow.*: The UI file contains the output of Qt Designer while the py file is the exported version of the same.
     * drawingitems.py: Contains the Grid class for creating the background grid in the GUI and the TextEditor class for handling editing of TextBox objects.
     * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
     * components.py: Defines item classes for creating and manipulating shapes.
