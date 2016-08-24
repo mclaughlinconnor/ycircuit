@@ -76,7 +76,7 @@ As of this point in time, the following options are available:
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 
-An example output image would look something like this:
+An example output image would look something like this ([High res image](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/Inverter/inverter.png)):
 
 ![Image not found ):](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/Inverter/inverter_lowRes.png "Such a pretty inverter!")
 
