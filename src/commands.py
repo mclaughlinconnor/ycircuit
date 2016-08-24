@@ -49,13 +49,14 @@ class Add(QtGui.QUndoCommand):
 
 
 class Edit(QtGui.QUndoCommand):
-    def __init__(self, parent=None, scene=None, item=None):
+    def __init__(self, parent=None, scene=None, item=None, point=None):
         super(Edit, self).__init__(parent)
         self.scene = scene
         self.item = item
+        self.point = point
 
     def redo(self):
-        self.item.redoEdit()
+        self.item.redoEdit(self.point)
 
     def undo(self):
         self.item.undoEdit()

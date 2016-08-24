@@ -541,25 +541,24 @@ class DrawingArea(QtGui.QGraphicsView):
                     # Create new wire if none exists
                     if self.currentWire is None:
                         self.currentWire = Wire(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
-                        add = Add(None, self.scene(), self.currentWire)
-                        self.undoStack.push(add)
-                        # self.scene().addItem(self.currentWire)
+                        # add = Add(None, self.scene(), self.currentWire)
+                        # self.undoStack.push(add)
+                        self.scene().addItem(self.currentWire)
                     # If wire exists, add segments
                     else:
-                        self.currentWire.createSegment(self.mapToGrid(event.pos()))
-                        edit = Edit(None, self.scene(), self.currentWire)
+                        edit = Edit(None, self.scene(), self.currentWire, start)
                         self.undoStack.push(edit)
                 elif self._keys['arc'] is True:
                     # Create new arc if none exists
                     if self.currentArc is None:
                         self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, points=self.arcPoints)
-                        add = Add(None, self.scene(), self.currentArc)
-                        self.undoStack.push(add)
-                        # self.scene().addItem(self.currentArc)
+                        # add = Add(None, self.scene(), self.currentArc)
+                        # self.undoStack.push(add)
+                        self.scene().addItem(self.currentArc)
                     # If arc exists, add segments
                     else:
-                        self.currentArc.updateArc(self.mapToGrid(event.pos()), click=True)
-                        edit = Edit(None, self.scene(), self.currentArc)
+                        # self.currentArc.updateArc(self.mapToGrid(event.pos()), click=True)
+                        edit = Edit(None, self.scene(), self.currentArc, start)
                         self.undoStack.push(edit)
             for item in self.scene().selectedItems():
                 item.setSelected(False)

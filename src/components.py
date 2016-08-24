@@ -193,7 +193,7 @@ class drawingElement(object):
         """Handled by classes individually"""
         pass
 
-    def redoEdit(self):
+    def redoEdit(self, point=None):
         """Handled by classes individually"""
         pass
 
@@ -346,9 +346,9 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         for item in self.listOfItems:
             item.undoEdit()
 
-    def redoEdit(self):
+    def redoEdit(self, point=None):
         for item in self.listOfItems:
-            item.redoEdit()
+            item.redoEdit(point)
 
 
 class Wire(QtGui.QGraphicsPathItem, drawingElement):
@@ -432,10 +432,10 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
             path.addPolygon(i)
         path.addPolygon(lastPoly)
         self.oldPath = path
-        self.update()
+        self.setPath(self.oldPath)
 
-    def redoEdit(self):
-        pass
+    def redoEdit(self, point=None):
+        self.createSegment(point)
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
@@ -749,6 +749,12 @@ class Arc(Wire):
         newEnd = self.mapFromScene(newEnd)
         if click is True:
             self.clicks += 1
+            if self.clicks == 1:
+                self.endPoint = newEnd
+            elif self.clicks == 2:
+                self.controlPoint = newEnd
+            elif self.clicks == 3:
+                self.controlPointAlt = newEnd
         self.clicks %= self.points
         if self.clicks == 0:
             self.endPoint = newEnd
@@ -785,23 +791,8 @@ class Arc(Wire):
         self.setPath(self.oldPath)
 
     def undoEdit(self):
-        if self.clicks == 1:
-            self.undoneEndPoint = self.endPoint
-        elif self.clicks == 2:
-            self.undoneControlPoint = self.controlPoint
-        elif self.clicks == 3:
-            self.undoneControlPointAlt = self.controlPointAlt
         if self.clicks > 0:
             self.clicks -= 1
 
-    def redoEdit(self):
-        if hasattr(self, 'undoneEndPoint'):
-            self.clicks += 1
-            if self.clicks == 1:
-                self.endPoint = self.undoneEndPoint
-            elif self.clicks == 2:
-                self.controlPoint = self.undoneControlPoint
-            elif self.clicks == 3:
-                self.controlPointAlt = self.undoneControlPointAlt
-        else:
-            pass
+    def redoEdit(self, point=None):
+        self.updateArc(point, click=True)
