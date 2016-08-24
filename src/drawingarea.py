@@ -33,7 +33,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self.enableGrid = True
         self.snapToGrid = True
         self.undoStack = QtGui.QUndoStack(self)
-        self.undoStack.setUndoLimit(100)
+        self.undoStack.setUndoLimit(1000)
         self.reflections = 0
         self.rotations = 0
         self.rotateAngle = 30

@@ -685,37 +685,38 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
             self.localPenColour = kwargs['penColour']
         if 'penStyle' in kwargs:
             self.localPenStyle = kwargs['penStyle']
-        self.localPen.setWidth(self.localPenWidth)
-        self.localPen.setColor(QtGui.QColor(self.localPenColour))
-        # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
-        self.localPen.setStyle(self.localPenStyle)
         if hasattr(self, 'setFont'):
             font = self.font()
             font.setPointSize(self.localPenWidth*10)
             font.setFamily('Arial')
             self.setFont(font)
-        if hasattr(self, 'setDefaultTextColor'):
-            self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
+        self.changeTextSize(self.localPenWidth)
+        self.changeTextColour(self.localPenColour)
 
-    def hoverEnterEvent(self, event):
+    def changeTextColour(self, colour='gray'):
         # Create a textedit to conveniently change the text color
         textEdit = QtGui.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setTextColor(QtGui.QColor('gray'))
+        textEdit.setTextColor(QtGui.QColor(colour))
         self.setHtml(textEdit.toHtml())
-        self.setDefaultTextColor(QtGui.QColor('gray'))
+        self.setDefaultTextColor(QtGui.QColor(colour))
         self.update()
 
-    def hoverLeaveEvent(self, event=None):
-        # Create a textedit to conveniently restore the text color
+    def changeTextSize(self, weight=4):
+        # Create a textedit to conveniently change the text size
         textEdit = QtGui.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setTextColor(QtGui.QColor(self.localPenColour))
+        textEdit.setFontPointSize(weight*10)
         self.setHtml(textEdit.toHtml())
-        self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
         self.update()
+
+    def hoverEnterEvent(self, event):
+        self.changeTextColour('gray')
+
+    def hoverLeaveEvent(self, event=None):
+        self.changeTextColour(self.localPenColour)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
