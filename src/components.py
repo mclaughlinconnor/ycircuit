@@ -713,19 +713,13 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
 
     def changeTextSize(self, weight=4):
         # Create a textedit to conveniently change the text size
-        self.localPenWidth = weight
         textEdit = QtGui.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
         textEdit.setFontPointSize(weight*10)
         self.setHtml(textEdit.toHtml())
         self.update()
-
-    def hoverEnterEvent(self, event):
-        self.changeTextColour('gray')
-
-    def hoverLeaveEvent(self, event=None):
-        self.changeTextColour(self.localPenColour)
+        self.localPenWidth = weight
 
     def changeColourToGray(self, gray=False):
         if gray is True:
@@ -744,7 +738,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
-        newItem = self.__class__(parent, _start, text=self.toHtml(), pen=self.localPen, brush=self.localBrush)
+        newItem = self.__class__(parent, _start, text=self.toHtml(), penColour=self.localPenColour, width=self.localPenWidth, brush=self.localBrush)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
