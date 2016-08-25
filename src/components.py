@@ -713,6 +713,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
 
     def changeTextSize(self, weight=4):
         # Create a textedit to conveniently change the text size
+        self.localPenWidth = weight
         textEdit = QtGui.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
@@ -725,6 +726,9 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
 
     def hoverLeaveEvent(self, event=None):
         self.changeTextColour(self.localPenColour)
+
+    def changeColourToGray(self, gray=False):
+        pass
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
