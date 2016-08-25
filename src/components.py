@@ -183,6 +183,14 @@ class drawingElement(object):
         self.changeColourToGray(False)
 
     def changeColourToGray(self, gray=False):
+        # For some reason, after creating a symbol, localPen and localBrush get
+        # deleted. Check to see if they exist, and create them if they don't
+        if not hasattr(self, 'localPen'):
+            self.localPen = QtGui.QPen()
+            self.setLocalPenOptions()
+        if not hasattr(self, 'localBrush'):
+            self.localBrush = QtGui.QBrush()
+            self.setLocalBrushOptions()
         pen = QtGui.QPen(self.localPen)
         brush = QtGui.QBrush(self.localBrush)
         if gray == True:
