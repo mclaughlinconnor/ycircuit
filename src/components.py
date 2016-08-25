@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
 import numpy
-from drawingitems import TextEditor
+from src.drawingitems import TextEditor
 import sys
 
 class drawingElement(object):
@@ -115,7 +115,8 @@ class drawingElement(object):
             if self.reflections != 0:
                 angle = -angle
         if moving is True:
-            origin = self.mapFromScene(origin)
+            # origin = self.mapFromScene(origin)
+            origin = origin
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
@@ -136,7 +137,8 @@ class drawingElement(object):
             self.reflections %= 2
         transform_ = self.transform()
         if moving is True:
-            origin = self.mapFromScene(origin)
+            # origin = self.mapFromScene(origin)
+            origin = origin
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
@@ -181,6 +183,14 @@ class drawingElement(object):
         self.changeColourToGray(False)
 
     def changeColourToGray(self, gray=False):
+        # For some reason, after creating a symbol, localPen and localBrush get
+        # deleted. Check to see if they exist, and create them if they don't
+        if not hasattr(self, 'localPen'):
+            self.localPen = QtGui.QPen()
+            self.setLocalPenOptions()
+        if not hasattr(self, 'localBrush'):
+            self.localBrush = QtGui.QBrush()
+            self.setLocalBrushOptions()
         pen = QtGui.QPen(self.localPen)
         brush = QtGui.QBrush(self.localBrush)
         if gray == True:
@@ -188,6 +198,14 @@ class drawingElement(object):
             brush.setColor(QtGui.QColor('gray'))
         self.setPen(pen)
         self.setBrush(brush)
+
+    def undoEdit(self):
+        """Handled by classes individually"""
+        pass
+
+    def redoEdit(self, point=None):
+        """Handled by classes individually"""
+        pass
 
 
 class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
@@ -223,6 +241,12 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         for item in self.listOfItems:
             rect = rect.united(item.sceneBoundingRect())
         return self.mapRectFromScene(rect)
+
+    def sceneBoundingRect(self):
+        rect = self.listOfItems[0].sceneBoundingRect()
+        for item in self.listOfItems:
+            rect = rect.united(item.sceneBoundingRect())
+        return rect
 
     def __setstate__(self, state):
         """Reimplemented from drawingElement because group does not have
@@ -282,6 +306,17 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 item.localBrush = QtGui.QBrush()
                 item.setLocalBrushOptions()
 
+    # def getLocalPenOptions(self, option):
+    #     """Get child local pen options as a list"""
+    #     if option == 'width':
+    #         list_ = []
+    #         for item in self.listOfItems:
+    #             if isinstance(item, myGraphicsItemGroup):
+    #                 list_.append(item.getLocalPenOptions(option))
+    #             else:
+    #                 list_.append(item.localPenWidth)
+    #     return list_
+
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
         for item in self.listOfItems:
@@ -316,6 +351,14 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 # Call loadItems if item is also a myGraphicsItemGroup
                 item.loadItems(mode)
         self.setItems(self.listOfItems)
+
+    def undoEdit(self):
+        for item in self.listOfItems:
+            item.undoEdit()
+
+    def redoEdit(self, point=None):
+        for item in self.listOfItems:
+            item.redoEdit(point)
 
 
 class Wire(QtGui.QGraphicsPathItem, drawingElement):
@@ -386,6 +429,23 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         if hasattr(self, 'origin'):
             newWire.origin = self.origin
         return newWire
+
+
+    def undoEdit(self):
+        if len(self.oldPath.toSubpathPolygons()) == 0:
+            return False
+        lastPoly = self.oldPath.toSubpathPolygons()[-1]
+        lastPoly.remove(lastPoly.size()-1)
+        otherPoly = self.oldPath.toSubpathPolygons()[:-1]
+        path = QtGui.QPainterPath()
+        for i in otherPoly:
+            path.addPolygon(i)
+        path.addPolygon(lastPoly)
+        self.oldPath = path
+        self.setPath(self.oldPath)
+
+    def redoEdit(self, point=None):
+        self.createSegment(point)
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
@@ -633,37 +693,38 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
             self.localPenColour = kwargs['penColour']
         if 'penStyle' in kwargs:
             self.localPenStyle = kwargs['penStyle']
-        self.localPen.setWidth(self.localPenWidth)
-        self.localPen.setColor(QtGui.QColor(self.localPenColour))
-        # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
-        self.localPen.setStyle(self.localPenStyle)
         if hasattr(self, 'setFont'):
             font = self.font()
             font.setPointSize(self.localPenWidth*10)
             font.setFamily('Arial')
             self.setFont(font)
-        if hasattr(self, 'setDefaultTextColor'):
-            self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
+        self.changeTextSize(self.localPenWidth)
+        self.changeTextColour(self.localPenColour)
 
-    def hoverEnterEvent(self, event):
+    def changeTextColour(self, colour='gray'):
         # Create a textedit to conveniently change the text color
         textEdit = QtGui.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setTextColor(QtGui.QColor('gray'))
+        textEdit.setTextColor(QtGui.QColor(colour))
         self.setHtml(textEdit.toHtml())
-        self.setDefaultTextColor(QtGui.QColor('gray'))
+        self.setDefaultTextColor(QtGui.QColor(colour))
         self.update()
 
-    def hoverLeaveEvent(self, event=None):
-        # Create a textedit to conveniently restore the text color
+    def changeTextSize(self, weight=4):
+        # Create a textedit to conveniently change the text size
         textEdit = QtGui.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setTextColor(QtGui.QColor(self.localPenColour))
+        textEdit.setFontPointSize(weight*10)
         self.setHtml(textEdit.toHtml())
-        self.setDefaultTextColor(QtGui.QColor(self.localPenColour))
         self.update()
+
+    def hoverEnterEvent(self, event):
+        self.changeTextColour('gray')
+
+    def hoverLeaveEvent(self, event=None):
+        self.changeTextColour(self.localPenColour)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
@@ -699,7 +760,13 @@ class Arc(Wire):
         newEnd = self.mapFromScene(newEnd)
         if click is True:
             self.clicks += 1
-            self.clicks %= self.points
+            if self.clicks == 1:
+                self.endPoint = newEnd
+            elif self.clicks == 2:
+                self.controlPoint = newEnd
+            elif self.clicks == 3:
+                self.controlPointAlt = newEnd
+        self.clicks %= self.points
         if self.clicks == 0:
             self.endPoint = newEnd
             self.controlPoint = newEnd
@@ -710,13 +777,13 @@ class Arc(Wire):
         elif self.clicks == 2:
             if self.points == 3:
                 self.createSegment()
-                self.clicks = 0
+                self.clicks = 3
                 return True
             elif self.points == 4:
                 self.controlPointAlt = newEnd
         elif self.clicks == 3:
             self.createSegment()
-            self.clicks = 0
+            self.clicks = 4
             return True
         self.setPath(self.oldPath)
         path = self.path()
@@ -733,3 +800,10 @@ class Arc(Wire):
         elif self.points == 4:
             self.oldPath.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(self.oldPath)
+
+    def undoEdit(self):
+        if self.clicks > 0:
+            self.clicks -= 1
+
+    def redoEdit(self, point=None):
+        self.updateArc(point, click=True)
