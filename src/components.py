@@ -728,7 +728,10 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         self.changeTextColour(self.localPenColour)
 
     def changeColourToGray(self, gray=False):
-        pass
+        if gray is True:
+            self.changeTextColour('gray')
+        else:
+            self.changeTextColour(self.localPenColour)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
