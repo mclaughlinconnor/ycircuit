@@ -12,7 +12,7 @@ Current status is pre-alpha at best.
 
 You can download the zip file from this repo or clone it manually using the command:
 
-`git clone git@bitbucket.org/siddharthshekar/ycircuit.git`
+`git clone https://<yourusername>@bitbucket.org/siddharthshekar/ycircuit.git`
 
 This repo is currently private, so I'm not sure if this command actually works. Send me an email if you're having issues.
 
@@ -26,7 +26,7 @@ YCircuit currently has the following dependencies:
   * matplotlib - for handling LaTeX inputs
   * NumPy - for handling some of the math (may not even be entirely necessary)
 
-The easiest way to satisfy all dependencies is to use Anaconda (<https://www.continuum.io/downloads>). This is what I use also, and so we can be sure that the environments are (more or less) similar.
+The easiest way to satisfy all dependencies is to use [Anaconda](https://www.continuum.io/downloads). This is what I use also, and so we can be sure that the environments are (more or less) similar.
 
 ## Usage ##
 -------------------------------------------------------------------------------
