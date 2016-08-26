@@ -698,11 +698,8 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
             font.setPointSize(self.localPenWidth*10)
             font.setFamily('Arial')
             self.setFont(font)
-        # try:
-        #     self.changeTextSize(self.localPenWidth)
-        #     self.changeTextColour(self.localPenColour)
-        # except:
-        #     pass
+        self.changeTextSize(self.localPenWidth)
+        self.changeTextColour(self.localPenColour)
 
     def changeTextColour(self, colour='gray'):
         # Create a textedit to conveniently change the text color
