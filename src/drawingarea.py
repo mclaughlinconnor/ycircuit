@@ -222,12 +222,12 @@ class DrawingArea(QtGui.QGraphicsView):
         if mode == 'pdf':
             # Initialize printer
             printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
-            printer.setFullPage(True)
             sourceRect = self.scene().itemsBoundingRect()
             # Choose appropriate format
             if saveFile[-3:] == 'pdf':
                 printer.setOutputFormat(printer.PdfFormat)
             if saveFile[-3:] == 'eps':
+                printer.setFullPage(True)
                 printer.setOutputFormat(printer.PostScriptFormat)
             printer.setOutputFileName(saveFile)
             painter = QtGui.QPainter(printer)

@@ -698,8 +698,11 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
             font.setPointSize(self.localPenWidth*10)
             font.setFamily('Arial')
             self.setFont(font)
-        self.changeTextSize(self.localPenWidth)
-        self.changeTextColour(self.localPenColour)
+        # try:
+        #     self.changeTextSize(self.localPenWidth)
+        #     self.changeTextColour(self.localPenColour)
+        # except:
+        #     pass
 
     def changeTextColour(self, colour='gray'):
         # Create a textedit to conveniently change the text color
@@ -731,14 +734,21 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         # Show the editor on double click
         super(TextBox, self).mouseDoubleClickEvent(event)
         # Reset the text colour from gray
-        self.hoverLeaveEvent()
+        self.changeColourToGray(False)
         self.showEditor()
 
     def createCopy(self, parent=None):
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
-        newItem = self.__class__(parent, _start, text=self.toHtml(), penColour=self.localPenColour, width=self.localPenWidth, brush=self.localBrush)
+        pen = QtGui.QPen()
+        pen.setWidth(self.localPenWidth)
+        pen.setColor(QtGui.QColor(self.localPenColour))
+        pen.setStyle(self.localPenStyle)
+        brush = QtGui.QBrush()
+        brush.setColor(QtGui.QColor(self.localBrushColour))
+        brush.setStyle(self.localBrushStyle)
+        newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
