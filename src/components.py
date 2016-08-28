@@ -306,17 +306,6 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 item.localBrush = QtGui.QBrush()
                 item.setLocalBrushOptions()
 
-    # def getLocalPenOptions(self, option):
-    #     """Get child local pen options as a list"""
-    #     if option == 'width':
-    #         list_ = []
-    #         for item in self.listOfItems:
-    #             if isinstance(item, myGraphicsItemGroup):
-    #                 list_.append(item.getLocalPenOptions(option))
-    #             else:
-    #                 list_.append(item.localPenWidth)
-    #     return list_
-
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
         for item in self.listOfItems:

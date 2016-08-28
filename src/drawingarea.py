@@ -44,6 +44,8 @@ class DrawingArea(QtGui.QGraphicsView):
         self.selectedBrushStyle = 0
         self.items = []
         self.moveItems = []
+        self.schematicFileName = None
+        self.symbolFileName = None
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -155,20 +157,21 @@ class DrawingArea(QtGui.QGraphicsView):
         elif kind == 'CCCS':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
 
-    def saveRoutine(self, mode='export'):
+    def saveRoutine(self, mode='schematicAs'):
         """Handles saving of both symbols and schematics. For symbols and
         schematics, items are first parented to a myGraphicsItemGroup.
         The parent item is then saved into a corresponding .sym (symbol) and
         .sch (schematic) file. If the save option is a schematic, the items are then
         unparented.
         """
+        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs']
         # Remove grid from the scene to avoid saving it
         self.scene().removeItem(self._grid)
         # Return if no items are present
         if len(self.scene().items()) == 0:
             self.scene().addItem(self._grid)
             return
-        if mode == 'symbol' or mode == 'schematic':
+        if mode in possibleModes:
             listOfItems = self.scene().items()
             listOfItems = [item for item in listOfItems if item.parentItem() is None]
             x = min([item.scenePos().x() for item in listOfItems])
@@ -178,18 +181,38 @@ class DrawingArea(QtGui.QGraphicsView):
             saveObject.origin = origin
             # print saveObject, saveObject.origin
             # Set relative origins of child items
+
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
                 # print item, item.origin
             saveObject.setItems(listOfItems)
+
             if mode == 'symbol':
-                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
+                if self.symbolFileName is None:
+                    saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
+                else:
+                    saveFile = self.symbolFileName
+            elif mode == 'symbolAs':
+                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save symbol as', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
             elif mode == 'schematic':
-                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save Schematic', './untitled.sch', 'Schematics (*.sch)'))
+                if self.schematicFileName is None:
+                    saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save schematic', './untitled.sch', 'Schematics (*.sch)'))
+                else:
+                    saveFile = self.schematicFileName
+            elif mode == 'schematicAs':
+                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save schematic as', './untitled.sch', 'Schematics (*.sch)'))
+
             if saveFile != '':
                 with open(saveFile, 'wb') as file:
                     pickle.dump(saveObject, file, -1)
-            if mode == 'schematic':
+                if mode == 'symbol' or mode == 'symbolAs':
+                    self.symbolFileName = saveFile
+                    self.schematicFileName = None
+                if mode == 'schematic' or mode == 'schematicAs':
+                    self.schematicFileName = saveFile
+                    self.symbolFileName = None
+                self.undoStack.clear()
+            if mode == 'schematic' or mode == 'schematicAs':
                 saveObject.reparentItems()
                 self.scene().removeItem(saveObject)
         # Add the grid back to the scene when saving is done
@@ -292,9 +315,10 @@ class DrawingArea(QtGui.QGraphicsView):
         """This is the counterpart of the save routine. Used to load both schematics
         and symbols.
         """
-        if mode == 'symbol' or mode == 'schematic':
+        possibleModes = ['schematic', 'symbol', 'symbolModify']
+        if mode in possibleModes:
             if loadFile is None:
-                if mode == 'symbol':
+                if mode == 'symbol' or mode == 'symbolModify':
                     loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Symbol', './Resources/Symbols/', 'Symbols (*.sym)'))
                 elif mode == 'schematic':
                     loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Schematic', './', 'Schematics (*.sch)'))
@@ -303,8 +327,14 @@ class DrawingArea(QtGui.QGraphicsView):
                     loadItem = pickle.load(file)
             else:
                 return False
-            if mode == 'schematic':
+            if mode == 'schematic' or mode == 'symbolModify':
                 # Remove grid from scene, clear the scene and readd the grid
+                self.schematicFileName = None
+                self.symbolFileName = None
+                if mode == 'schematic':
+                    self.schematicFileName = loadFile
+                elif mode == 'symbolModify':
+                    self.symbolFileName = loadFile
                 self.scene().removeItem(self._grid)
                 self.scene().clear()
                 self.scene().addItem(self._grid)
@@ -313,7 +343,7 @@ class DrawingArea(QtGui.QGraphicsView):
             elif mode == 'symbol':
                 add = Add(None, self.scene(), loadItem, symbol=True, origin=self.mapToGrid(self.currentPos))
                 self.undoStack.push(add)
-            if mode == 'schematic':
+            if mode == 'schematic' or mode == 'symbolModify':
                 loadItem.setPos(loadItem.origin)
                 loadItem.reparentItems()
                 self.scene().removeItem(loadItem)

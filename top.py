@@ -16,9 +16,13 @@ class myMainWindow(QtGui.QMainWindow):
         # Connect actions to relevant slots
         # File menu
         self.ui.action_saveSchematic.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematic'))
+        self.ui.action_saveSchematicAs.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematicAs'))
         self.ui.action_loadSchematic.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('schematic'))
+        self.ui.action_loadSchematic.triggered.connect(lambda x: self.changeWindowTitle(True))
         self.ui.action_saveSymbol.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbol'))
         self.ui.action_loadSymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbol'))
+        self.ui.action_modifySymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbolModify'))
+        self.ui.action_modifySymbol.triggered.connect(lambda x: self.changeWindowTitle(True))
         self.ui.action_exportFile.triggered.connect(self.ui.drawingArea.exportRoutine)
         self.ui.action_quit.triggered.connect(self.close)
 
@@ -98,6 +102,57 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_addVCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCCS'))
         self.ui.action_addCCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCVS'))
         self.ui.action_addCCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCCS'))
+
+        # Miscellaneous signal and slot connections
+        self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)
+
+    def changeWindowTitle(self, clean=True):
+        if self.ui.drawingArea.schematicFileName is not None:
+            fileName = self.ui.drawingArea.schematicFileName
+            self.setWindowTitle('YCircuit - ' + fileName)
+            if clean is False:
+                self.setWindowTitle(self.windowTitle() + '*')
+        elif self.ui.drawingArea.symbolFileName is not None:
+            fileName = self.ui.drawingArea.symbolFileName
+            self.setWindowTitle('YCircuit - ' + fileName)
+            if clean is False:
+                self.setWindowTitle(self.windowTitle() + '*')
+
+    def closeEvent(self, event):
+        if self.ui.drawingArea.undoStack.isClean():
+            event.accept()
+        elif self.ui.drawingArea.schematicFileName is None:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText("The schematic has been modified")
+            msgBox.setInformativeText("Do you wish to save your changes?")
+            msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
+            msgBox.setDefaultButton(msgBox.Save)
+            msgBox.setIcon(msgBox.Information)
+            ret = msgBox.exec_()
+            if ret == msgBox.Save:
+                self.ui.drawingArea.saveRoutine('schematic')
+                event.accept()
+            elif ret == msgBox.Discard:
+                event.accept()
+            else:
+                event.ignore()
+        elif self.ui.drawingArea.symbolFileName is None:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText("The symbol has been modified")
+            msgBox.setInformativeText("Do you wish to save your changes?")
+            msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
+            msgBox.setDefaultButton(msgBox.Save)
+            msgBox.setIcon(msgBox.Information)
+            ret = msgBox.exec_()
+            if ret == msgBox.Save:
+                self.ui.drawingArea.saveRoutine('symbol')
+                event.accept()
+            elif ret == msgBox.Discard:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
 
     def menu_Edit_hovered(self):
         widthList = []
