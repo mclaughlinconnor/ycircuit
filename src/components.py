@@ -719,25 +719,33 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         textEdit.setFontPointSize(weight*10)
         self.setHtml(textEdit.toHtml())
         self.update()
+        self.localPenWidth = weight
 
-    def hoverEnterEvent(self, event):
-        self.changeTextColour('gray')
-
-    def hoverLeaveEvent(self, event=None):
-        self.changeTextColour(self.localPenColour)
+    def changeColourToGray(self, gray=False):
+        if gray is True:
+            self.changeTextColour('gray')
+        else:
+            self.changeTextColour(self.localPenColour)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
         super(TextBox, self).mouseDoubleClickEvent(event)
         # Reset the text colour from gray
-        self.hoverLeaveEvent()
+        self.changeColourToGray(False)
         self.showEditor()
 
     def createCopy(self, parent=None):
         if self.isSelected() is True:
             self.setSelected(False)
         _start = self.pos()
-        newItem = self.__class__(parent, _start, text=self.toHtml(), pen=self.localPen, brush=self.localBrush)
+        pen = QtGui.QPen()
+        pen.setWidth(self.localPenWidth)
+        pen.setColor(QtGui.QColor(self.localPenColour))
+        pen.setStyle(self.localPenStyle)
+        brush = QtGui.QBrush()
+        brush.setColor(QtGui.QColor(self.localBrushColour))
+        brush.setStyle(self.localBrushStyle)
+        newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)

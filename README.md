@@ -12,9 +12,9 @@ Current status is pre-alpha at best.
 
 You can download the zip file from this repo or clone it manually using the command:
 
-`git clone https://<yourusername>@bitbucket.org/siddharthshekar/ycircuit.git`
+`git clone https://bitbucket.org/siddharthshekar/ycircuit.git`
 
-This repo is currently private, so I'm not sure if this command actually works. Send me an email if you're having issues.
+The master branch is the latest stable branch and this is likely the one you will end up using. Develop branch is where new code is tested so expect a few more bugs than on the master branch. Send me an email if you're having issues.
 
 ## Dependencies ##
 -------------------------------------------------------------------------------
