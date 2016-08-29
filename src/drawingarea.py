@@ -230,7 +230,7 @@ class DrawingArea(QtGui.QGraphicsView):
         if len(self.scene().items()) == 0:
             self.scene().addItem(self._grid)
             return
-        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF and EPS files (*.pdf *.eps);; SVG files(*.svg);; Images (*.png *.jpg *.jpeg *.bmp)'))
+        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;EPS files (*.eps);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp)'))
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
