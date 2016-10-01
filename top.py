@@ -1,7 +1,8 @@
+import sys
+sys.path.append('./Resources/icons/')
 from src.drawingarea import DrawingArea
 from PyQt4 import QtCore, QtGui
 from src.gui.ycircuit_mainWindow import Ui_MainWindow
-import sys
 import platform
 import sip
 

@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>view-fullscreen.svg</file>
+    <file>edit-copy.svg</file>
+    <file>edit-redo.svg</file>
+    <file>edit-undo.svg</file>
+    <file>list-remove.svg</file>
+    <file>object-flip-horizontal.svg</file>
+    <file>object-rotate-right.svg</file>
+  </qresource>
+</RCC>
