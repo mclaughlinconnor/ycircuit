@@ -36,7 +36,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self.undoStack.setUndoLimit(1000)
         self.reflections = 0
         self.rotations = 0
-        self.rotateAngle = 30
+        self.rotateAngle = 45
         self.selectedWidth = 4
         self.selectedPenColour = 'black'
         self.selectedPenStyle = 1
@@ -551,7 +551,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.reflections += 1
                 self.reflections %= 2
                 point = self.mapToGrid(self.currentPos)
-                mirror = Mirror(None, self.scene(), self.moveItems, self._keys['m'], point)
+                mirror = Mirror(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point)
                 self.undoStack.push(mirror)
                 # for item in self.moveItems:
                 #     item.reflect(self._keys['m'], point)
@@ -560,7 +560,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.rotations += 1
                 self.rotations %= 360/self.rotateAngle
                 point = self.mapToGrid(self.currentPos)
-                rotate = Rotate(None, self.scene(), self.moveItems, self._keys['m'], point, self.rotateAngle)
+                rotate = Rotate(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point, self.rotateAngle)
                 self.undoStack.push(rotate)
                 # for item in self.moveItems:
                 #     item.rotateBy(self._keys['m'], point, self.rotateAngle)
