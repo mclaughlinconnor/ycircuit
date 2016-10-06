@@ -29,7 +29,9 @@ class myMainWindow(QtGui.QMainWindow):
 
         # Edit menu
         self.ui.action_undo.triggered.connect(self.ui.drawingArea.undoStack.undo)
+        self.ui.action_undo.triggered.connect(lambda x: self.ui.statusbar.showMessage("Undo", 1000))
         self.ui.action_redo.triggered.connect(self.ui.drawingArea.undoStack.redo)
+        self.ui.action_redo.triggered.connect(lambda x: self.ui.statusbar.showMessage("Redo", 1000))
         self.ui.drawingArea.undoStack.canRedoChanged.connect(self.ui.action_redo.setEnabled)
         self.ui.drawingArea.undoStack.canUndoChanged.connect(self.ui.action_undo.setEnabled)
         self.ui.action_rotate.triggered.connect(self.ui.drawingArea.rotateRoutine)
@@ -106,6 +108,7 @@ class myMainWindow(QtGui.QMainWindow):
 
         # Miscellaneous signal and slot connections
         self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)
+        self.ui.drawingArea.statusbarMessage.connect(self.ui.statusbar.showMessage)
 
     def changeWindowTitle(self, clean=True):
         if self.ui.drawingArea.schematicFileName is not None:

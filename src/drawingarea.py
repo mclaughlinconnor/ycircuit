@@ -16,6 +16,8 @@ class DrawingArea(QtGui.QGraphicsView):
     these modifications is present in the method docstrings.
     """
 
+    statusbarMessage = QtCore.pyqtSignal(str, int)
+
     def __init__(self, parent=None):
         """Initializes the object and various parameters to default values"""
         super(DrawingArea, self).__init__(parent)
@@ -414,22 +416,27 @@ class DrawingArea(QtGui.QGraphicsView):
         self.setCursor(cursor)
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
+        # Clear the statusbar
+        self.statusbarMessage.emit("", 0)
 
     def moveRoutine(self):
         """Preps to begin moving items"""
         self.escapeRoutine()
         self.updateMoveItems()
         self._keys['m'] = True
+        self.statusbarMessage.emit("Move (Press ESC to cancel)", 0)
 
     def copyRoutine(self):
         """Preps to begin copying items"""
         self.escapeRoutine()
         self._keys['c'] = True
+        self.statusbarMessage.emit("Copy (Press ESC to cancel)", 0)
 
     def deleteRoutine(self):
         """Delete selected items"""
         del1 = Delete(None, self.scene(), self.scene().selectedItems())
         self.undoStack.push(del1)
+        self.statusbarMessage.emit("Delete", 1000)
 
     def fitToViewRoutine(self):
         """Resizes viewport so that all items drawn are visible"""
@@ -461,6 +468,7 @@ class DrawingArea(QtGui.QGraphicsView):
             if self.scene().selectedItems() != []:
                 changePen = ChangePen(None, self.scene().selectedItems(), width=self.selectedWidth)
                 self.undoStack.push(changePen)
+        self.statusbarMessage.emit("Changed pen width to %d" %(self.selectedWidth), 1000)
 
     def changePenColourRoutine(self, selectedPenColour):
         if selectedPenColour != self.selectedPenColour:
@@ -468,6 +476,7 @@ class DrawingArea(QtGui.QGraphicsView):
             if self.scene().selectedItems() != []:
                 changePen = ChangePen(None, self.scene().selectedItems(), penColour=self.selectedPenColour)
                 self.undoStack.push(changePen)
+        self.statusbarMessage.emit("Changed pen colour to %s" %(self.selectedPenColour), 1000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
         if selectedPenStyle != self.selectedPenStyle:
@@ -475,6 +484,7 @@ class DrawingArea(QtGui.QGraphicsView):
             if self.scene().selectedItems() != []:
                 changePen = ChangePen(None, self.scene().selectedItems(), penStyle=self.selectedPenStyle)
                 self.undoStack.push(changePen)
+        self.statusbarMessage.emit("Changed pen style to %s" %(self.selectedPenStyle), 1000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
         if selectedBrushColour != self.selectedBrushColour:
@@ -482,6 +492,7 @@ class DrawingArea(QtGui.QGraphicsView):
             if self.scene().selectedItems() != []:
                 changeBrush = ChangeBrush(None, self.scene().selectedItems(), brushColour=self.selectedBrushColour)
                 self.undoStack.push(changeBrush)
+        self.statusbarMessage.emit("Changed brush colour to %s" %(self.selectedBrushColour), 1000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
         if selectedBrushStyle != self.selectedBrushStyle:
@@ -489,6 +500,7 @@ class DrawingArea(QtGui.QGraphicsView):
             if self.scene().selectedItems() != []:
                 changeBrush = ChangeBrush(None, self.scene().selectedItems(), brushStyle=self.selectedBrushStyle)
                 self.undoStack.push(changeBrush)
+        self.statusbarMessage.emit("Changed brush style to %s" %(self.selectedBrushStyle), 1000)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
@@ -553,6 +565,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 point = self.mapToGrid(self.currentPos)
                 mirror = Mirror(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point)
                 self.undoStack.push(mirror)
+                self.statusbarMessage.emit("Mirrored item(s)", 1000)
                 # for item in self.moveItems:
                 #     item.reflect(self._keys['m'], point)
             else:
@@ -562,6 +575,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 point = self.mapToGrid(self.currentPos)
                 rotate = Rotate(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point, self.rotateAngle)
                 self.undoStack.push(rotate)
+                self.statusbarMessage.emit("Rotated item(s) by %d degrees" %(self.rotateAngle), 1000)
                 # for item in self.moveItems:
                 #     item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
