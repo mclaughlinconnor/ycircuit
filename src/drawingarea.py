@@ -354,6 +354,8 @@ class DrawingArea(QtGui.QGraphicsView):
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
                 loadItem.setPos(self.mapToGrid(self.currentPos))
+                for item in self.scene().selectedItems():
+                    item.setSelected(False)
                 loadItem.setSelected(True)
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
