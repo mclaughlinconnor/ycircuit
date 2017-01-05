@@ -23,7 +23,7 @@ class DrawingArea(QtGui.QGraphicsView):
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
         self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
-        self.scene().setSceneRect(QtCore.QRectF(0, 0, 2000, 2000))
+        self.scene().setSceneRect(QtCore.QRectF(-1000, -1000, 20000, 20000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
                       'arc': False, 'rectangle': False, 'circle': False,
@@ -350,6 +350,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 loadItem.reparentItems()
                 self.scene().removeItem(loadItem)
                 self.fitToViewRoutine()
+                self.undoStack.clear()
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
                 loadItem.setPos(self.mapToGrid(self.currentPos))
@@ -442,7 +443,7 @@ class DrawingArea(QtGui.QGraphicsView):
         """Resizes viewport so that all items drawn are visible"""
         if len(self.scene().items()) == 1:
             # Fit to (0, 0, 800, 800) if nothing is present
-            rect = QtCore.QRectF(0, 0, 500, 500)
+            rect = QtCore.QRectF(0, 0, 800, 800)
             self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
         else:
             self.scene().removeItem(self._grid)
@@ -534,8 +535,8 @@ class DrawingArea(QtGui.QGraphicsView):
                     i.moveTo(self.moveStartPoint, 'start')
                 # Create a macro and save all rotate/mirror commands
                 self.undoStack.beginMacro('')
-            # End moving if LMB is clicked again
-            else:
+            # End moving if LMB is clicked again and selection is not empty
+            elif self.moveItems != []:
                 point = self.mapToGrid(event.pos())
                 if self._keys['c'] is False:
                     move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
@@ -543,8 +544,16 @@ class DrawingArea(QtGui.QGraphicsView):
                 else:
                     copy_ = Copy(None, self.scene(), self.scene().selectedItems(), point=point)
                     self.undoStack.push(copy_)
+                    # End move and copy commands once item has been placed
+                    self._keys['m'] = False
+                    self._keys['c'] = False
+                self.statusbarMessage.emit("", 0)
                 self.undoStack.endMacro()
-        super(DrawingArea, self).mousePressEvent(event)
+        # Only propagate these events downwards if move and copy are disabled or if nothing is selected
+        if self.moveItems == []:
+            super(DrawingArea, self).mousePressEvent(event)
+        elif self._keys['c'] is False and self._keys['m'] is False:
+            super(DrawingArea, self).mousePressEvent(event)
 
     def updateMoveItems(self):
         """Simple function that generates a list of selected items"""
@@ -580,7 +589,11 @@ class DrawingArea(QtGui.QGraphicsView):
                 #     item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
     def mouseReleaseEvent(self, event):
-        super(DrawingArea, self).mouseReleaseEvent(event)
+        # Only propagate these events downwards if move and copy are disabled
+        if self.moveItems == []:
+            super(DrawingArea, self).mouseReleaseEvent(event)
+        elif self._keys['c'] is False and self._keys['m'] is False:
+            super(DrawingArea, self).mouseReleaseEvent(event)
         # If wire or arc mode are on
         if self._keys['w'] is True or self._keys['arc'] is True:
             # Keep drawing new wire segments
@@ -719,16 +732,16 @@ class DrawingArea(QtGui.QGraphicsView):
         scaleFactor = -event.delta() / 240.
         modifiers = QtGui.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ControlModifier:
-            self.translate(0, -scaleFactor * 20)
+            self.translate(0, -scaleFactor * 100)
         elif modifiers == QtCore.Qt.ShiftModifier:
-            self.translate(-scaleFactor * 20, 0)
+            self.translate(-scaleFactor * 100, 0)
         else:
             if scaleFactor < 0:
                 scaleFactor = -1 / scaleFactor
             scaleFactor = 1 + (scaleFactor - 1) / 5.
             oldPos = self.mapToScene(event.pos())
             self.scale(scaleFactor, scaleFactor)
-            self._grid.createGrid()
             newPos = self.mapToScene(event.pos())
             delta = newPos - oldPos
             self.translate(delta.x(), delta.y())
+        self._grid.createGrid()
