@@ -343,6 +343,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 loadItem.__init__(None, self.scene(), QtCore.QPointF(0, 0), loadItem.listOfItems)
                 loadItem.loadItems(mode)
             elif mode == 'symbol':
+                self.undoStack.beginMacro('')
                 add = Add(None, self.scene(), loadItem, symbol=True, origin=self.mapToGrid(self.currentPos))
                 self.undoStack.push(add)
             if mode == 'schematic' or mode == 'symbolModify':
@@ -357,6 +358,12 @@ class DrawingArea(QtGui.QGraphicsView):
                 for item in self.scene().selectedItems():
                     item.setSelected(False)
                 loadItem.setSelected(True)
+                self.currentX = self.currentPos.x()
+                self.currentY = self.currentPos.y()
+                self.moveStartPoint = self.mapToGrid(self.currentPos)
+                self._keys['m'], self._mouse['1'] = True, True
+                loadItem.moveTo(self.moveStartPoint, 'start')
+                self.updateMoveItems()
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
 
@@ -540,17 +547,18 @@ class DrawingArea(QtGui.QGraphicsView):
             # End moving if LMB is clicked again and selection is not empty
             elif self.moveItems != []:
                 point = self.mapToGrid(event.pos())
-                if self._keys['c'] is False:
-                    move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
-                    self.undoStack.push(move)
-                else:
+                if self._keys['c'] is True:
                     copy_ = Copy(None, self.scene(), self.scene().selectedItems(), point=point)
                     self.undoStack.push(copy_)
-                    # End move and copy commands once item has been placed
-                    self._keys['m'] = False
-                    self._keys['c'] = False
+                else:
+                    move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
+                    self.undoStack.push(move)
+                # End move command once item has been placed
+                self._keys['m'] = False
                 self.statusbarMessage.emit("", 0)
                 self.undoStack.endMacro()
+                for item in self.moveItems:
+                    item.setSelected(False)
         # Only propagate these events downwards if move and copy are disabled or if nothing is selected
         if self.moveItems == []:
             super(DrawingArea, self).mousePressEvent(event)
