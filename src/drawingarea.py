@@ -779,3 +779,13 @@ class DrawingArea(QtGui.QGraphicsView):
             delta = newPos - oldPos
             self.translate(delta.x(), delta.y())
         self._grid.createGrid()
+
+    def editShape(self):
+        if len(self.scene().selectedItems()) == 1:
+            item = self.scene().selectedItems()[0]
+            cursor = self.cursor()
+            sceneP = item.mapToScene(item.rect().topLeft()).toPoint()
+            viewP = self.mapFromScene(sceneP)
+            cursor.setPos(self.viewport().mapToGlobal(viewP))
+        else:
+            pass

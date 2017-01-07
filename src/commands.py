@@ -39,7 +39,6 @@ class Add(QtGui.QUndoCommand):
     def __init__(self, parent=None, scene=None, item=None, **kwargs):
         super(Add, self).__init__(parent)
         self.scene = scene
-        self.item = copy.deepcopy(item)
         if 'symbol' in kwargs:
             self.symbol = kwargs['symbol']
             if 'origin' in kwargs:
@@ -56,6 +55,10 @@ class Add(QtGui.QUndoCommand):
                 self.reflect = 0
         else:
             self.symbol = False
+        if self.symbol is True:
+            self.item = copy.deepcopy(item)
+        else:
+            self.item = item
 
     def redo(self):
         if self.symbol is False:

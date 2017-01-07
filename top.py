@@ -88,6 +88,7 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_addCircle.triggered.connect(self.ui.drawingArea.addCircle)
         self.ui.action_addEllipse.triggered.connect(self.ui.drawingArea.addEllipse)
         self.ui.action_addTextBox.triggered.connect(self.ui.drawingArea.addTextBox)
+        self.ui.action_editShape.triggered.connect(self.ui.drawingArea.editShape)
 
         # Symbol menu
         self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addWire)

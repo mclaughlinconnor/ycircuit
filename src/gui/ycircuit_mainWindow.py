@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'src/gui/ycircuit_mainWindow.ui'
+# Form implementation generated from reading ui file '.\ycircuit_mainWindow.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -47,7 +47,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.drawingArea)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 38))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))
@@ -300,6 +300,8 @@ class Ui_MainWindow(object):
         self.actionSave_symbol_as.setObjectName(_fromUtf8("actionSave_symbol_as"))
         self.action_modifySymbol = QtGui.QAction(MainWindow)
         self.action_modifySymbol.setObjectName(_fromUtf8("action_modifySymbol"))
+        self.action_editShape = QtGui.QAction(MainWindow)
+        self.action_editShape.setObjectName(_fromUtf8("action_editShape"))
         self.menu_File.addAction(self.action_saveSchematic)
         self.menu_File.addAction(self.action_saveSchematicAs)
         self.menu_File.addAction(self.action_saveSymbol)
@@ -387,6 +389,7 @@ class Ui_MainWindow(object):
         self.menuSh_ape.addAction(self.action_addCircle)
         self.menuSh_ape.addAction(self.action_addEllipse)
         self.menuSh_ape.addAction(self.action_addTextBox)
+        self.menuSh_ape.addAction(self.action_editShape)
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menu_Edit.menuAction())
         self.menubar.addAction(self.menu_View.menuAction())
@@ -556,6 +559,9 @@ class Ui_MainWindow(object):
         self.action_saveSchematicAs.setText(_translate("MainWindow", "Save s&chematic as", None))
         self.actionSave_symbol_as.setText(_translate("MainWindow", "Save &symbol as", None))
         self.action_modifySymbol.setText(_translate("MainWindow", "&Modify symbol", None))
+        self.action_editShape.setText(_translate("MainWindow", "Edit shape", None))
+        self.action_editShape.setToolTip(_translate("MainWindow", "Edit selected shape", None))
+        self.action_editShape.setShortcut(_translate("MainWindow", "E", None))
 
 from src.drawingarea import DrawingArea
 import icon_rc
