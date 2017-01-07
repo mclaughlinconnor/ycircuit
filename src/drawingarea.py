@@ -561,8 +561,10 @@ class DrawingArea(QtGui.QGraphicsView):
                     self.undoStack.push(move)
                 # End move command once item has been placed
                 self._keys['m'] = False
+                self._keys['c'] = False
                 self.statusbarMessage.emit("", 0)
                 self.undoStack.endMacro()
+                self.resetToolbarButtons.emit()
                 for item in self.moveItems:
                     item.setSelected(False)
         if self._keys['add'] is True:
