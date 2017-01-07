@@ -17,6 +17,7 @@ class DrawingArea(QtGui.QGraphicsView):
     """
 
     statusbarMessage = QtCore.pyqtSignal(str, int)
+    resetToolbarButtons = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """Initializes the object and various parameters to default values"""
@@ -343,9 +344,6 @@ class DrawingArea(QtGui.QGraphicsView):
                 loadItem.__init__(None, self.scene(), QtCore.QPointF(0, 0), loadItem.listOfItems)
                 loadItem.loadItems(mode)
             elif mode == 'symbol':
-                # self.undoStack.beginMacro('')
-                # add = Add(None, self.scene(), loadItem, symbol=True, origin=self.mapToGrid(self.currentPos))
-                # self.undoStack.push(add)
                 self.loadItem = loadItem
                 loadItem.__init__(None, self.scene(), self.mapToGrid(self.currentPos), loadItem.listOfItems)
                 loadItem.loadItems('symbol')
@@ -379,7 +377,9 @@ class DrawingArea(QtGui.QGraphicsView):
             # Undo move commands
             if self._keys['m'] is True:
                 self.undoStack.endMacro()
+                # The failed move command still exists in the stack. Not sure how to remove it
                 self.undoStack.undo()
+                self.resetToolbarButtons.emit()
                 # Undo reflection command if items were being moved
                 # if self.reflections == 1:
                 #     self.rotateRoutine(QtCore.Qt.ShiftModifier)
@@ -398,6 +398,7 @@ class DrawingArea(QtGui.QGraphicsView):
             if self._keys['c'] is True:
                 for item in self.scene().selectedItems():
                     self.scene().removeItem(item)
+                self.resetToolbarButtons.emit()
             # Remove last wire being drawn
             if self._keys['w'] is True:
                 # self.scene().removeItem(self.currentWire)

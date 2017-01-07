@@ -39,6 +39,9 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_move.triggered.connect(self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(self.ui.drawingArea.copyRoutine)
         self.ui.action_delete.triggered.connect(self.ui.drawingArea.deleteRoutine)
+        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_move.setChecked(False))
+        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_copy.setChecked(False))
+        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_delete.setChecked(False))
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(lambda x:self.action_setWidth_triggered(2))
