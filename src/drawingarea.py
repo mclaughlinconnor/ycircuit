@@ -27,7 +27,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
                       'arc': False, 'rectangle': False, 'circle': False,
-                      'ellipse': False, 'textBox': False}
+                      'ellipse': False, 'textBox': False, 'add': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
         self.scene().addItem(self._grid)
@@ -343,9 +343,12 @@ class DrawingArea(QtGui.QGraphicsView):
                 loadItem.__init__(None, self.scene(), QtCore.QPointF(0, 0), loadItem.listOfItems)
                 loadItem.loadItems(mode)
             elif mode == 'symbol':
-                self.undoStack.beginMacro('')
-                add = Add(None, self.scene(), loadItem, symbol=True, origin=self.mapToGrid(self.currentPos))
-                self.undoStack.push(add)
+                # self.undoStack.beginMacro('')
+                # add = Add(None, self.scene(), loadItem, symbol=True, origin=self.mapToGrid(self.currentPos))
+                # self.undoStack.push(add)
+                self.loadItem = loadItem
+                loadItem.__init__(None, self.scene(), self.mapToGrid(self.currentPos), loadItem.listOfItems)
+                loadItem.loadItems('symbol')
             if mode == 'schematic' or mode == 'symbolModify':
                 loadItem.setPos(loadItem.origin)
                 loadItem.reparentItems()
@@ -354,14 +357,14 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.undoStack.clear()
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
-                loadItem.setPos(self.mapToGrid(self.currentPos))
+                # loadItem.setPos(self.mapToGrid(self.currentPos))
                 for item in self.scene().selectedItems():
                     item.setSelected(False)
                 loadItem.setSelected(True)
                 self.currentX = self.currentPos.x()
                 self.currentY = self.currentPos.y()
                 self.moveStartPoint = self.mapToGrid(self.currentPos)
-                self._keys['m'], self._mouse['1'] = True, True
+                self._keys['add'], self._mouse['1'] = True, True
                 loadItem.moveTo(self.moveStartPoint, 'start')
                 self.updateMoveItems()
         # Save a copy locally so that items don't disappear
@@ -414,6 +417,9 @@ class DrawingArea(QtGui.QGraphicsView):
             # Remove last text box being drawn
             if self._keys['textBox'] is True:
                 self.scene().removeItem(self.currentTextBox)
+        if self._keys['add'] is True:
+            for item in self.scene().selectedItems():
+                self.scene().removeItem(item)
         # Zero all rotations and reflections
         self.reflections = 0
         self.rotations = 0
@@ -538,7 +544,6 @@ class DrawingArea(QtGui.QGraphicsView):
                     self._mouse['1'] = False
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
-                # self.moveStartPos = self.mapToGrid(event.pos())
                 self.moveStartPoint = self.mapToGrid(event.pos())
                 for i in self.moveItems:
                     i.moveTo(self.moveStartPoint, 'start')
@@ -559,10 +564,14 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.undoStack.endMacro()
                 for item in self.moveItems:
                     item.setSelected(False)
-        # Only propagate these events downwards if move and copy are disabled or if nothing is selected
+        if self._keys['add'] is True:
+            if (event.button() == QtCore.Qt.LeftButton):
+                add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(self.currentPos), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)
+                self.undoStack.push(add)
+        # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
         if self.moveItems == []:
             super(DrawingArea, self).mousePressEvent(event)
-        elif self._keys['c'] is False and self._keys['m'] is False:
+        elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False:
             super(DrawingArea, self).mousePressEvent(event)
 
     def updateMoveItems(self):
@@ -583,7 +592,11 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.reflections %= 2
                 point = self.mapToGrid(self.currentPos)
                 mirror = Mirror(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point)
-                self.undoStack.push(mirror)
+                # If a new item is being added, don't push mirror onto the undo stack
+                if self._keys['add'] is False:
+                    self.undoStack.push(mirror)
+                else:
+                    mirror.redo()
                 self.statusbarMessage.emit("Mirrored item(s)", 1000)
                 # for item in self.moveItems:
                 #     item.reflect(self._keys['m'], point)
@@ -593,16 +606,20 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.rotations %= 360/self.rotateAngle
                 point = self.mapToGrid(self.currentPos)
                 rotate = Rotate(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point, self.rotateAngle)
-                self.undoStack.push(rotate)
+                # If a new item is being added, don't push rotate onto the undo stack
+                if self._keys['add'] is False:
+                    self.undoStack.push(rotate)
+                else:
+                    rotate.redo()
                 self.statusbarMessage.emit("Rotated item(s) by %d degrees" %(self.rotateAngle), 1000)
                 # for item in self.moveItems:
                 #     item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
     def mouseReleaseEvent(self, event):
-        # Only propagate these events downwards if move and copy are disabled
+        # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
         if self.moveItems == []:
             super(DrawingArea, self).mouseReleaseEvent(event)
-        elif self._keys['c'] is False and self._keys['m'] is False:
+        elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False:
             super(DrawingArea, self).mouseReleaseEvent(event)
         # If wire or arc mode are on
         if self._keys['w'] is True or self._keys['arc'] is True:
@@ -718,6 +735,10 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self._keys['ellipse'] is True:
                     self.currentEllipse.updateEllipse(self.mapToGrid(event.pos()))
                 if self._keys['m'] is True:
+                    point = self.mapToGrid(event.pos())
+                    for item in self.moveItems:
+                        item.moveTo(point, 'move')
+                if self._keys['add'] is True:
                     point = self.mapToGrid(event.pos())
                     for item in self.moveItems:
                         item.moveTo(point, 'move')

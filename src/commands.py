@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from components import myGraphicsItemGroup
+import copy
 
 
 class Delete(QtGui.QUndoCommand):
@@ -38,13 +39,21 @@ class Add(QtGui.QUndoCommand):
     def __init__(self, parent=None, scene=None, item=None, **kwargs):
         super(Add, self).__init__(parent)
         self.scene = scene
-        self.item = item
+        self.item = copy.deepcopy(item)
         if 'symbol' in kwargs:
             self.symbol = kwargs['symbol']
             if 'origin' in kwargs:
                 self.origin = kwargs['origin']
             else:
                 self.origin = QtCore.QPointF(0, 0)
+            if 'rotateAngle' in kwargs:
+                self.rotateAngle = kwargs['rotateAngle']
+            else:
+                self.rotateAngle = 0
+            if 'reflect' in kwargs:
+                self.reflect = kwargs['reflect']
+            else:
+                self.reflect = 0
         else:
             self.symbol = False
 
@@ -56,6 +65,11 @@ class Add(QtGui.QUndoCommand):
             """Or if item is a symbol to be loaded"""
             self.item.__init__(None, self.scene, self.origin, self.item.listOfItems)
             self.item.loadItems('symbol')
+            if hasattr(self, 'rotateAngle'):
+                self.item.rotateBy(moving=False, origin=self.origin, angle=self.rotateAngle)
+            if hasattr(self, 'reflect'):
+                if self.reflect == 1:
+                    self.item.reflect(moving=False, origin=self.origin)
         self.scene.update(self.scene.sceneRect())
 
     def undo(self):
