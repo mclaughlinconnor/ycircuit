@@ -80,6 +80,7 @@ class Add(QtGui.QUndoCommand):
 
 
 class Edit(QtGui.QUndoCommand):
+    """Mainly used only for wires and arcs"""
     def __init__(self, parent=None, scene=None, item=None, point=None):
         super(Edit, self).__init__(parent)
         self.scene = scene

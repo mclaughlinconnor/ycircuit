@@ -28,7 +28,8 @@ class DrawingArea(QtGui.QGraphicsView):
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
                       'arc': False, 'rectangle': False, 'circle': False,
-                      'ellipse': False, 'textBox': False, 'add': False}
+                      'ellipse': False, 'textBox': False, 'add': False,
+                      'edit': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
         self.scene().addItem(self._grid)
@@ -421,6 +422,9 @@ class DrawingArea(QtGui.QGraphicsView):
         if self._keys['add'] is True:
             for item in self.scene().selectedItems():
                 self.scene().removeItem(item)
+        if self._keys['edit'] is True:
+            self.undoStack.endMacro()
+            self.undoStack.undo()
         # Zero all rotations and reflections
         self.reflections = 0
         self.rotations = 0
@@ -569,8 +573,15 @@ class DrawingArea(QtGui.QGraphicsView):
                     item.setSelected(False)
         if self._keys['add'] is True:
             if (event.button() == QtCore.Qt.LeftButton):
-                add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(self.currentPos), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)
+                add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)
                 self.undoStack.push(add)
+        if self._keys['edit'] is True:
+            self._keys['edit'] = False
+            if (event.button() == QtCore.Qt.LeftButton):
+                self._mouse['1'] = False
+                edit = Edit(None, self.scene(), self.scene().selectedItems()[0], self.mapToGrid(event.pos()))
+                self.undoStack.push(edit)
+                self.undoStack.endMacro()
         # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
         if self.moveItems == []:
             super(DrawingArea, self).mousePressEvent(event)
@@ -745,6 +756,9 @@ class DrawingArea(QtGui.QGraphicsView):
                     point = self.mapToGrid(event.pos())
                     for item in self.moveItems:
                         item.moveTo(point, 'move')
+                if self._keys['edit'] is True:
+                    point = self.mapToGrid(event.pos())
+                    self.scene().selectedItems()[0].updateRectangle(point, edit=True)
 
     def contextMenuEvent(self, event):
         # TODO: Make this work properly
@@ -784,8 +798,13 @@ class DrawingArea(QtGui.QGraphicsView):
         if len(self.scene().selectedItems()) == 1:
             item = self.scene().selectedItems()[0]
             cursor = self.cursor()
-            sceneP = item.mapToScene(item.rect().topLeft()).toPoint()
+            sceneP = item.mapToScene(item.p2).toPoint()
             viewP = self.mapFromScene(sceneP)
             cursor.setPos(self.viewport().mapToGlobal(viewP))
+            self._keys['edit'], self._mouse['1'] = True, True
+            self.editStartPoint = sceneP
+            self.undoStack.beginMacro('')
+            edit = Edit(None, self.scene(), item, self.editStartPoint)
+            self.undoStack.push(edit)
         else:
-            pass
+            self.statusbarMessage.emit("Please select an item to edit", 1000)
