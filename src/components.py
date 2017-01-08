@@ -647,16 +647,36 @@ class Circle(Ellipse):
         self.transform_.rotate(theta)
         self.setTransform(self.transform_)
         self.oldRect = self.rect()
+        self.end = QtCore.QPointF(end)
         # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
         for item in collidingItems:
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
+    def undoEdit(self):
+        # rect = self.undoRectList.pop()
+        # self.setRect(rect)
+        # transform_ = self.undoTransformList.pop()
+        # self.setTransform(transform_)
+        point = self.undoPointList.pop()
+        self.updateCircle(point)
+        # self.oldRect = rect
+        # self.transform_ = transform_
+
+    def redoEdit(self, point):
+        if not hasattr(self, 'undoPointList'):
+            self.undoPointList = []
+        # if not hasattr(self, 'undoTransformList'):
+        #     self.undoTransformList = []
+        self.updateCircle(point)
+        self.undoPointList.append(point)
+        # self.undoTransformList.append(self.transform())
+
 
 class TextBox(QtGui.QGraphicsTextItem, drawingElement):
     """Responsible for showing formatted text as well as LaTeX images.
-    The current formatting options are supported:
+    The following formatting options are supported:
         1. Bold
         2. Italic
         3. Underline

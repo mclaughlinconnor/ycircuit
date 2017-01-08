@@ -757,8 +757,12 @@ class DrawingArea(QtGui.QGraphicsView):
                     for item in self.moveItems:
                         item.moveTo(point, 'move')
                 if self._keys['edit'] is True:
+                    item = self.scene().selectedItems()[0]
                     point = self.mapToGrid(event.pos())
-                    self.scene().selectedItems()[0].updateRectangle(point, edit=True)
+                    if isinstance(item, Rectangle):
+                        item.updateRectangle(point, edit=True)
+                    elif isinstance(item, Circle):
+                        item.updateCircle(point)
 
     def contextMenuEvent(self, event):
         # TODO: Make this work properly
@@ -798,11 +802,14 @@ class DrawingArea(QtGui.QGraphicsView):
         if len(self.scene().selectedItems()) == 1:
             item = self.scene().selectedItems()[0]
             cursor = self.cursor()
-            sceneP = item.mapToScene(item.p2).toPoint()
+            if isinstance(item, Rectangle):
+                sceneP = item.mapToScene(item.p2).toPoint()
+            elif isinstance(item, Circle):
+                sceneP = item.end.toPoint()
             viewP = self.mapFromScene(sceneP)
             cursor.setPos(self.viewport().mapToGlobal(viewP))
-            self._keys['edit'], self._mouse['1'] = True, True
             self.editStartPoint = sceneP
+            self._keys['edit'], self._mouse['1'] = True, True
             self.undoStack.beginMacro('')
             edit = Edit(None, self.scene(), item, self.editStartPoint)
             self.undoStack.push(edit)
