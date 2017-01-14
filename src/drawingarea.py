@@ -50,6 +50,9 @@ class DrawingArea(QtGui.QGraphicsView):
         self.moveItems = []
         self.schematicFileName = None
         self.symbolFileName = None
+        # Fit to view when scroll bars are changed, e.g. when program starts, window is resized
+        self.horizontalScrollBar().valueChanged.connect(self.fitToViewRoutine)
+        self.verticalScrollBar().valueChanged.connect(self.fitToViewRoutine)
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -72,25 +75,25 @@ class DrawingArea(QtGui.QGraphicsView):
         self.currentArc = None
 
     def addRectangle(self):
-        """Set _key to wire mode so that a rectangle is added when LMB is pressed"""
+        """Set _key to rectangle mode so that a rectangle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['rectangle'] = True
         self.currentRectangle = None
 
     def addCircle(self):
-        """Set _key to wire mode so that a circle is added when LMB is pressed"""
+        """Set _key to circle mode so that a circle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['circle'] = True
         self.currentCircle = None
 
     def addEllipse(self):
-        """Set _key to wire mode so that an ellipse is added when LMB is pressed"""
+        """Set _key to ellipse mode so that an ellipse is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['ellipse'] = True
         self.currentEllipse = None
 
     def addTextBox(self):
-        """Set _key to wire mode so that a textbox is added when LMB is pressed"""
+        """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
         self.escapeRoutine()
         cursor = self.cursor()
         cursor.setShape(QtCore.Qt.IBeamCursor)

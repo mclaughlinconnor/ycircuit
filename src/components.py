@@ -59,6 +59,7 @@ class drawingElement(object):
         self.localPen.setColor(QtGui.QColor(self.localPenColour))
         # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
         self.localPen.setStyle(self.localPenStyle)
+        self.localPen.setJoinStyle(QtCore.Qt.RoundJoin)
         if hasattr(self, 'setPen'):
             self.setPen(self.localPen)
 
@@ -237,16 +238,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 painter.drawRect(self.boundingRect())
 
     def boundingRect(self):
-        rect = self.listOfItems[0].sceneBoundingRect()
-        for item in self.listOfItems:
-            rect = rect.united(item.sceneBoundingRect())
-        return self.mapRectFromScene(rect)
-
-    def sceneBoundingRect(self):
-        rect = self.listOfItems[0].sceneBoundingRect()
-        for item in self.listOfItems:
-            rect = rect.united(item.sceneBoundingRect())
-        return rect
+        return self.childrenBoundingRect()
 
     def __setstate__(self, state):
         """Reimplemented from drawingElement because group does not have
@@ -386,6 +378,10 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
             poly = QtGui.QPolygonF(item)
             self.oldPath2.addPolygon(poly)
         self.oldPath = self.__dict__.pop('oldPath2', None)
+
+    def boundingRect(self):
+        rect = super(Wire, self).boundingRect()
+        return rect
 
     def updateWire(self, newEnd):
         # Update existing segment to end at newEnd
