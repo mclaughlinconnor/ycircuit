@@ -237,6 +237,10 @@ class DrawingArea(QtGui.QGraphicsView):
         if len(self.scene().items()) == 0:
             self.scene().addItem(self._grid)
             return
+        # Deselect items before exporting
+        selectedItems = self.scene().selectedItems()
+        for item in selectedItems:
+            item.setSelected(False)
         saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;EPS files (*.eps);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp)'))
         # Check that file is valid
         if saveFile == '':
@@ -293,6 +297,9 @@ class DrawingArea(QtGui.QGraphicsView):
         painter.end()
         # Add the grid back to the scene when saving is done
         self.scene().addItem(self._grid)
+        # Reselect items after exporting is completed
+        for item in selectedItems:
+            item.setSelected(True)
         if saveFile[-3:] == 'eps':
             printerSize = printer.paperSize(printer.DevicePixel)
             self.fixEPSBoundingBox(saveFile, printerSize, sourceRect)
