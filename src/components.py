@@ -415,7 +415,6 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
             newWire.origin = self.origin
         return newWire
 
-
     def undoEdit(self):
         if len(self.oldPath.toSubpathPolygons()) == 0:
             return False

@@ -50,6 +50,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self.moveItems = []
         self.schematicFileName = None
         self.symbolFileName = None
+        self.selectOrigin = False
         # Fit to view when scroll bars are changed, e.g. when program starts, window is resized
         self.horizontalScrollBar().valueChanged.connect(self.fitToViewRoutine)
         self.verticalScrollBar().valueChanged.connect(self.fitToViewRoutine)
@@ -184,6 +185,23 @@ class DrawingArea(QtGui.QGraphicsView):
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
+            # Override origin if it is to be saved as a symbol
+            if mode == 'symbol' or mode == 'symbolAs':
+                self.scene().addItem(self._grid)
+                self.selectOrigin = True
+                for item in listOfItems:
+                    item.setAcceptHoverEvents(False)
+                    item.setSelected(False)
+                self.statusbarMessage.emit("Pick an origin for the symbol", 0)
+                while self.selectOrigin is True:
+                    QtCore.QCoreApplication.processEvents()
+                origin = self.mapToGrid(self.currentPos)
+                self.statusbarMessage.emit("", 0)
+                for item in listOfItems:
+                    item.setAcceptHoverEvents(True)
+                    item.setSelected(False)
+                self.scene().removeItem(self._grid)
+
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
             # print saveObject, saveObject.origin
@@ -737,6 +755,12 @@ class DrawingArea(QtGui.QGraphicsView):
                 self.setCursor(cursor)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
+        if self.selectOrigin is True:
+            if event.button() == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                self.selectOrigin = False
 
     def mouseMoveEvent(self, event):
         super(DrawingArea, self).mouseMoveEvent(event)
