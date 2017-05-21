@@ -91,7 +91,7 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_editShape.triggered.connect(self.ui.drawingArea.editShape)
 
         # Symbol menu
-        self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addWire)
+        self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addNet)
         self.ui.action_addResistor.triggered.connect(self.ui.drawingArea.addResistor)
         self.ui.action_addCapacitor.triggered.connect(self.ui.drawingArea.addCapacitor)
         self.ui.action_addGround.triggered.connect(self.ui.drawingArea.addGround)

@@ -29,7 +29,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
                       'arc': False, 'rectangle': False, 'circle': False,
                       'ellipse': False, 'textBox': False, 'add': False,
-                      'edit': False}
+                      'edit': False, 'net': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
         self.scene().addItem(self._grid)
@@ -101,6 +101,12 @@ class DrawingArea(QtGui.QGraphicsView):
         self.setCursor(cursor)
         self._keys['textBox'] = True
         self.currentTextBox = None
+
+    def addNet(self):
+        """Set _key to net mode so that a net is added when LMB is pressed"""
+        self.escapeRoutine()
+        self._keys['net'] = True
+        self.currentNet = None
 
     def addResistor(self):
         """Load the standard resistor"""
@@ -192,7 +198,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 for item in listOfItems:
                     item.setAcceptHoverEvents(False)
                     item.setSelected(False)
-                self.statusbarMessage.emit("Pick an origin for the symbol", 0)
+                self.statusbarMessage.emit("Pick an origin for the symbol (press ESC to cancel)", 0)
                 while self.selectOrigin is True:
                     QtCore.QCoreApplication.processEvents()
                 origin = self.mapToGrid(self.currentPos)
@@ -200,6 +206,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 for item in listOfItems:
                     item.setAcceptHoverEvents(True)
                     item.setSelected(False)
+                # Pressing escape sets selectOrigin to None
+                if self.selectOrigin is None:
+                    return
                 self.scene().removeItem(self._grid)
 
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
@@ -432,6 +441,8 @@ class DrawingArea(QtGui.QGraphicsView):
             if self._keys['w'] is True:
                 # self.scene().removeItem(self.currentWire)
                 self.currentWire.cancelSegment()
+            if self._keys['net'] is True:
+                self.currentNet.cancelSegment()
             # Remove last arc being drawn
             if self._keys['arc'] is True:
                 self.currentArc.cancelSegment()
@@ -453,6 +464,9 @@ class DrawingArea(QtGui.QGraphicsView):
         if self._keys['edit'] is True:
             self.undoStack.endMacro()
             self.undoStack.undo()
+        # Cancel symbol save
+        if self.selectOrigin is True:
+            self.selectOrigin = None
         # Zero all rotations and reflections
         self.reflections = 0
         self.rotations = 0
@@ -694,6 +708,34 @@ class DrawingArea(QtGui.QGraphicsView):
                         self.undoStack.push(edit)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
+        if self._keys['net'] is True:
+            if event.button () == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                start = self.mapToGrid(self.currentPos)
+                # Create new net if none exists
+                if self.currentNet is None:
+                    self.currentNet = Net(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    # Add the original net
+                    add = Add(None, self.scene(), self.currentNet)
+                    self.undoStack.push(add)
+            else:
+                if self.currentNet is not None:
+                    # Add the perpendicular line properly, if it exists
+                    if self.currentNet.perpLine is not None:
+                        self.scene().removeItem(self.currentNet.perpLine)
+                        for item in self.scene().items():
+                            if isinstance(item, Net):
+                                p2 = item.mapFromItem(self.currentNet.perpLine,
+                                                      self.currentNet.perpLine.line().p2())
+                                if item.contains(p2):
+                                    pass
+                        add = Add(None, self.scene(), self.currentNet.perpLine)
+                        self.undoStack.push(add)
+                    self.currentNet = None
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
         if self._keys['rectangle'] is True:
             if event.button () == QtCore.Qt.LeftButton:
@@ -774,6 +816,8 @@ class DrawingArea(QtGui.QGraphicsView):
             if modifiers != QtCore.Qt.ControlModifier:
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
+                if self._keys['net'] is True:
+                    self.currentNet.updateNet(self.mapToGrid(event.pos()))
                 if self._keys['arc'] is True:
                     self.currentArc.updateArc(self.mapToGrid(event.pos()))
                 if self._keys['rectangle'] is True:

@@ -198,7 +198,8 @@ class drawingElement(object):
             pen.setColor(QtGui.QColor('gray'))
             brush.setColor(QtGui.QColor('gray'))
         self.setPen(pen)
-        self.setBrush(brush)
+        if hasattr(self, 'setBrush'):
+            self.setBrush(brush)
 
     def undoEdit(self):
         """Handled by classes individually"""
@@ -430,6 +431,74 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
 
     def redoEdit(self, point=None):
         self.createSegment(point)
+
+
+class Net(QtGui.QGraphicsLineItem, drawingElement):
+    def __init__(self, parent=None, start=None, **kwargs):
+        """This class implements nets for connecting elements in a circuit. It
+        is different from the Wire class in that it only supports right angle
+        connections (automatically draws these as 2 separate Nets)."""
+        point = QtCore.QPointF(0, 0)
+        # For when the net is being loaded from a file, oldLine already exists
+        if not hasattr(self, 'oldLine'):
+            super(Net, self).__init__(QtCore.QLineF(point, point), parent)
+        else:
+            super(Net, self).__init__(self.oldLine, parent)
+        drawingElement.__init__(self, parent, start, **kwargs)
+        self.oldLine = self.line()
+        self.rightAngleMode = "top"
+        self.perpLine = None #Perpendicular line
+        if self.start is not None:
+            self.setPos(self.start)
+
+    def boundingRect(self):
+        rect = super(Net, self).boundingRect()
+        pad = 10
+        if rect.width() < pad:
+            rect.setWidth(pad)
+            rect.moveLeft(-pad/2)
+        elif rect.height() < pad:
+            rect.setHeight(pad)
+            rect.moveTop(-pad/2)
+        return rect
+
+    def updateNet(self, newEnd):
+        newEnd = self.mapFromScene(newEnd)
+        if self.perpLine is None:
+            if newEnd.x() != 0 and newEnd.y() != 0:
+                self.perpLine = self.createCopy()
+                self.perpLine.setPos(QtCore.QPointF(self.start.x(), self.start.y() + newEnd.y()))
+        line = self.line()
+        line.setP2(QtCore.QPointF(0.0, newEnd.y()))
+        if newEnd.x() == 0 or newEnd.y() == 0:
+            if self.perpLine is not None:
+                self.scene().removeItem(self.perpLine)
+            self.perpLine = None
+            line.setP2(newEnd)
+        else:
+            self.perpLine.setPos(QtCore.QPointF(self.start.x(), self.start.y() + newEnd.y()))
+            perpLine = self.perpLine.line()
+            perpLine.setP2(QtCore.QPointF(newEnd.x(), 0.0))
+            self.perpLine.setLine(perpLine)
+        self.setLine(line)
+
+    def cancelSegment(self):
+        # Remove from scene if no segment exists
+        if self.perpLine is not None:
+            self.scene().removeItem(self.perpLine)
+            self.perpLine = None
+        self.scene().removeItem(self)
+
+    def createCopy(self, parent=None):
+        """Reimplemented from drawingElement. Sets the line and origin of the
+        copy the same as the current line.
+        """
+        newNet = super(Net, self).createCopy(parent)
+        newNet.setLine(self.line())
+        newNet.oldLine = newNet.line()
+        if hasattr(self, 'origin'):
+            newNet.origin = self.origin
+        return newNet
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
