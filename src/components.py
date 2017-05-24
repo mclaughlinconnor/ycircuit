@@ -468,17 +468,25 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
             if newEnd.x() != 0 and newEnd.y() != 0:
                 self.perpLine = self.createCopy()
                 self.perpLine.setPos(QtCore.QPointF(self.start.x(), self.start.y() + newEnd.y()))
+                self.perpLine.setSelected(False)
         line = self.line()
-        line.setP2(QtCore.QPointF(0.0, newEnd.y()))
+        if self.rightAngleMode == 'top':
+            line.setP2(QtCore.QPointF(0.0, newEnd.y()))
+        elif self.rightAngleMode == 'bottom':
+            line.setP2(QtCore.QPointF(newEnd.x(), 0.0))
         if newEnd.x() == 0 or newEnd.y() == 0:
             if self.perpLine is not None:
                 self.scene().removeItem(self.perpLine)
             self.perpLine = None
             line.setP2(newEnd)
         else:
-            self.perpLine.setPos(QtCore.QPointF(self.start.x(), self.start.y() + newEnd.y()))
             perpLine = self.perpLine.line()
-            perpLine.setP2(QtCore.QPointF(newEnd.x(), 0.0))
+            if self.rightAngleMode == 'top':
+                self.perpLine.setPos(QtCore.QPointF(self.start.x(), self.start.y() + newEnd.y()))
+                perpLine.setP2(QtCore.QPointF(newEnd.x(), 0.0))
+            elif self.rightAngleMode == 'bottom':
+                self.perpLine.setPos(QtCore.QPointF(self.start.x() + newEnd.x(), self.start.y()))
+                perpLine.setP2(QtCore.QPointF(0.0, newEnd.y()))
             self.perpLine.setLine(perpLine)
         self.setLine(line)
 
@@ -499,6 +507,14 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         if hasattr(self, 'origin'):
             newNet.origin = self.origin
         return newNet
+
+    def changeRightAngleMode(self, newEnd):
+        self.prepareGeometryChange()
+        if self.rightAngleMode == 'top':
+            self.rightAngleMode = 'bottom'
+        else:
+            self.rightAngleMode = 'top'
+        self.updateNet(newEnd)
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):

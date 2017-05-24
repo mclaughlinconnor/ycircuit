@@ -734,6 +734,8 @@ class DrawingArea(QtGui.QGraphicsView):
                         add = Add(None, self.scene(), self.currentNet.perpLine)
                         self.undoStack.push(add)
                     self.currentNet = None
+            if event.button() == QtCore.Qt.RightButton:
+                self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
@@ -842,12 +844,12 @@ class DrawingArea(QtGui.QGraphicsView):
                     elif isinstance(item, Circle):
                         item.updateCircle(point)
 
-    def contextMenuEvent(self, event):
-        # TODO: Make this work properly
-        menu = QtGui.QMenu()
-        actionDelete = menu.addAction('&Delete')
-        actionDelete.triggered.connect(lambda: self.scene().removeItem(self))
-        menu.exec_(event.screenPos())
+    # def contextMenuEvent(self, event):
+    #     # TODO: Make this work properly
+    #     menu = QtGui.QMenu()
+    #     actionDelete = menu.addAction('&Delete')
+    #     actionDelete.triggered.connect(lambda: self.scene().removeItem(self))
+    #     menu.exec_(event.screenPos())
 
     def mapToGrid(self, point):
         # Convenience function to map given point on to the grid
