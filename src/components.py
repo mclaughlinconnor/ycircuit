@@ -528,11 +528,6 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         for net in netList:
             line2 = net.line()
             line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
-            if line2.angleTo(line1) in [90, 270]:
-                return
-        for net in netList:
-            line2 = net.line()
-            line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
             x21, x22 = min(line2.p1().x(), line2.p2().x()), max(line2.p1().x(), line2.p2().x())
             y21, y22 = min(line2.p1().y(), line2.p2().y()), max(line2.p1().y(), line2.p2().y())
             xList, yList = [x11, x21, x12, x22], [y11, y21, y12, y22]
@@ -565,8 +560,8 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.endMacro()
                 elif x11 == x21 and x11 == x12 and x11 == x22:
                     if yList == sortedYList:
-                        p1 = self.mapFromScene(QtCore.QPointF(sortedYList[0], y11))
-                        p2 = self.mapFromScene(QtCore.QPointF(sortedYList[3], y22))
+                        p1 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[0]))
+                        p2 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[3]))
                     elif y21 > y11 and y22 < y12:
                         scene = self.scene()
                         undoStack.undo()
