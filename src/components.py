@@ -528,6 +528,11 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         for net in netList:
             line2 = net.line()
             line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
+            if line2.angleTo(line1) in [90, 270]:
+                return
+        for net in netList:
+            line2 = net.line()
+            line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
             x21, x22 = min(line2.p1().x(), line2.p2().x()), max(line2.p1().x(), line2.p2().x())
             y21, y22 = min(line2.p1().y(), line2.p2().y()), max(line2.p1().y(), line2.p2().y())
             xList, yList = [x11, x21, x12, x22], [y11, y21, y12, y22]
@@ -536,7 +541,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
             if y21 < y11:
                 yList = [y21, y11, y22, y12]
             sortedXList, sortedYList = sorted(xList), sorted(yList)
-            if line2.angleTo(line1) == 0 or line2.angleTo(line1) == 180:
+            if line2.angleTo(line1) in [0, 180]:
                 p1 = None
                 p2 = None
                 if y11 == y21 and y11 == y12 and y11 == y22:
@@ -555,7 +560,9 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                     elif x21 < x11 and x22 > x12:
                         undoStack.undo()
                         # Push an empty command to avoid creating the line again
+                        undoStack.beginMacro('')
                         undoStack.push(QtGui.QUndoCommand())
+                        undoStack.endMacro()
                 elif x11 == x21 and x11 == x12 and x11 == x22:
                     if yList == sortedYList:
                         p1 = self.mapFromScene(QtCore.QPointF(sortedYList[0], y11))
@@ -572,7 +579,9 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                     elif y21 < y11 and y22 > y12:
                         undoStack.undo()
                         # Push an empty command to avoid creating the line again
+                        undoStack.beginMacro('')
                         undoStack.push(QtGui.QUndoCommand())
+                        undoStack.endMacro()
                 if p1 is not None:
                     newNet = self.createCopy()
                     newNet.setLine(QtCore.QLineF(p1, p2))
@@ -588,6 +597,106 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                     del1 = Delete(None, scene, [net, self])
                     undoStack.push(del1)
                     undoStack.endMacro()
+
+    def splitNets(self, netList, undoStack):
+        # Had to do the import here to avoid circular imports
+        from src.commands import Add, Delete
+        if self in netList:
+            netList.remove(self)
+        line1 = self.line()
+        line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
+        for net in netList:
+            line2 = net.line()
+            line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
+            if line2.angleTo(line1) == 90 or line2.angleTo(line1) == 270:
+                if line2.p1() in [line1.p1(), line1.p2()] or line2.p2() in [line1.p1(), line1.p2()]:
+                    pass
+                else:
+                    scene = self.scene()
+                    if net.contains(net.mapFromItem(self, self.line().p1())):
+                        newNet1 = net.createCopy()
+                        newNet2 = net.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        undoStack.undo()
+                        undoStack.beginMacro('')
+                        add = Add(None, scene, self)
+                        undoStack.push(add)
+                        del1 = Delete(None, scene, [net])
+                        undoStack.push(del1)
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(net.line().p1())
+                        newNet1Line.setP2(net.mapFromItem(self, self.line().p1()))
+                        newNet2Line.setP2(net.line().p2())
+                        newNet2Line.setP1(net.mapFromItem(self, self.line().p1()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        undoStack.endMacro()
+                    elif net.contains(net.mapFromItem(self, self.line().p2())):
+                        newNet1 = net.createCopy()
+                        newNet2 = net.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        undoStack.undo()
+                        undoStack.beginMacro('')
+                        add = Add(None, scene, self)
+                        undoStack.push(add)
+                        del1 = Delete(None, scene, [net])
+                        undoStack.push(del1)
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(net.line().p1())
+                        newNet1Line.setP2(net.mapFromItem(self, self.line().p2()))
+                        newNet2Line.setP2(net.line().p2())
+                        newNet2Line.setP1(net.mapFromItem(self, self.line().p2()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        undoStack.endMacro()
+                    elif self.contains(self.mapFromItem(net, net.line().p1())):
+                        newNet1 = self.createCopy()
+                        newNet2 = self.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        undoStack.undo()
+                        undoStack.beginMacro('')
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(self.line().p1())
+                        newNet1Line.setP2(self.mapFromItem(net, net.line().p1()))
+                        newNet2Line.setP2(self.line().p2())
+                        newNet2Line.setP1(self.mapFromItem(net, net.line().p1()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        undoStack.endMacro()
+                    elif self.contains(self.mapFromItem(net, net.line().p2())):
+                        newNet1 = self.createCopy()
+                        newNet2 = self.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        undoStack.undo()
+                        undoStack.beginMacro('')
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(self.line().p1())
+                        newNet1Line.setP2(self.mapFromItem(net, net.line().p2()))
+                        newNet2Line.setP2(self.line().p2())
+                        newNet2Line.setP1(self.mapFromItem(net, net.line().p2()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        undoStack.endMacro()
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):

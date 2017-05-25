@@ -725,16 +725,19 @@ class DrawingArea(QtGui.QGraphicsView):
                     netList = []
                     for item in self.scene().items():
                         if isinstance(item, Net):
-                            netList.append(item)
+                            if item.collidesWithItem(self.currentNet):
+                                netList.append(item)
                     self.scene().removeItem(self.currentNet)
                     add = Add(None, self.scene(), self.currentNet)
                     self.undoStack.push(add)
                     self.currentNet.mergeNets(netList, self.undoStack)
+                    self.currentNet.splitNets(netList, self.undoStack)
                     netList = []
-                    for item in self.scene().items():
-                        if isinstance(item, Net):
-                            netList.append(item)
                     if self.currentNet.perpLine is not None:
+                        for item in self.scene().items():
+                            if isinstance(item, Net):
+                                if item.collidesWithItem(self.currentNet.perpLine):
+                                    netList.append(item)
                         self.scene().removeItem(self.currentNet.perpLine)
                         for item in netList:
                             p2 = item.mapFromItem(self.currentNet.perpLine, self.currentNet.perpLine.line().p2())
@@ -743,6 +746,7 @@ class DrawingArea(QtGui.QGraphicsView):
                         add = Add(None, self.scene(), self.currentNet.perpLine)
                         self.undoStack.push(add)
                         self.currentNet.perpLine.mergeNets(netList, self.undoStack)
+                        self.currentNet.perpLine.splitNets(netList, self.undoStack)
                     self.currentNet = None
             if event.button() == QtCore.Qt.RightButton:
                 self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
