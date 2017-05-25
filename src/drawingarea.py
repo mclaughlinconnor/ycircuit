@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui, QtSvg
+from src.commands import *
 from src.components import *
 from src.drawingitems import *
-from src.commands import *
 import cPickle as pickle
 import os
 from numpy import ceil, floor
@@ -718,21 +718,31 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.currentNet is None:
                     self.currentNet = Net(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
                     # Add the original net
-                    add = Add(None, self.scene(), self.currentNet)
-                    self.undoStack.push(add)
+                    self.scene().addItem(self.currentNet)
             else:
                 if self.currentNet is not None:
                     # Add the perpendicular line properly, if it exists
+                    netList = []
+                    for item in self.scene().items():
+                        if isinstance(item, Net):
+                            netList.append(item)
+                    self.scene().removeItem(self.currentNet)
+                    add = Add(None, self.scene(), self.currentNet)
+                    self.undoStack.push(add)
+                    self.currentNet.mergeNets(netList, self.undoStack)
+                    netList = []
+                    for item in self.scene().items():
+                        if isinstance(item, Net):
+                            netList.append(item)
                     if self.currentNet.perpLine is not None:
                         self.scene().removeItem(self.currentNet.perpLine)
-                        for item in self.scene().items():
-                            if isinstance(item, Net):
-                                p2 = item.mapFromItem(self.currentNet.perpLine,
-                                                      self.currentNet.perpLine.line().p2())
-                                if item.contains(p2):
-                                    pass
+                        for item in netList:
+                            p2 = item.mapFromItem(self.currentNet.perpLine, self.currentNet.perpLine.line().p2())
+                            if item.contains(p2):
+                                pass
                         add = Add(None, self.scene(), self.currentNet.perpLine)
                         self.undoStack.push(add)
+                        self.currentNet.perpLine.mergeNets(netList, self.undoStack)
                     self.currentNet = None
             if event.button() == QtCore.Qt.RightButton:
                 self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))

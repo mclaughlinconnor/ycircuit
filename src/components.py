@@ -1,7 +1,6 @@
 from PyQt4 import QtCore, QtGui
 import numpy
 from src.drawingitems import TextEditor
-import sys
 
 class drawingElement(object):
     """The drawingElement forms part of the basis for all drawing classes.
@@ -515,6 +514,80 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         else:
             self.rightAngleMode = 'top'
         self.updateNet(newEnd)
+
+    def mergeNets(self, netList, undoStack):
+        # Had to do the import here to avoid circular imports
+        from src.commands import Add, Delete
+        if self in netList:
+            netList.remove(self)
+        line1 = self.line()
+        line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
+        # Logic to figure out which points are within which other points
+        x11, x12 = min(line1.p1().x(), line1.p2().x()), max(line1.p1().x(), line1.p2().x())
+        y11, y12 = min(line1.p1().y(), line1.p2().y()), max(line1.p1().y(), line1.p2().y())
+        for net in netList:
+            line2 = net.line()
+            line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
+            x21, x22 = min(line2.p1().x(), line2.p2().x()), max(line2.p1().x(), line2.p2().x())
+            y21, y22 = min(line2.p1().y(), line2.p2().y()), max(line2.p1().y(), line2.p2().y())
+            xList, yList = [x11, x21, x12, x22], [y11, y21, y12, y22]
+            if x21 < x11:
+                xList = [x21, x11, x22, x12]
+            if y21 < y11:
+                yList = [y21, y11, y22, y12]
+            sortedXList, sortedYList = sorted(xList), sorted(yList)
+            if line2.angleTo(line1) == 0 or line2.angleTo(line1) == 180:
+                p1 = None
+                p2 = None
+                if y11 == y21 and y11 == y12 and y11 == y22:
+                    if xList == sortedXList:
+                        p1 = self.mapFromScene(QtCore.QPointF(sortedXList[0], y11))
+                        p2 = self.mapFromScene(QtCore.QPointF(sortedXList[3], y11))
+                    elif x21 > x11 and x22 < x12:
+                        scene = self.scene()
+                        undoStack.undo()
+                        undoStack.beginMacro('')
+                        add = Add(None, scene, self)
+                        undoStack.push(add)
+                        del1 = Delete(None, scene, net)
+                        undoStack.push(del1)
+                        undoStack.endMacro()
+                    elif x21 < x11 and x22 > x12:
+                        undoStack.undo()
+                        # Push an empty command to avoid creating the line again
+                        undoStack.push(QtGui.QUndoCommand())
+                elif x11 == x21 and x11 == x12 and x11 == x22:
+                    if yList == sortedYList:
+                        p1 = self.mapFromScene(QtCore.QPointF(sortedYList[0], y11))
+                        p2 = self.mapFromScene(QtCore.QPointF(sortedYList[3], y22))
+                    elif y21 > y11 and y22 < y12:
+                        scene = self.scene()
+                        undoStack.undo()
+                        undoStack.beginMacro('')
+                        add = Add(None, scene, self)
+                        undoStack.push(add)
+                        del1 = Delete(None, scene, net)
+                        undoStack.push(del1)
+                        undoStack.endMacro()
+                    elif y21 < y11 and y22 > y12:
+                        undoStack.undo()
+                        # Push an empty command to avoid creating the line again
+                        undoStack.push(QtGui.QUndoCommand())
+                if p1 is not None:
+                    newNet = self.createCopy()
+                    newNet.setLine(QtCore.QLineF(p1, p2))
+                    # Don't add this to the scene yet
+                    self.scene().removeItem(newNet)
+                    scene = self.scene()
+                    undoStack.undo()
+                    undoStack.beginMacro('')
+                    add = Add(None, scene, self)
+                    undoStack.push(add)
+                    add = Add(None, scene, newNet)
+                    undoStack.push(add)
+                    del1 = Delete(None, scene, [net, self])
+                    undoStack.push(del1)
+                    undoStack.endMacro()
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
