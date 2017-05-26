@@ -447,8 +447,22 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         self.oldLine = self.line()
         self.rightAngleMode = "top"
         self.perpLine = None #Perpendicular line
+        self.setFlag(QtGui.QGraphicsItem.ItemSendsScenePositionChanges)
         if self.start is not None:
             self.setPos(self.start)
+
+    def __getstate__(self):
+        localDict = super(Net, self).__getstate__()
+        # Add a list of all points part of the wire
+        line = self.line()
+        localDict['oldLine'] = line
+        return localDict
+
+    def __setstate__(self, state):
+        state['localPen'] = QtGui.QPen()
+        state['localBrush'] = QtGui.QBrush()
+        self.__dict__ = state
+        self.oldLine = state['oldLine']
 
     def boundingRect(self):
         rect = super(Net, self).boundingRect()
@@ -515,7 +529,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
             self.rightAngleMode = 'top'
         self.updateNet(newEnd)
 
-    def mergeNets(self, netList, undoStack):
+    def mergeNets(self, netList, undoStack, mode='add'):
         # Had to do the import here to avoid circular imports
         from src.commands import Add, Delete
         if self in netList:
@@ -545,55 +559,66 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         p2 = self.mapFromScene(QtCore.QPointF(sortedXList[3], y11))
                     elif x21 > x11 and x22 < x12:
                         scene = self.scene()
-                        undoStack.undo()
-                        undoStack.beginMacro('')
-                        add = Add(None, scene, self)
-                        undoStack.push(add)
+                        if mode == 'add':
+                            undoStack.undo()
+                            undoStack.beginMacro('')
+                            add = Add(None, scene, self)
+                            undoStack.push(add)
+                        else:
+                            undoStack.beginMacro('')
                         del1 = Delete(None, scene, net)
                         undoStack.push(del1)
                         undoStack.endMacro()
                     elif x21 < x11 and x22 > x12:
-                        undoStack.undo()
-                        # Push an empty command to avoid creating the line again
-                        undoStack.beginMacro('')
-                        undoStack.push(QtGui.QUndoCommand())
-                        undoStack.endMacro()
+                        if mode == 'add':
+                            undoStack.undo()
+                            # Push an empty command to avoid creating the line again
+                            undoStack.beginMacro('')
+                            undoStack.push(QtGui.QUndoCommand())
+                            undoStack.endMacro()
                 elif x11 == x21 and x11 == x12 and x11 == x22:
                     if yList == sortedYList:
                         p1 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[0]))
                         p2 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[3]))
                     elif y21 > y11 and y22 < y12:
                         scene = self.scene()
-                        undoStack.undo()
-                        undoStack.beginMacro('')
-                        add = Add(None, scene, self)
-                        undoStack.push(add)
+                        if mode == 'add':
+                            undoStack.undo()
+                            undoStack.beginMacro('')
+                            add = Add(None, scene, self)
+                            undoStack.push(add)
+                        else:
+                            undoStack.beginMacro('')
                         del1 = Delete(None, scene, net)
                         undoStack.push(del1)
                         undoStack.endMacro()
                     elif y21 < y11 and y22 > y12:
-                        undoStack.undo()
-                        # Push an empty command to avoid creating the line again
-                        undoStack.beginMacro('')
-                        undoStack.push(QtGui.QUndoCommand())
-                        undoStack.endMacro()
+                        if mode == 'add':
+                            undoStack.undo()
+                            # Push an empty command to avoid creating the line again
+                            undoStack.beginMacro('')
+                            undoStack.push(QtGui.QUndoCommand())
+                            undoStack.endMacro()
                 if p1 is not None:
                     newNet = self.createCopy()
                     newNet.setLine(QtCore.QLineF(p1, p2))
                     # Don't add this to the scene yet
                     self.scene().removeItem(newNet)
                     scene = self.scene()
-                    undoStack.undo()
-                    undoStack.beginMacro('')
-                    add = Add(None, scene, self)
-                    undoStack.push(add)
+                    if mode == 'add':
+                        undoStack.undo()
+                        undoStack.beginMacro('')
+                        add = Add(None, scene, self)
+                        undoStack.push(add)
+                    else:
+                        undoStack.beginMacro('')
                     add = Add(None, scene, newNet)
                     undoStack.push(add)
                     del1 = Delete(None, scene, [net, self])
                     undoStack.push(del1)
                     undoStack.endMacro()
 
-    def splitNets(self, netList, undoStack):
+    def splitNets(self, netList, undoStack, mode='add'):
         # Had to do the import here to avoid circular imports
         from src.commands import Add, Delete
         if self in netList:
@@ -613,10 +638,13 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         newNet2 = net.createCopy()
                         scene.removeItem(newNet1)
                         scene.removeItem(newNet2)
-                        undoStack.undo()
-                        undoStack.beginMacro('')
-                        add = Add(None, scene, self)
-                        undoStack.push(add)
+                        if mode == 'add':
+                            undoStack.undo()
+                            undoStack.beginMacro('')
+                            add = Add(None, scene, self)
+                            undoStack.push(add)
+                        else:
+                            undoStack.beginMacro('')
                         del1 = Delete(None, scene, [net])
                         undoStack.push(del1)
                         newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
@@ -636,10 +664,13 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         newNet2 = net.createCopy()
                         scene.removeItem(newNet1)
                         scene.removeItem(newNet2)
-                        undoStack.undo()
-                        undoStack.beginMacro('')
-                        add = Add(None, scene, self)
-                        undoStack.push(add)
+                        if mode == 'add':
+                            undoStack.undo()
+                            undoStack.beginMacro('')
+                            add = Add(None, scene, self)
+                            undoStack.push(add)
+                        else:
+                            undoStack.beginMacro('')
                         del1 = Delete(None, scene, [net])
                         undoStack.push(del1)
                         newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
@@ -659,7 +690,8 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         newNet2 = self.createCopy()
                         scene.removeItem(newNet1)
                         scene.removeItem(newNet2)
-                        undoStack.undo()
+                        if mode == 'add':
+                            undoStack.undo()
                         undoStack.beginMacro('')
                         newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
                         newNet1Line.setP1(self.line().p1())
@@ -678,7 +710,8 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         newNet2 = self.createCopy()
                         scene.removeItem(newNet1)
                         scene.removeItem(newNet2)
-                        undoStack.undo()
+                        if mode == 'add':
+                            undoStack.undo()
                         undoStack.beginMacro('')
                         newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
                         newNet1Line.setP1(self.line().p1())

@@ -605,6 +605,16 @@ class DrawingArea(QtGui.QGraphicsView):
                 else:
                     move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
                     self.undoStack.push(move)
+                # Evaluate if any new nets need to be split/merged
+                for item2 in self.moveItems:
+                    if isinstance(item2, Net):
+                        netList = []
+                        for item in self.scene().items():
+                            if isinstance(item, Net):
+                                if item.collidesWithItem(item2):
+                                    netList.append(item)
+                        item2.mergeNets(netList, self.undoStack, mode='move')
+                        item2.splitNets(netList, self.undoStack, mode='move')
                 # End move command once item has been placed
                 self._keys['m'] = False
                 self._keys['c'] = False
