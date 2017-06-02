@@ -750,6 +750,19 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
+    def shape(self):
+        path = QtGui.QPainterPath()
+        path.addRect(self.boundingRect())
+        hollowRect = self.boundingRect()
+        pad = 10
+        hollowRect.setWidth(hollowRect.width() - 4*pad)
+        hollowRect.setHeight(hollowRect.height() - 4*pad)
+        hollowRect.moveLeft(hollowRect.left() + 2*pad)
+        hollowRect.moveTop(hollowRect.top() + 2*pad)
+        hollowPath = QtGui.QPainterPath()
+        hollowPath.addRect(hollowRect)
+        return path.subtracted(hollowPath)
+
     def paint(self, painter, *args):
         # We have to manually draw out the bounding rect
         if self.isSelected() is False:
@@ -772,6 +785,10 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
             start = self.start
         rect = QtCore.QRectF(start, end)
         self.setRect(rect)
+        self.updateP1P2()
+        rect = QtCore.QRectF(self.p1, self.p2)
+        self.prepareGeometryChange()
+        self.setRect(rect)
         self.oldRect = rect
         # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
@@ -793,10 +810,10 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
     def mouseReleaseEvent(self, event):
         self.updateP1P2()
         rect = QtCore.QRectF(self.p1, self.p2)
-        self.setRect(rect)
-        self.oldRect = rect
         # Necessary so that bounding rect is drawn correctly
         self.prepareGeometryChange()
+        self.setRect(rect)
+        self.oldRect = rect
         super(Rectangle, self).mouseReleaseEvent(event)
 
     def undoEdit(self):
@@ -849,10 +866,23 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         # Make the bounding rect a little bigger so that it is easier to see
         pad = 10
         # Not sure why this is different from the Rectangle boundingRect
-        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, -pad)
-        topRight = self.rect().topRight() + QtCore.QPointF(pad, pad)
-        rect = QtCore.QRectF(bottomLeft, topRight)
+        topLeft = self.rect().topLeft() + QtCore.QPointF(-pad, -pad)
+        bottomRight = self.rect().bottomRight() + QtCore.QPointF(pad, pad)
+        rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
+
+    def shape(self):
+        path = QtGui.QPainterPath()
+        path.addEllipse(self.boundingRect())
+        hollowRect = self.boundingRect()
+        pad = 10
+        hollowRect.setWidth(hollowRect.width() - 4*pad)
+        hollowRect.setHeight(hollowRect.height() - 4*pad)
+        hollowRect.moveLeft(hollowRect.left() + 2*pad)
+        hollowRect.moveTop(hollowRect.top() + 2*pad)
+        hollowPath = QtGui.QPainterPath()
+        hollowPath.addEllipse(hollowRect)
+        return path.subtracted(hollowPath)
 
     def paint(self, painter, *args):
         # We have to manually draw out the bounding rect
@@ -872,6 +902,10 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         end = self.mapFromScene(end)
         rect = QtCore.QRectF(self.start, end)
         self.setRect(rect)
+        self.updateP1P2()
+        rect = QtCore.QRectF(self.p1, self.p2)
+        self.prepareGeometryChange()
+        self.setRect(rect)
         self.oldRect = rect
         # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
@@ -890,24 +924,36 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         return newEllipse
 
     def mouseReleaseEvent(self, event):
+        self.updateP1P2()
+        rect = QtCore.QRectF(self.p1, self.p2)
         # Necessary so that bounding rect is drawn correctly
         self.prepareGeometryChange()
+        self.setRect(rect)
+        self.oldRect = rect
+        # # Necessary so that bounding rect is drawn correctly
+        # self.prepareGeometryChange()
         super(Ellipse, self).mouseReleaseEvent(event)
+
+    def updateP1P2(self):
+        # Make sure start is top left and end is bottom right
+        if self.rect().width() >= 0 and self.rect().height() >= 0:
+            self.p1 = self.rect().topLeft()
+            self.p2 = self.rect().bottomRight()
+        elif self.rect().width() >= 0 and self.rect().height() < 0:
+            self.p1 = self.rect().bottomLeft()
+            self.p2 = self.rect().topRight()
+        elif self.rect().width() < 0 and self.rect().height() >= 0:
+            self.p1 = self.rect().topRight()
+            self.p2 = self.rect().bottomLeft()
+        else:
+            self.p1 = self.rect().bottomRight()
+            self.p2 = self.rect().topLeft()
 
 
 class Circle(Ellipse):
     """This is a special case of the Ellipse class where a = b."""
     def __init__(self, parent=None, start=None, **kwargs):
         super(Circle, self).__init__(parent, start, **kwargs)
-
-    def boundingRect(self):
-        # Make the bounding rect a little bigger so that it is easier to see
-        pad = 10
-        # This is the same as that for rectangle
-        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, pad)
-        topRight = self.rect().topRight() + QtCore.QPointF(pad, -pad)
-        rect = QtCore.QRectF(bottomLeft, topRight)
-        return rect
 
     def updateCircle(self, end):
         # Update the opposite end of the diameter of the circle to end
