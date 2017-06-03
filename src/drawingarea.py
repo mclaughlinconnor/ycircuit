@@ -596,6 +596,15 @@ class DrawingArea(QtGui.QGraphicsView):
                     i.moveTo(self.moveStartPoint, 'start')
                 # Create a macro and save all rotate/mirror commands
                 self.undoStack.beginMacro('')
+                # Evaluate if any new nets need to be split/merged
+                for item2 in self.moveItems:
+                    if isinstance(item2, Net):
+                        netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                        netList.remove(item2)
+                        for item in netList:
+                            mergedNet = item.mergeNets(netList, self.undoStack)
+                            mergedNet.splitNets(netList, self.undoStack)
+                        # item2.splitNets(netList, self.undoStack, mode='move')
             # End moving if LMB is clicked again and selection is not empty
             elif self.moveItems != []:
                 point = self.mapToGrid(event.pos())
@@ -608,13 +617,9 @@ class DrawingArea(QtGui.QGraphicsView):
                 # Evaluate if any new nets need to be split/merged
                 for item2 in self.moveItems:
                     if isinstance(item2, Net):
-                        netList = []
-                        for item in self.scene().items():
-                            if isinstance(item, Net):
-                                if item.collidesWithItem(item2):
-                                    netList.append(item)
-                        item2.mergeNets(netList, self.undoStack, mode='move')
-                        item2.splitNets(netList, self.undoStack, mode='move')
+                        netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                        mergedNet = item2.mergeNets(netList, self.undoStack)
+                        mergedNet.splitNets(netList, self.undoStack)
                 # End move command once item has been placed
                 self._keys['m'] = False
                 self._keys['c'] = False
@@ -731,32 +736,25 @@ class DrawingArea(QtGui.QGraphicsView):
                     self.scene().addItem(self.currentNet)
             else:
                 if self.currentNet is not None:
-                    # Add the perpendicular line properly, if it exists
-                    netList = []
-                    for item in self.scene().items():
-                        if isinstance(item, Net):
-                            if item.collidesWithItem(self.currentNet):
-                                netList.append(item)
+                    netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet))]
                     self.scene().removeItem(self.currentNet)
+                    self.undoStack.beginMacro('')
                     add = Add(None, self.scene(), self.currentNet)
                     self.undoStack.push(add)
-                    self.currentNet.mergeNets(netList, self.undoStack)
-                    self.currentNet.splitNets(netList, self.undoStack)
-                    netList = []
+                    mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
+                    mergedNet.splitNets(netList, self.undoStack)
+                    self.undoStack.endMacro()
+                    # Add the perpendicular line properly, if it exists
                     if self.currentNet.perpLine is not None:
-                        for item in self.scene().items():
-                            if isinstance(item, Net):
-                                if item.collidesWithItem(self.currentNet.perpLine):
-                                    netList.append(item)
+                        netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
+                        netList.remove(self.currentNet.perpLine)
                         self.scene().removeItem(self.currentNet.perpLine)
-                        for item in netList:
-                            p2 = item.mapFromItem(self.currentNet.perpLine, self.currentNet.perpLine.line().p2())
-                            if item.contains(p2):
-                                pass
+                        self.undoStack.beginMacro('')
                         add = Add(None, self.scene(), self.currentNet.perpLine)
                         self.undoStack.push(add)
-                        self.currentNet.perpLine.mergeNets(netList, self.undoStack)
-                        self.currentNet.perpLine.splitNets(netList, self.undoStack)
+                        mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
+                        mergedNet.splitNets(netList, self.undoStack)
+                        self.undoStack.endMacro()
                     self.currentNet = None
             if event.button() == QtCore.Qt.RightButton:
                 self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
