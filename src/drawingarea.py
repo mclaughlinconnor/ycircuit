@@ -597,19 +597,21 @@ class DrawingArea(QtGui.QGraphicsView):
                 # Create a macro and save all rotate/mirror commands
                 self.undoStack.beginMacro('')
                 # Evaluate if any new nets need to be split/merged
-                for item2 in self.moveItems:
-                    if isinstance(item2, Net):
-                        netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
-                        netList.remove(item2)
-                        for item in netList:
-                            mergedNet = item.mergeNets(netList, self.undoStack)
-                            mergedNet.splitNets(netList, self.undoStack)
-                        # item2.splitNets(netList, self.undoStack, mode='move')
+                # Only do this check if moving and *not* for copying
+                if self._keys['c'] is False:
+                    for item2 in self.moveItems:
+                        if isinstance(item2, Net):
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                            netList.remove(item2)
+                            for item in netList:
+                                mergedNet = item.mergeNets(netList, self.undoStack)
+                                if mergedNet is not None:
+                                    mergedNet.splitNets(netList, self.undoStack)
             # End moving if LMB is clicked again and selection is not empty
             elif self.moveItems != []:
                 point = self.mapToGrid(event.pos())
                 if self._keys['c'] is True:
-                    copy_ = Copy(None, self.scene(), self.scene().selectedItems(), point=point)
+                    copy_ = Copy(None, self.scene(), self.moveItems, point=point)
                     self.undoStack.push(copy_)
                 else:
                     move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
@@ -619,7 +621,8 @@ class DrawingArea(QtGui.QGraphicsView):
                     if isinstance(item2, Net):
                         netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
                         mergedNet = item2.mergeNets(netList, self.undoStack)
-                        mergedNet.splitNets(netList, self.undoStack)
+                        if mergedNet is not None:
+                            mergedNet.splitNets(netList, self.undoStack)
                 # End move command once item has been placed
                 self._keys['m'] = False
                 self._keys['c'] = False
@@ -742,7 +745,8 @@ class DrawingArea(QtGui.QGraphicsView):
                     add = Add(None, self.scene(), self.currentNet)
                     self.undoStack.push(add)
                     mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
-                    mergedNet.splitNets(netList, self.undoStack)
+                    if mergedNet is not None:
+                        mergedNet.splitNets(netList, self.undoStack)
                     self.undoStack.endMacro()
                     # Add the perpendicular line properly, if it exists
                     if self.currentNet.perpLine is not None:
@@ -753,7 +757,8 @@ class DrawingArea(QtGui.QGraphicsView):
                         add = Add(None, self.scene(), self.currentNet.perpLine)
                         self.undoStack.push(add)
                         mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
-                        mergedNet.splitNets(netList, self.undoStack)
+                        if mergedNet is not None:
+                            mergedNet.splitNets(netList, self.undoStack)
                         self.undoStack.endMacro()
                     self.currentNet = None
             if event.button() == QtCore.Qt.RightButton:
