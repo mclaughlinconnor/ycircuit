@@ -16,6 +16,7 @@ class myMainWindow(QtGui.QMainWindow):
 
         # Connect actions to relevant slots
         # File menu
+        self.ui.action_newSchematic.triggered.connect(self.action_newSchematic_triggered)
         self.ui.action_saveSchematic.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematic'))
         self.ui.action_saveSchematicAs.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematicAs'))
         self.ui.action_loadSchematic.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('schematic'))
@@ -161,6 +162,11 @@ class myMainWindow(QtGui.QMainWindow):
                 event.ignore()
         else:
             event.accept()
+
+    def action_newSchematic_triggered(self):
+        self.form = myMainWindow()
+        self.form.showMaximized()
+        self.form.ui.drawingArea.fitToViewRoutine()
 
     def menu_Edit_hovered(self):
         widthList = []

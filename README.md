@@ -37,7 +37,8 @@ The software is fairly easy to use (partially because of the limited feature set
 
 As of this point in time, the following options are available:
 
-  * Saving and loading (Alt+F)
+  * File operations (Alt+F)
+    * Create new schematic (Ctrl+N)
     * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
     * Save and load schematics (.sch files) (Ctrl+S, Ctrl+L)
     * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file (Ctrl+E)

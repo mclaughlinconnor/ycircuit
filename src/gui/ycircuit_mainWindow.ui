@@ -65,6 +65,8 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="action_newSchematic"/>
+    <addaction name="separator"/>
     <addaction name="action_saveSchematic"/>
     <addaction name="action_saveSchematicAs"/>
     <addaction name="action_saveSymbol"/>
@@ -980,6 +982,17 @@
    </property>
    <property name="shortcut">
     <string>E</string>
+   </property>
+  </action>
+  <action name="action_newSchematic">
+   <property name="text">
+    <string>New Schematic</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new schematic</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
  </widget>

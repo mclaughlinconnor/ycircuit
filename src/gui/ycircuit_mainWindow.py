@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\ycircuit_mainWindow.ui'
+# Form implementation generated from reading ui file '.\src\gui\ycircuit_mainWindow.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -302,6 +302,10 @@ class Ui_MainWindow(object):
         self.action_modifySymbol.setObjectName(_fromUtf8("action_modifySymbol"))
         self.action_editShape = QtGui.QAction(MainWindow)
         self.action_editShape.setObjectName(_fromUtf8("action_editShape"))
+        self.action_newSchematic = QtGui.QAction(MainWindow)
+        self.action_newSchematic.setObjectName(_fromUtf8("action_newSchematic"))
+        self.menu_File.addAction(self.action_newSchematic)
+        self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
         self.menu_File.addAction(self.action_saveSchematicAs)
         self.menu_File.addAction(self.action_saveSymbol)
@@ -562,6 +566,9 @@ class Ui_MainWindow(object):
         self.action_editShape.setText(_translate("MainWindow", "Edit shape", None))
         self.action_editShape.setToolTip(_translate("MainWindow", "Edit selected shape", None))
         self.action_editShape.setShortcut(_translate("MainWindow", "E", None))
+        self.action_newSchematic.setText(_translate("MainWindow", "New Schematic", None))
+        self.action_newSchematic.setToolTip(_translate("MainWindow", "Create a new schematic", None))
+        self.action_newSchematic.setShortcut(_translate("MainWindow", "Ctrl+N", None))
 
 from src.drawingarea import DrawingArea
 import icon_rc
