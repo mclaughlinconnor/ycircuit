@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
 import numpy
+import pickle
 from src.drawingitems import TextEditor
 
 class drawingElement(object):
@@ -18,6 +19,7 @@ class drawingElement(object):
         self.setFlag(self.ItemIsFocusable, True)
         self.setAcceptHoverEvents(True)
         self.reflections = 0
+        self.setToolTip(str(self))
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
@@ -534,10 +536,10 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         from src.commands import Add, Delete
         # If this net has already been processed, its scene will not exist
         if self.scene() is None:
-            return
+            return None
         if self in netList:
             netList.remove(self)
-        mergedNet = self
+        mergedNet = None
         line1 = self.line()
         line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
         # Logic to figure out which points are within which other points
@@ -561,7 +563,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                     if xList == sortedXList:
                         p1 = self.mapFromScene(QtCore.QPointF(sortedXList[0], y11))
                         p2 = self.mapFromScene(QtCore.QPointF(sortedXList[3], y11))
-                    elif x21 > x11 and x22 < x12:
+                    elif x21 >= x11 and x22 <= x12:
                         scene = net.scene()
                         del1 = Delete(None, scene, [net])
                         undoStack.push(del1)
@@ -575,7 +577,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                     if yList == sortedYList:
                         p1 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[0]))
                         p2 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[3]))
-                    elif y21 > y11 and y22 < y12:
+                    elif y21 >= y11 and y22 <= y12:
                         scene = net.scene()
                         del1 = Delete(None, scene, [net])
                         undoStack.push(del1)
@@ -586,17 +588,38 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.push(del1)
                         mergedNet = net
                 if p1 is not None:
-                    newNet = self.createCopy()
-                    newNet.setLine(QtCore.QLineF(p1, p2))
-                    # Don't add this to the scene yet
-                    self.scene().removeItem(newNet)
+                    self.setLine(QtCore.QLineF(p1, p2))
                     scene = self.scene()
-                    add = Add(None, scene, newNet)
-                    undoStack.push(add)
-                    del1 = Delete(None, scene, [net, self])
+                    del1 = Delete(None, scene, [net])
                     undoStack.push(del1)
-                    newNet.setSelected(False)
-                    mergedNet = newNet
+                    # Update x11, x12, y11 and y12
+                    line1 = self.line()
+                    line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
+                    # Logic to figure out which points are within which other points
+                    x11, x12 = min(line1.p1().x(), line1.p2().x()), max(line1.p1().x(), line1.p2().x())
+                    y11, y12 = min(line1.p1().y(), line1.p2().y()), max(line1.p1().y(), line1.p2().y())
+                    mergedNet = self
+        if mergedNet == self:
+            scene = mergedNet.scene()
+            # Check if the item is a dot
+            allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
+            # Keep only dots that are inside the net (not on endpoints)
+            for dot in allDots:
+                dotPos = mergedNet.mapFromScene(dot.scenePos())
+                # The dot's scenePos is slightly to the left of actual center
+                dotPos += QtCore.QPointF(5, 0)
+                if dotPos in [mergedNet.line().p1(), mergedNet.line().p2()]:
+                    allDots.remove(dot)
+                elif not mergedNet.contains(dotPos):
+                    allDots.remove(dot)
+            if allDots != []:
+                # Find parent item of the dot instead of the circle that has been found
+                for i in xrange(len(allDots)):
+                    while allDots[i].parentItem() is not None:
+                        allDots[i] = allDots[i].parentItem()
+                # Delete the dots that are on the net
+                del1 = Delete(None, scene, allDots)
+                undoStack.push(del1)
         return mergedNet
 
     def splitNets(self, netList, undoStack, mode='add'):
@@ -604,7 +627,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         from src.commands import Add, Delete
         # If this net has already been processed, its scene will not exist
         if self.scene() is None:
-            return
+            return None
         if self in netList:
             netList.remove(self)
         line1 = self.line()
@@ -637,6 +660,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
                         undoStack.push(add)
+                        dotPos = self.mapToScene(self.line().p1())
                     elif net.contains(net.mapFromItem(self, self.line().p2())):
                         newNet1 = net.createCopy()
                         newNet2 = net.createCopy()
@@ -656,6 +680,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
                         undoStack.push(add)
+                        dotPos = self.mapToScene(self.line().p2())
                     elif self.contains(self.mapFromItem(net, net.line().p1())):
                         newNet1 = self.createCopy()
                         newNet2 = self.createCopy()
@@ -675,6 +700,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
                         undoStack.push(add)
+                        dotPos = net.mapToScene(net.line().p1())
                     elif self.contains(self.mapFromItem(net, net.line().p2())):
                         newNet1 = self.createCopy()
                         newNet2 = self.createCopy()
@@ -694,9 +720,29 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
                         undoStack.push(add)
+                        dotPos = net.mapToScene(net.line().p2())
                     if newNet1 is not None:
                         newNetList1 = [item for item in netList if item.collidesWithItem(newNet1)]
                         newNetList2 = [item for item in netList if item.collidesWithItem(newNet2)]
+                        with open('Resources/Symbols/Standard/dot.sym', 'rb') as f:
+                            allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
+                            dotExists = False
+                            for item in allDots:
+                                existingDotPos = item.scenePos()
+                                # The dot's scenePos is slightly to the left of actual center
+                                existingDotPos += QtCore.QPointF(5, 0)
+                                if dotPos == item.scenePos():
+                                    dotExists = True
+                                    break
+                            if dotExists is False:
+                                dot1 = pickle.load(f)
+                                dot1.__init__(None, scene, dotPos, dot1.listOfItems)
+                                dot1.loadItems('symbol')
+                                dot1.moveTo(dotPos, 'start')
+                                dot1.moveTo(dotPos, 'done')
+                                scene.removeItem(dot1)
+                                add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
+                                undoStack.push(add1)
                         newNet1.splitNets(newNetList1, undoStack)
                         newNet2.splitNets(newNetList2, undoStack)
                         break

@@ -7,7 +7,10 @@ class Delete(QtGui.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None):
         super(Delete, self).__init__(parent)
         self.scene = scene
-        self.listOfItems = listOfItems
+        if type(listOfItems) != list:
+            self.listOfItems = [listOfItems]
+        else:
+            self.listOfItems = listOfItems
         for item in self.listOfItems:
             item.changeColourToGray(False)
 
@@ -104,10 +107,12 @@ class Move(QtGui.QUndoCommand):
 
     def redo(self):
         for item in self.listOfItems:
+            item.moveTo(self.startPoint, 'start')
             item.moveTo(self.stopPoint, 'done')
 
     def undo(self):
         for item in self.listOfItems:
+            item.moveTo(self.stopPoint, 'start')
             item.moveTo(self.startPoint, 'done')
 
 
