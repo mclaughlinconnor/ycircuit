@@ -24,7 +24,7 @@ class DrawingArea(QtGui.QGraphicsView):
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
         self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
-        self.scene().setSceneRect(QtCore.QRectF(-1000, -1000, 20000, 20000))
+        self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
                       'arc': False, 'rectangle': False, 'circle': False,
