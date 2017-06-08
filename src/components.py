@@ -745,7 +745,9 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                                 undoStack.push(add1)
                         newNet1.splitNets(newNetList1, undoStack)
                         newNet2.splitNets(newNetList2, undoStack)
-                        break
+                        # Break if self has been deleted
+                        if self.scene() is None:
+                            break
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
