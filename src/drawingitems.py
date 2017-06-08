@@ -53,12 +53,11 @@ class Grid(QtGui.QGraphicsItem):
         # self.displaySpacing = self.spacing*(xH - xL)/1000
         # self.xDisplayPoints = numpy.arange(xL, xH, self.displaySpacing)
         # self.yDisplayPoints = numpy.arange(yL, yH, self.displaySpacing)
-        topLeft = self.snapTo(self.mapToScene(QtCore.QPointF(self.view.rect().topLeft())))
-        bottomRight = self.snapTo(self.mapToScene(QtCore.QPointF(self.view.rect().bottomRight())))
-        if (bottomRight - topLeft).x() > (bottomRight - topLeft).y():
-            self.extent = (bottomRight - topLeft).toPoint().x()
-        else:
-            self.extent = (bottomRight - topLeft).toPoint().y()
+        # Determine the top left and bottom right corners of the viewport in scene coordinates
+        topLeft = self.snapTo(self.view.mapToScene(QtCore.QPoint(self.view.rect().topLeft())))
+        bottomRight = self.snapTo(self.view.mapToScene(QtCore.QPoint(self.view.rect().bottomRight())))
+        self.extent = numpy.minimum((bottomRight-topLeft).x(), (bottomRight-topLeft).y())
+        # Determine display spacing depending on the zoom level
         self.displaySpacing = 10**(numpy.floor(numpy.log10(self.extent)))
         if self.extent/self.displaySpacing < 3:
             self.displaySpacing /= 10
@@ -66,7 +65,8 @@ class Grid(QtGui.QGraphicsItem):
             self.displaySpacing = self.spacing*10
         topLeft = self.snapTo(topLeft, self.displaySpacing)
         bottomRight = self.snapTo(bottomRight, self.displaySpacing)
-        padding = 2*self.displaySpacing
+        padding = 1*self.displaySpacing
+        # Add extra padding in order to ensure complete screen coverage
         self.xDisplayPoints = numpy.arange(topLeft.x()-padding, bottomRight.x()+padding, self.displaySpacing/5)
         self.yDisplayPoints = numpy.arange(topLeft.y()-padding, bottomRight.y()+padding, self.displaySpacing/5)
         self.gridPolygonRegular = QtGui.QPolygon()
@@ -74,6 +74,7 @@ class Grid(QtGui.QGraphicsItem):
             for y in self.yDisplayPoints:
                 self.gridPolygonRegular.append(QtCore.QPoint(x, y))
         self.gridPolygonLarge = QtGui.QPolygon()
+        # Larger pixels for points on the coarse grid
         for x in self.xDisplayPoints[self.xDisplayPoints % self.displaySpacing*10 == 0]:
             for y in self.yDisplayPoints[self.yDisplayPoints % self.displaySpacing*10 == 0]:
                 self.gridPolygonLarge.append(QtCore.QPoint(x, y))

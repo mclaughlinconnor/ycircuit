@@ -37,44 +37,45 @@ The software is fairly easy to use (partially because of the limited feature set
 
 As of this point in time, the following options are available:
 
-  * Saving and loading
-    * Save and load symbols (.sym files)
-    * Save and load schematics (.sch files)
-    * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file
-  * Editing
-    * Undo
-    * Redo
-    * Delete
-    * Move
-    * Copy
-    * Rotate
-    * Mirror
-    * Change pen colour, style and width
+  * File operations (Alt+F)
+    * Create new schematic (Ctrl+N)
+    * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
+    * Save and load schematics (.sch files) (Ctrl+S, Ctrl+L)
+    * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file (Ctrl+E)
+  * Editing (Alt+E)
+    * Undo (Ctrl+Z)
+    * Redo (Ctrl+Y)
+    * Delete (D)
+    * Move (M)
+    * Copy (C)
+    * Rotate (R)
+    * Mirror (Shift+R)
+    * Change pen colour, style and width (Alt+E->C,P,W)
     * Change fill colour and style
-  * Shapes
-    * Line (Same as Symbols -> Wire)
-    * Rectangle
-    * Circle
-    * Ellipse
-    * Arcs (3-point and 4-point Bezier curves)
-    * Text box (with support for bold, italics, underline, overline, subscript and superscript)
+  * Shapes (Alt+A)
+    * Line (Alt+A->L)
+    * Rectangle (Alt+A->R)
+    * Circle (Alt+A->C)
+    * Ellipse (Alt+A->E)
+    * Arcs (3-point and 4-point Bezier curves) (Alt+A->A)
+    * Text box (with support for bold, italics, underline, overline, subscript and superscript) (Alt+A->T)
         * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
         * An option for a more coherent look would be to use symbols
-  * Symbols
-    * Wire
-    * Resistor
-    * Capacitor
-    * Ground
-    * Connectivity dot
-    * Transistors
-        * NFET (With and without arrow)
-        * PFET (With and without arrow)
+  * Symbols (Alt+S)
+    * Wire (Right click to change the angle of the wire!) (Alt+S->W)
+    * Resistor (Alt+S->R)
+    * Capacitor (Alt+S->C)
+    * Ground (Alt+S->G)
+    * Connectivity dot (Alt+S->D)
+    * Transistors (Alt+S->T)
+        * NFET (With and without arrow) (Alt+S->T->N)
+        * PFET (With and without arrow) (Alt+S->T->P)
         * NPN BJT
         * PNP BJT
-    * Sources
-        * DC (both voltage and current)
-        * AC
-        * Controlled sources (all 4 types)
+    * Sources (Alt+S->S)
+        * DC (both voltage and current) (Alt+S->S->D->V,C)
+        * AC (Alt+S->S->A)
+        * Controlled sources (all 4 types) (Alt+S->S->C)
 
 At this point, item shapes cannot be edited once they are drawn. Further, wires are drawn as one long and continuous wire - the implication being that wire segments are not individually selectable.
 

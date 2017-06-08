@@ -1,7 +1,8 @@
+import sys
+sys.path.append('./Resources/icons/')
 from src.drawingarea import DrawingArea
 from PyQt4 import QtCore, QtGui
 from src.gui.ycircuit_mainWindow import Ui_MainWindow
-import sys
 import platform
 import sip
 
@@ -15,16 +16,23 @@ class myMainWindow(QtGui.QMainWindow):
 
         # Connect actions to relevant slots
         # File menu
+        self.ui.action_newSchematic.triggered.connect(self.action_newSchematic_triggered)
         self.ui.action_saveSchematic.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematic'))
+        self.ui.action_saveSchematicAs.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematicAs'))
         self.ui.action_loadSchematic.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('schematic'))
+        self.ui.action_loadSchematic.triggered.connect(lambda x: self.changeWindowTitle(True))
         self.ui.action_saveSymbol.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbol'))
         self.ui.action_loadSymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbol'))
+        self.ui.action_modifySymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbolModify'))
+        self.ui.action_modifySymbol.triggered.connect(lambda x: self.changeWindowTitle(True))
         self.ui.action_exportFile.triggered.connect(self.ui.drawingArea.exportRoutine)
         self.ui.action_quit.triggered.connect(self.close)
 
         # Edit menu
         self.ui.action_undo.triggered.connect(self.ui.drawingArea.undoStack.undo)
+        self.ui.action_undo.triggered.connect(lambda x: self.ui.statusbar.showMessage("Undo", 1000))
         self.ui.action_redo.triggered.connect(self.ui.drawingArea.undoStack.redo)
+        self.ui.action_redo.triggered.connect(lambda x: self.ui.statusbar.showMessage("Redo", 1000))
         self.ui.drawingArea.undoStack.canRedoChanged.connect(self.ui.action_redo.setEnabled)
         self.ui.drawingArea.undoStack.canUndoChanged.connect(self.ui.action_undo.setEnabled)
         self.ui.action_rotate.triggered.connect(self.ui.drawingArea.rotateRoutine)
@@ -32,6 +40,9 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_move.triggered.connect(self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(self.ui.drawingArea.copyRoutine)
         self.ui.action_delete.triggered.connect(self.ui.drawingArea.deleteRoutine)
+        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_move.setChecked(False))
+        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_copy.setChecked(False))
+        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_delete.setChecked(False))
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(lambda x:self.action_setWidth_triggered(2))
@@ -78,9 +89,10 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_addCircle.triggered.connect(self.ui.drawingArea.addCircle)
         self.ui.action_addEllipse.triggered.connect(self.ui.drawingArea.addEllipse)
         self.ui.action_addTextBox.triggered.connect(self.ui.drawingArea.addTextBox)
+        self.ui.action_editShape.triggered.connect(self.ui.drawingArea.editShape)
 
         # Symbol menu
-        self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addWire)
+        self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addNet)
         self.ui.action_addResistor.triggered.connect(self.ui.drawingArea.addResistor)
         self.ui.action_addCapacitor.triggered.connect(self.ui.drawingArea.addCapacitor)
         self.ui.action_addGround.triggered.connect(self.ui.drawingArea.addGround)
@@ -98,6 +110,63 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_addVCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCCS'))
         self.ui.action_addCCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCVS'))
         self.ui.action_addCCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCCS'))
+
+        # Miscellaneous signal and slot connections
+        self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)
+        self.ui.drawingArea.statusbarMessage.connect(self.ui.statusbar.showMessage)
+
+    def changeWindowTitle(self, clean=True):
+        if self.ui.drawingArea.schematicFileName is not None:
+            fileName = self.ui.drawingArea.schematicFileName
+            self.setWindowTitle('YCircuit - ' + fileName)
+            if clean is False:
+                self.setWindowTitle(self.windowTitle() + '*')
+        elif self.ui.drawingArea.symbolFileName is not None:
+            fileName = self.ui.drawingArea.symbolFileName
+            self.setWindowTitle('YCircuit - ' + fileName)
+            if clean is False:
+                self.setWindowTitle(self.windowTitle() + '*')
+
+    def closeEvent(self, event):
+        if self.ui.drawingArea.undoStack.isClean():
+            event.accept()
+        elif self.ui.drawingArea.schematicFileName is None:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText("The schematic has been modified")
+            msgBox.setInformativeText("Do you wish to save your changes?")
+            msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
+            msgBox.setDefaultButton(msgBox.Save)
+            msgBox.setIcon(msgBox.Information)
+            ret = msgBox.exec_()
+            if ret == msgBox.Save:
+                self.ui.drawingArea.saveRoutine('schematic')
+                event.accept()
+            elif ret == msgBox.Discard:
+                event.accept()
+            else:
+                event.ignore()
+        elif self.ui.drawingArea.symbolFileName is None:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText("The symbol has been modified")
+            msgBox.setInformativeText("Do you wish to save your changes?")
+            msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
+            msgBox.setDefaultButton(msgBox.Save)
+            msgBox.setIcon(msgBox.Information)
+            ret = msgBox.exec_()
+            if ret == msgBox.Save:
+                self.ui.drawingArea.saveRoutine('symbol')
+                event.accept()
+            elif ret == msgBox.Discard:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
+
+    def action_newSchematic_triggered(self):
+        self.form = myMainWindow()
+        self.form.showMaximized()
+        self.form.ui.drawingArea.fitToViewRoutine()
 
     def menu_Edit_hovered(self):
         widthList = []
@@ -250,7 +319,7 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()
-    form.ui.drawingArea.fitToViewRoutine()
     if platform.system() == 'Windows':
         sip.setdestroyonexit(False)
+    form.ui.drawingArea.fitToViewRoutine()
     app.exec_()

@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 import numpy
+import pickle
 from src.drawingitems import TextEditor
-import sys
 
 class drawingElement(object):
     """The drawingElement forms part of the basis for all drawing classes.
@@ -19,6 +19,7 @@ class drawingElement(object):
         self.setFlag(self.ItemIsFocusable, True)
         self.setAcceptHoverEvents(True)
         self.reflections = 0
+        self.setToolTip(str(self))
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
@@ -59,6 +60,7 @@ class drawingElement(object):
         self.localPen.setColor(QtGui.QColor(self.localPenColour))
         # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
         self.localPen.setStyle(self.localPenStyle)
+        self.localPen.setJoinStyle(QtCore.Qt.RoundJoin)
         if hasattr(self, 'setPen'):
             self.setPen(self.localPen)
 
@@ -197,7 +199,8 @@ class drawingElement(object):
             pen.setColor(QtGui.QColor('gray'))
             brush.setColor(QtGui.QColor('gray'))
         self.setPen(pen)
-        self.setBrush(brush)
+        if hasattr(self, 'setBrush'):
+            self.setBrush(brush)
 
     def undoEdit(self):
         """Handled by classes individually"""
@@ -237,16 +240,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
                 painter.drawRect(self.boundingRect())
 
     def boundingRect(self):
-        rect = self.listOfItems[0].sceneBoundingRect()
-        for item in self.listOfItems:
-            rect = rect.united(item.sceneBoundingRect())
-        return self.mapRectFromScene(rect)
-
-    def sceneBoundingRect(self):
-        rect = self.listOfItems[0].sceneBoundingRect()
-        for item in self.listOfItems:
-            rect = rect.united(item.sceneBoundingRect())
-        return rect
+        return self.childrenBoundingRect()
 
     def __setstate__(self, state):
         """Reimplemented from drawingElement because group does not have
@@ -305,17 +299,6 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             if not hasattr(item, 'localBrush'):
                 item.localBrush = QtGui.QBrush()
                 item.setLocalBrushOptions()
-
-    # def getLocalPenOptions(self, option):
-    #     """Get child local pen options as a list"""
-    #     if option == 'width':
-    #         list_ = []
-    #         for item in self.listOfItems:
-    #             if isinstance(item, myGraphicsItemGroup):
-    #                 list_.append(item.getLocalPenOptions(option))
-    #             else:
-    #                 list_.append(item.localPenWidth)
-    #     return list_
 
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
@@ -398,6 +381,10 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
             self.oldPath2.addPolygon(poly)
         self.oldPath = self.__dict__.pop('oldPath2', None)
 
+    def boundingRect(self):
+        rect = super(Wire, self).boundingRect()
+        return rect
+
     def updateWire(self, newEnd):
         # Update existing segment to end at newEnd
         newEnd = self.mapFromScene(newEnd)
@@ -430,7 +417,6 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
             newWire.origin = self.origin
         return newWire
 
-
     def undoEdit(self):
         if len(self.oldPath.toSubpathPolygons()) == 0:
             return False
@@ -446,6 +432,322 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
 
     def redoEdit(self, point=None):
         self.createSegment(point)
+
+
+class Net(QtGui.QGraphicsLineItem, drawingElement):
+    def __init__(self, parent=None, start=None, **kwargs):
+        """This class implements nets for connecting elements in a circuit. It
+        is different from the Wire class in that it only supports right angle
+        connections (automatically draws these as 2 separate Nets)."""
+        point = QtCore.QPointF(0, 0)
+        # For when the net is being loaded from a file, oldLine already exists
+        if not hasattr(self, 'oldLine'):
+            super(Net, self).__init__(QtCore.QLineF(point, point), parent)
+        else:
+            super(Net, self).__init__(self.oldLine, parent)
+        drawingElement.__init__(self, parent, start, **kwargs)
+        self.oldLine = self.line()
+        self.rightAngleMode = "top"
+        self.perpLine = None #Perpendicular line
+        self.setFlag(QtGui.QGraphicsItem.ItemSendsScenePositionChanges)
+        if self.start is not None:
+            self.setPos(self.start)
+
+    def __getstate__(self):
+        localDict = super(Net, self).__getstate__()
+        # Add a list of all points part of the wire
+        line = self.line()
+        localDict['oldLine'] = line
+        return localDict
+
+    def __setstate__(self, state):
+        state['localPen'] = QtGui.QPen()
+        state['localBrush'] = QtGui.QBrush()
+        self.__dict__ = state
+        self.oldLine = state['oldLine']
+
+    def boundingRect(self):
+        rect = super(Net, self).boundingRect()
+        pad = 10
+        if rect.width() < pad:
+            rect.setWidth(pad)
+            rect.moveLeft(-pad/2)
+        elif rect.height() < pad:
+            rect.setHeight(pad)
+            rect.moveTop(-pad/2)
+        return rect
+
+    def updateNet(self, newEnd):
+        newEnd = self.mapFromScene(newEnd)
+        if self.perpLine is None:
+            if newEnd.x() != 0 and newEnd.y() != 0:
+                self.perpLine = self.createCopy()
+                self.perpLine.setPos(QtCore.QPointF(self.start.x(), self.start.y() + newEnd.y()))
+                self.perpLine.setSelected(False)
+        line = self.line()
+        if self.rightAngleMode == 'top':
+            line.setP2(QtCore.QPointF(0.0, newEnd.y()))
+        elif self.rightAngleMode == 'bottom':
+            line.setP2(QtCore.QPointF(newEnd.x(), 0.0))
+        if newEnd.x() == 0 or newEnd.y() == 0:
+            if self.perpLine is not None:
+                self.scene().removeItem(self.perpLine)
+            self.perpLine = None
+            line.setP2(newEnd)
+        else:
+            perpLine = self.perpLine.line()
+            if self.rightAngleMode == 'top':
+                self.perpLine.setPos(QtCore.QPointF(self.start.x(), self.start.y() + newEnd.y()))
+                perpLine.setP2(QtCore.QPointF(newEnd.x(), 0.0))
+            elif self.rightAngleMode == 'bottom':
+                self.perpLine.setPos(QtCore.QPointF(self.start.x() + newEnd.x(), self.start.y()))
+                perpLine.setP2(QtCore.QPointF(0.0, newEnd.y()))
+            self.perpLine.setLine(perpLine)
+        self.setLine(line)
+
+    def cancelSegment(self):
+        # Remove from scene if no segment exists
+        if self.perpLine is not None:
+            self.scene().removeItem(self.perpLine)
+            self.perpLine = None
+        self.scene().removeItem(self)
+
+    def createCopy(self, parent=None):
+        """Reimplemented from drawingElement. Sets the line and origin of the
+        copy the same as the current line.
+        """
+        newNet = super(Net, self).createCopy(parent)
+        newNet.setLine(self.line())
+        newNet.oldLine = newNet.line()
+        if hasattr(self, 'origin'):
+            newNet.origin = self.origin
+        return newNet
+
+    def changeRightAngleMode(self, newEnd):
+        self.prepareGeometryChange()
+        if self.rightAngleMode == 'top':
+            self.rightAngleMode = 'bottom'
+        else:
+            self.rightAngleMode = 'top'
+        self.updateNet(newEnd)
+
+    def mergeNets(self, netList, undoStack):
+        # Had to do the import here to avoid circular imports
+        from src.commands import Add, Delete
+        # If this net has already been processed, its scene will not exist
+        if self.scene() is None:
+            return None
+        if self in netList:
+            netList.remove(self)
+        mergedNet = None
+        line1 = self.line()
+        line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
+        # Logic to figure out which points are within which other points
+        x11, x12 = min(line1.p1().x(), line1.p2().x()), max(line1.p1().x(), line1.p2().x())
+        y11, y12 = min(line1.p1().y(), line1.p2().y()), max(line1.p1().y(), line1.p2().y())
+        for net in netList:
+            line2 = net.line()
+            line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
+            x21, x22 = min(line2.p1().x(), line2.p2().x()), max(line2.p1().x(), line2.p2().x())
+            y21, y22 = min(line2.p1().y(), line2.p2().y()), max(line2.p1().y(), line2.p2().y())
+            xList, yList = [x11, x21, x12, x22], [y11, y21, y12, y22]
+            if x21 < x11:
+                xList = [x21, x11, x22, x12]
+            if y21 < y11:
+                yList = [y21, y11, y22, y12]
+            sortedXList, sortedYList = sorted(xList), sorted(yList)
+            if line2.angleTo(line1) in [0, 180]:
+                p1 = None
+                p2 = None
+                if y11 == y21 and y11 == y12 and y11 == y22:
+                    if xList == sortedXList:
+                        p1 = self.mapFromScene(QtCore.QPointF(sortedXList[0], y11))
+                        p2 = self.mapFromScene(QtCore.QPointF(sortedXList[3], y11))
+                    elif x21 >= x11 and x22 <= x12:
+                        scene = net.scene()
+                        del1 = Delete(None, scene, [net])
+                        undoStack.push(del1)
+                        mergedNet = self
+                    elif x21 < x11 and x22 > x12:
+                        scene = self.scene()
+                        del1 = Delete(None, scene, [self])
+                        undoStack.push(del1)
+                        mergedNet = net
+                elif x11 == x21 and x11 == x12 and x11 == x22:
+                    if yList == sortedYList:
+                        p1 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[0]))
+                        p2 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[3]))
+                    elif y21 >= y11 and y22 <= y12:
+                        scene = net.scene()
+                        del1 = Delete(None, scene, [net])
+                        undoStack.push(del1)
+                        mergedNet = self
+                    elif y21 < y11 and y22 > y12:
+                        scene = self.scene()
+                        del1 = Delete(None, scene, [self])
+                        undoStack.push(del1)
+                        mergedNet = net
+                if p1 is not None:
+                    self.setLine(QtCore.QLineF(p1, p2))
+                    scene = self.scene()
+                    del1 = Delete(None, scene, [net])
+                    undoStack.push(del1)
+                    # Update x11, x12, y11 and y12
+                    line1 = self.line()
+                    line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
+                    # Logic to figure out which points are within which other points
+                    x11, x12 = min(line1.p1().x(), line1.p2().x()), max(line1.p1().x(), line1.p2().x())
+                    y11, y12 = min(line1.p1().y(), line1.p2().y()), max(line1.p1().y(), line1.p2().y())
+                    mergedNet = self
+        if mergedNet == self:
+            scene = mergedNet.scene()
+            # Check if the item is a dot
+            allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
+            # Keep only dots that are inside the net (not on endpoints)
+            for dot in allDots:
+                dotPos = mergedNet.mapFromScene(dot.scenePos())
+                # The dot's scenePos is slightly to the left of actual center
+                dotPos += QtCore.QPointF(5, 0)
+                if dotPos in [mergedNet.line().p1(), mergedNet.line().p2()]:
+                    allDots.remove(dot)
+                elif not mergedNet.contains(dotPos):
+                    allDots.remove(dot)
+            if allDots != []:
+                # Find parent item of the dot instead of the circle that has been found
+                for i in xrange(len(allDots)):
+                    while allDots[i].parentItem() is not None:
+                        allDots[i] = allDots[i].parentItem()
+                # Delete the dots that are on the net
+                del1 = Delete(None, scene, allDots)
+                undoStack.push(del1)
+        return mergedNet
+
+    def splitNets(self, netList, undoStack, mode='add'):
+        # Had to do the import here to avoid circular imports
+        from src.commands import Add, Delete
+        # If this net has already been processed, its scene will not exist
+        if self.scene() is None:
+            return None
+        if self in netList:
+            netList.remove(self)
+        line1 = self.line()
+        line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
+        scene = self.scene()
+        for net in netList:
+            line2 = net.line()
+            line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
+            if line2.angleTo(line1) == 90 or line2.angleTo(line1) == 270:
+                if line2.p1() in [line1.p1(), line1.p2()] or line2.p2() in [line1.p1(), line1.p2()]:
+                    pass
+                else:
+                    newNet1, newNet2 = None, None
+                    if net.contains(net.mapFromItem(self, self.line().p1())):
+                        newNet1 = net.createCopy()
+                        newNet2 = net.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        if net.scene() is not None:
+                            del1 = Delete(None, scene, [net])
+                            undoStack.push(del1)
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(net.line().p1())
+                        newNet1Line.setP2(net.mapFromItem(self, self.line().p1()))
+                        newNet2Line.setP2(net.line().p2())
+                        newNet2Line.setP1(net.mapFromItem(self, self.line().p1()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        dotPos = self.mapToScene(self.line().p1())
+                    elif net.contains(net.mapFromItem(self, self.line().p2())):
+                        newNet1 = net.createCopy()
+                        newNet2 = net.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        if net.scene() is not None:
+                            del1 = Delete(None, scene, [net])
+                            undoStack.push(del1)
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(net.line().p1())
+                        newNet1Line.setP2(net.mapFromItem(self, self.line().p2()))
+                        newNet2Line.setP2(net.line().p2())
+                        newNet2Line.setP1(net.mapFromItem(self, self.line().p2()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        dotPos = self.mapToScene(self.line().p2())
+                    elif self.contains(self.mapFromItem(net, net.line().p1())):
+                        newNet1 = self.createCopy()
+                        newNet2 = self.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        if self.scene() is not None:
+                            del1 = Delete(None, scene, [self])
+                            undoStack.push(del1)
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(self.line().p1())
+                        newNet1Line.setP2(self.mapFromItem(net, net.line().p1()))
+                        newNet2Line.setP2(self.line().p2())
+                        newNet2Line.setP1(self.mapFromItem(net, net.line().p1()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        dotPos = net.mapToScene(net.line().p1())
+                    elif self.contains(self.mapFromItem(net, net.line().p2())):
+                        newNet1 = self.createCopy()
+                        newNet2 = self.createCopy()
+                        scene.removeItem(newNet1)
+                        scene.removeItem(newNet2)
+                        if self.scene() is not None:
+                            del1 = Delete(None, scene, [self])
+                            undoStack.push(del1)
+                        newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                        newNet1Line.setP1(self.line().p1())
+                        newNet1Line.setP2(self.mapFromItem(net, net.line().p2()))
+                        newNet2Line.setP2(self.line().p2())
+                        newNet2Line.setP1(self.mapFromItem(net, net.line().p2()))
+                        newNet1.setLine(newNet1Line)
+                        newNet2.setLine(newNet2Line)
+                        add = Add(None, scene, newNet1)
+                        undoStack.push(add)
+                        add = Add(None, scene, newNet2)
+                        undoStack.push(add)
+                        dotPos = net.mapToScene(net.line().p2())
+                    if newNet1 is not None:
+                        newNetList1 = [item for item in netList if item.collidesWithItem(newNet1)]
+                        newNetList2 = [item for item in netList if item.collidesWithItem(newNet2)]
+                        with open('Resources/Symbols/Standard/dot.sym', 'rb') as f:
+                            allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
+                            dotExists = False
+                            for item in allDots:
+                                existingDotPos = item.scenePos()
+                                # The dot's scenePos is slightly to the left of actual center
+                                existingDotPos += QtCore.QPointF(5, 0)
+                                if dotPos == item.scenePos():
+                                    dotExists = True
+                                    break
+                            if dotExists is False:
+                                dot1 = pickle.load(f)
+                                dot1.__init__(None, scene, dotPos, dot1.listOfItems)
+                                dot1.loadItems('symbol')
+                                dot1.moveTo(dotPos, 'start')
+                                dot1.moveTo(dotPos, 'done')
+                                scene.removeItem(dot1)
+                                add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
+                                undoStack.push(add1)
+                        newNet1.splitNets(newNetList1, undoStack)
+                        newNet2.splitNets(newNetList2, undoStack)
+                        # Break if self has been deleted
+                        if self.scene() is None:
+                            break
 
 
 class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
@@ -466,10 +768,23 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
     def boundingRect(self):
         # Make the bounding rect a little bigger so it is easier to see
         pad = 10
-        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, pad)
-        topRight = self.rect().topRight() + QtCore.QPointF(pad, -pad)
-        rect = QtCore.QRectF(bottomLeft, topRight)
+        topLeft = self.rect().topLeft() + QtCore.QPointF(-pad, -pad)
+        bottomRight = self.rect().bottomRight() + QtCore.QPointF(pad, pad)
+        rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
+
+    def shape(self):
+        path = QtGui.QPainterPath()
+        path.addRect(self.boundingRect())
+        hollowRect = self.boundingRect()
+        pad = 10
+        hollowRect.setWidth(hollowRect.width() - 4*pad)
+        hollowRect.setHeight(hollowRect.height() - 4*pad)
+        hollowRect.moveLeft(hollowRect.left() + 2*pad)
+        hollowRect.moveTop(hollowRect.top() + 2*pad)
+        hollowPath = QtGui.QPainterPath()
+        hollowPath.addRect(hollowRect)
+        return path.subtracted(hollowPath)
 
     def paint(self, painter, *args):
         # We have to manually draw out the bounding rect
@@ -484,10 +799,18 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
             painter.setBrush(self.localBrush)
             painter.drawRect(self.rect())
 
-    def updateRectangle(self, end):
+    def updateRectangle(self, end, edit=False):
         # Update the end point of the rectangle to end
         end = self.mapFromScene(end)
-        rect = QtCore.QRectF(self.start, end)
+        if edit is True:
+            start = self.p1
+        else:
+            start = self.start
+        rect = QtCore.QRectF(start, end)
+        self.setRect(rect)
+        self.updateP1P2()
+        rect = QtCore.QRectF(self.p1, self.p2)
+        self.prepareGeometryChange()
         self.setRect(rect)
         self.oldRect = rect
         # If items collide with this one, elevate them
@@ -508,9 +831,43 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
         return newRectangle
 
     def mouseReleaseEvent(self, event):
+        self.updateP1P2()
+        rect = QtCore.QRectF(self.p1, self.p2)
         # Necessary so that bounding rect is drawn correctly
         self.prepareGeometryChange()
+        self.setRect(rect)
+        self.oldRect = rect
         super(Rectangle, self).mouseReleaseEvent(event)
+
+    def undoEdit(self):
+        rect = self.undoRectList.pop()
+        self.setRect(rect)
+        self.oldRect = rect
+        self.updateP1P2()
+
+    def redoEdit(self, point):
+        if not hasattr(self, 'undoRectList'):
+            self.undoRectList = []
+        rect = QtCore.QRectF(self.p1, self.mapFromScene(point))
+        self.setRect(rect)
+        self.oldRect = rect
+        self.undoRectList.append(self.rect())
+        self.updateP1P2()
+
+    def updateP1P2(self):
+        # Make sure start is top left and end is bottom right
+        if self.rect().width() >= 0 and self.rect().height() >= 0:
+            self.p1 = self.rect().topLeft()
+            self.p2 = self.rect().bottomRight()
+        elif self.rect().width() >= 0 and self.rect().height() < 0:
+            self.p1 = self.rect().bottomLeft()
+            self.p2 = self.rect().topRight()
+        elif self.rect().width() < 0 and self.rect().height() >= 0:
+            self.p1 = self.rect().topRight()
+            self.p2 = self.rect().bottomLeft()
+        else:
+            self.p1 = self.rect().bottomRight()
+            self.p2 = self.rect().topLeft()
 
 
 class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
@@ -532,10 +889,23 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         # Make the bounding rect a little bigger so that it is easier to see
         pad = 10
         # Not sure why this is different from the Rectangle boundingRect
-        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, -pad)
-        topRight = self.rect().topRight() + QtCore.QPointF(pad, pad)
-        rect = QtCore.QRectF(bottomLeft, topRight)
+        topLeft = self.rect().topLeft() + QtCore.QPointF(-pad, -pad)
+        bottomRight = self.rect().bottomRight() + QtCore.QPointF(pad, pad)
+        rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
+
+    def shape(self):
+        path = QtGui.QPainterPath()
+        path.addEllipse(self.boundingRect())
+        hollowRect = self.boundingRect()
+        pad = 10
+        hollowRect.setWidth(hollowRect.width() - 4*pad)
+        hollowRect.setHeight(hollowRect.height() - 4*pad)
+        hollowRect.moveLeft(hollowRect.left() + 2*pad)
+        hollowRect.moveTop(hollowRect.top() + 2*pad)
+        hollowPath = QtGui.QPainterPath()
+        hollowPath.addEllipse(hollowRect)
+        return path.subtracted(hollowPath)
 
     def paint(self, painter, *args):
         # We have to manually draw out the bounding rect
@@ -555,6 +925,10 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         end = self.mapFromScene(end)
         rect = QtCore.QRectF(self.start, end)
         self.setRect(rect)
+        self.updateP1P2()
+        rect = QtCore.QRectF(self.p1, self.p2)
+        self.prepareGeometryChange()
+        self.setRect(rect)
         self.oldRect = rect
         # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
@@ -573,24 +947,36 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         return newEllipse
 
     def mouseReleaseEvent(self, event):
+        self.updateP1P2()
+        rect = QtCore.QRectF(self.p1, self.p2)
         # Necessary so that bounding rect is drawn correctly
         self.prepareGeometryChange()
+        self.setRect(rect)
+        self.oldRect = rect
+        # # Necessary so that bounding rect is drawn correctly
+        # self.prepareGeometryChange()
         super(Ellipse, self).mouseReleaseEvent(event)
+
+    def updateP1P2(self):
+        # Make sure start is top left and end is bottom right
+        if self.rect().width() >= 0 and self.rect().height() >= 0:
+            self.p1 = self.rect().topLeft()
+            self.p2 = self.rect().bottomRight()
+        elif self.rect().width() >= 0 and self.rect().height() < 0:
+            self.p1 = self.rect().bottomLeft()
+            self.p2 = self.rect().topRight()
+        elif self.rect().width() < 0 and self.rect().height() >= 0:
+            self.p1 = self.rect().topRight()
+            self.p2 = self.rect().bottomLeft()
+        else:
+            self.p1 = self.rect().bottomRight()
+            self.p2 = self.rect().topLeft()
 
 
 class Circle(Ellipse):
     """This is a special case of the Ellipse class where a = b."""
     def __init__(self, parent=None, start=None, **kwargs):
         super(Circle, self).__init__(parent, start, **kwargs)
-
-    def boundingRect(self):
-        # Make the bounding rect a little bigger so that it is easier to see
-        pad = 10
-        # This is the same as that for rectangle
-        bottomLeft = self.rect().bottomLeft() + QtCore.QPointF(-pad, pad)
-        topRight = self.rect().topRight() + QtCore.QPointF(pad, -pad)
-        rect = QtCore.QRectF(bottomLeft, topRight)
-        return rect
 
     def updateCircle(self, end):
         # Update the opposite end of the diameter of the circle to end
@@ -620,16 +1006,36 @@ class Circle(Ellipse):
         self.transform_.rotate(theta)
         self.setTransform(self.transform_)
         self.oldRect = self.rect()
+        self.end = QtCore.QPointF(end)
         # If items collide with this one, elevate them
         collidingItems = self.collidingItems()
         for item in collidingItems:
             if item.isObscuredBy(self):
                 item.setZValue(item.zValue() + 1)
 
+    def undoEdit(self):
+        # rect = self.undoRectList.pop()
+        # self.setRect(rect)
+        # transform_ = self.undoTransformList.pop()
+        # self.setTransform(transform_)
+        point = self.undoPointList.pop()
+        self.updateCircle(point)
+        # self.oldRect = rect
+        # self.transform_ = transform_
+
+    def redoEdit(self, point):
+        if not hasattr(self, 'undoPointList'):
+            self.undoPointList = []
+        # if not hasattr(self, 'undoTransformList'):
+        #     self.undoTransformList = []
+        self.updateCircle(point)
+        self.undoPointList.append(point)
+        # self.undoTransformList.append(self.transform())
+
 
 class TextBox(QtGui.QGraphicsTextItem, drawingElement):
     """Responsible for showing formatted text as well as LaTeX images.
-    The current formatting options are supported:
+    The following formatting options are supported:
         1. Bold
         2. Italic
         3. Underline

@@ -1,12 +1,16 @@
 from PyQt4 import QtCore, QtGui
 from components import myGraphicsItemGroup
+import copy
 
 
 class Delete(QtGui.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None):
         super(Delete, self).__init__(parent)
         self.scene = scene
-        self.listOfItems = listOfItems
+        if type(listOfItems) != list:
+            self.listOfItems = [listOfItems]
+        else:
+            self.listOfItems = listOfItems
         for item in self.listOfItems:
             item.changeColourToGray(False)
 
@@ -38,15 +42,26 @@ class Add(QtGui.QUndoCommand):
     def __init__(self, parent=None, scene=None, item=None, **kwargs):
         super(Add, self).__init__(parent)
         self.scene = scene
-        self.item = item
         if 'symbol' in kwargs:
             self.symbol = kwargs['symbol']
             if 'origin' in kwargs:
                 self.origin = kwargs['origin']
             else:
                 self.origin = QtCore.QPointF(0, 0)
+            if 'rotateAngle' in kwargs:
+                self.rotateAngle = kwargs['rotateAngle']
+            else:
+                self.rotateAngle = 0
+            if 'reflect' in kwargs:
+                self.reflect = kwargs['reflect']
+            else:
+                self.reflect = 0
         else:
             self.symbol = False
+        if self.symbol is True:
+            self.item = copy.deepcopy(item)
+        else:
+            self.item = item
 
     def redo(self):
         if self.symbol is False:
@@ -56,6 +71,11 @@ class Add(QtGui.QUndoCommand):
             """Or if item is a symbol to be loaded"""
             self.item.__init__(None, self.scene, self.origin, self.item.listOfItems)
             self.item.loadItems('symbol')
+            if hasattr(self, 'rotateAngle'):
+                self.item.rotateBy(moving=False, origin=self.origin, angle=self.rotateAngle)
+            if hasattr(self, 'reflect'):
+                if self.reflect == 1:
+                    self.item.reflect(moving=False, origin=self.origin)
         self.scene.update(self.scene.sceneRect())
 
     def undo(self):
@@ -63,6 +83,7 @@ class Add(QtGui.QUndoCommand):
 
 
 class Edit(QtGui.QUndoCommand):
+    """Mainly used only for wires and arcs"""
     def __init__(self, parent=None, scene=None, item=None, point=None):
         super(Edit, self).__init__(parent)
         self.scene = scene
@@ -86,10 +107,12 @@ class Move(QtGui.QUndoCommand):
 
     def redo(self):
         for item in self.listOfItems:
+            item.moveTo(self.startPoint, 'start')
             item.moveTo(self.stopPoint, 'done')
 
     def undo(self):
         for item in self.listOfItems:
+            item.moveTo(self.stopPoint, 'start')
             item.moveTo(self.startPoint, 'done')
 
 
