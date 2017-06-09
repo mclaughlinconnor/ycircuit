@@ -22,6 +22,7 @@ class myMainWindow(QtGui.QMainWindow):
         self.ui.action_loadSchematic.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('schematic'))
         self.ui.action_loadSchematic.triggered.connect(lambda x: self.changeWindowTitle(True))
         self.ui.action_saveSymbol.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbol'))
+        self.ui.action_saveSymbolAs.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbolAs'))
         self.ui.action_loadSymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbol'))
         self.ui.action_modifySymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbolModify'))
         self.ui.action_modifySymbol.triggered.connect(lambda x: self.changeWindowTitle(True))

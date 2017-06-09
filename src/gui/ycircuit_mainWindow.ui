@@ -70,7 +70,7 @@
     <addaction name="action_saveSchematic"/>
     <addaction name="action_saveSchematicAs"/>
     <addaction name="action_saveSymbol"/>
-    <addaction name="actionSave_symbol_as"/>
+    <addaction name="action_saveSymbolAs"/>
     <addaction name="separator"/>
     <addaction name="action_loadSchematic"/>
     <addaction name="action_loadSymbol"/>
@@ -963,7 +963,7 @@
     <string>Save s&amp;chematic as</string>
    </property>
   </action>
-  <action name="actionSave_symbol_as">
+  <action name="action_saveSymbolAs">
    <property name="text">
     <string>Save &amp;symbol as</string>
    </property>
