@@ -221,6 +221,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         if start is not None:
+            self.start = start
             self.setPos(start)
         # The pen and brush options are just place holders
         self.localPenWidth = 2
@@ -604,7 +605,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
             # Check if the item is a dot
             allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
             # Keep only dots that are inside the net (not on endpoints)
-            for dot in allDots:
+            for dot in allDots[:]:
                 dotPos = mergedNet.mapFromScene(dot.scenePos())
                 # The dot's scenePos is slightly to the left of actual center
                 dotPos += QtCore.QPointF(5, 0)
