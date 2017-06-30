@@ -534,7 +534,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
 
     def mergeNets(self, netList, undoStack):
         # Had to do the import here to avoid circular imports
-        from src.commands import Add, Delete
+        from src.commands import Add, Delete, EditNet
         # If this net has already been processed, its scene will not exist
         if self.scene() is None:
             return None
@@ -589,8 +589,12 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.push(del1)
                         mergedNet = net
                 if p1 is not None:
-                    self.setLine(QtCore.QLineF(p1, p2))
                     scene = self.scene()
+                    oldLine = self.line()
+                    newLine = QtCore.QLineF(p1, p2)
+                    editNet = EditNet(None, scene, self, oldLine, newLine)
+                    undoStack.push(editNet)
+                    # self.setLine(QtCore.QLineF(p1, p2))
                     del1 = Delete(None, scene, [net])
                     undoStack.push(del1)
                     # Update x11, x12, y11 and y12

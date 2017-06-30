@@ -101,6 +101,22 @@ class Edit(QtGui.QUndoCommand):
         self.item.undoEdit()
 
 
+class EditNet(QtGui.QUndoCommand):
+    """Used for editing net lengths"""
+    def __init__(self, parent=None, scene=None, item=None, oldLine=None, newLine=None):
+       super(EditNet, self).__init__(parent)
+       self.scene = scene
+       self.item = item
+       self.oldLine = oldLine
+       self.newLine = newLine
+
+    def redo(self):
+        self.item.setLine(self.newLine)
+
+    def undo(self):
+        self.item.setLine(self.oldLine)
+
+
 class Move(QtGui.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, startPoint=None, stopPoint=None):
         super(Move, self).__init__(parent)
