@@ -221,6 +221,7 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         if start is not None:
+            self.start = start
             self.setPos(start)
         # The pen and brush options are just place holders
         self.localPenWidth = 2
@@ -533,7 +534,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
 
     def mergeNets(self, netList, undoStack):
         # Had to do the import here to avoid circular imports
-        from src.commands import Add, Delete
+        from src.commands import Add, Delete, EditNet
         # If this net has already been processed, its scene will not exist
         if self.scene() is None:
             return None
@@ -588,8 +589,12 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                         undoStack.push(del1)
                         mergedNet = net
                 if p1 is not None:
-                    self.setLine(QtCore.QLineF(p1, p2))
                     scene = self.scene()
+                    oldLine = self.line()
+                    newLine = QtCore.QLineF(p1, p2)
+                    editNet = EditNet(None, scene, self, oldLine, newLine)
+                    undoStack.push(editNet)
+                    # self.setLine(QtCore.QLineF(p1, p2))
                     del1 = Delete(None, scene, [net])
                     undoStack.push(del1)
                     # Update x11, x12, y11 and y12
@@ -604,7 +609,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
             # Check if the item is a dot
             allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
             # Keep only dots that are inside the net (not on endpoints)
-            for dot in allDots:
+            for dot in allDots[:]:
                 dotPos = mergedNet.mapFromScene(dot.scenePos())
                 # The dot's scenePos is slightly to the left of actual center
                 dotPos += QtCore.QPointF(5, 0)

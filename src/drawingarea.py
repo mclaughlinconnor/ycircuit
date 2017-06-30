@@ -501,7 +501,8 @@ class DrawingArea(QtGui.QGraphicsView):
         for item2 in self.scene().selectedItems():
             if isinstance(item2, Net):
                 netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
-                netList.remove(item2)
+                if item2 in netList:
+                    netList.remove(item2)
                 for item in netList:
                     mergedNet = item.mergeNets(netList, self.undoStack)
                     if mergedNet is not None:
@@ -583,8 +584,8 @@ class DrawingArea(QtGui.QGraphicsView):
         if self._keys['c'] is True:
             # Check to make sure this is the first click
             if self._mouse['1'] is False:
-                for i in self.scene().selectedItems():
-                    i.createCopy()
+                for item in self.scene().selectedItems():
+                    item.createCopy()
                 # Save a copy locally so that items don't disappear
                 self.items = self.scene().items()
             # Start moving after creating copy
@@ -612,7 +613,8 @@ class DrawingArea(QtGui.QGraphicsView):
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
                             netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
-                            netList.remove(item2)
+                            if item2 in netList:
+                                netList.remove(item2)
                             for item in netList:
                                 mergedNet = item.mergeNets(netList, self.undoStack)
                                 if mergedNet is not None:
@@ -630,14 +632,16 @@ class DrawingArea(QtGui.QGraphicsView):
                     move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
                     self.undoStack.push(move)
                 # Evaluate if any new nets need to be split/merged
-                for item2 in self.moveItems:
-                    if isinstance(item2, Net):
-                        netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
-                        mergedNet = item2.mergeNets(netList, self.undoStack)
-                        if mergedNet is not None:
-                            mergedNet.splitNets(netList, self.undoStack)
-                        elif item2.scene() is not None:
-                            item2.splitNets(netList, self.undoStack)
+                # if self._keys['c'] is False:
+                if True:
+                    for item2 in self.moveItems:
+                        if isinstance(item2, Net):
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                            mergedNet = item2.mergeNets(netList, self.undoStack)
+                            if mergedNet is not None:
+                                mergedNet.splitNets(netList, self.undoStack)
+                            elif item2.scene() is not None:
+                                item2.splitNets(netList, self.undoStack)
                 # End move command once item has been placed
                 self._keys['m'] = False
                 self._keys['c'] = False
@@ -648,7 +652,8 @@ class DrawingArea(QtGui.QGraphicsView):
                     item.setSelected(False)
         if self._keys['add'] is True:
             if (event.button() == QtCore.Qt.LeftButton):
-                add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)
+                # add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)
+                add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), transform=self.loadItem.transform())
                 self.undoStack.push(add)
         if self._keys['edit'] is True:
             self._keys['edit'] = False
