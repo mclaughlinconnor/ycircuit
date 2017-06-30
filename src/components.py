@@ -818,11 +818,6 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
         self.prepareGeometryChange()
         self.setRect(rect)
         self.oldRect = rect
-        # If items collide with this one, elevate them
-        collidingItems = self.collidingItems()
-        for item in collidingItems:
-            if item.isObscuredBy(self):
-                item.setZValue(item.zValue() + 1)
 
     def createCopy(self, parent=None):
         """Reimplemented from drawingElement. Sets the rect and origin of the
@@ -935,11 +930,6 @@ class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
         self.prepareGeometryChange()
         self.setRect(rect)
         self.oldRect = rect
-        # If items collide with this one, elevate them
-        collidingItems = self.collidingItems()
-        for item in collidingItems:
-            if item.isObscuredBy(self):
-                item.setZValue(item.zValue() + 1)
 
     def createCopy(self, parent=None):
         """Reimplemented from drawingElement. Sets the rect and origin of the
@@ -1012,11 +1002,6 @@ class Circle(Ellipse):
         self.setTransform(self.transform_)
         self.oldRect = self.rect()
         self.end = QtCore.QPointF(end)
-        # If items collide with this one, elevate them
-        collidingItems = self.collidingItems()
-        for item in collidingItems:
-            if item.isObscuredBy(self):
-                item.setZValue(item.zValue() + 1)
 
     def undoEdit(self):
         # rect = self.undoRectList.pop()

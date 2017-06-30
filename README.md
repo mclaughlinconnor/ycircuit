@@ -1,7 +1,7 @@
 # YCircuit #
 -------------------------------------------------------------------------------
 
-In my experience with drawing pretty schematics that could create publication quality exports, I was told about [XCircuit](www.opencircuitdesign.com/xcircuit/). And it is true that XCircuit produces beautiful schematics, but its UI and UX left a lot to be desired (in my opinion). I decided to start working on an alternative whose output could rival that of XCircuit's in my spare time and as a result, YCircuit was born.
+In my experience with drawing pretty schematics that could create publication quality exports, I was told about [XCircuit](www.opencircuitdesign.com/xcircuit/). And while it is true that XCircuit produces beautiful schematics, its UI and UX left a lot to be desired (in my opinion). I decided to start working on an alternative whose output could rival that of XCircuit's in my spare time and as a result, YCircuit was born.
 
 Just to be clear, this tool is intended to be used only for drawing circuit schematics. This is not intended to be a circuit simulator or anything more than a drawing program. This might change in the future, but I think it is useful to spell out exactly what YCircuit is intended to do.
 
