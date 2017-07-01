@@ -3,6 +3,7 @@ from src.gui.textEditor_gui import Ui_Dialog
 import numpy
 import uuid
 import platform
+import pickle
 import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib import rc
@@ -301,3 +302,79 @@ class TextEditor(QtGui.QDialog):
         buf, size = fig.canvas.print_to_buffer()
         qimage = QtGui.QImage.rgbSwapped(QtGui.QImage(buf, size[0], size[1], QtGui.QImage.Format_ARGB32))
         return qimage
+
+
+class myFileDialog(QtGui.QFileDialog):
+    def __init__(self, *args, **kwargs):
+        super(myFileDialog, self).__init__(*args)
+        self.iconProvider_ = myIconProvider()
+        self.setIconProvider(self.iconProvider_)
+        self.setFileMode(self.ExistingFile)
+        if 'filt' in kwargs:
+            self.setNameFilter(kwargs['filt'])
+        self.setViewMode(self.List)
+        self.resize(1280, 960)
+
+    def setViewMode(self, viewMode):
+        if viewMode == self.Detail:
+            self.setItemDelegate(QtGui.QStyledItemDelegate())
+        else:
+            self.setItemDelegate(myStyledItemDelegate())
+        super(myFileDialog, self).setViewMode(viewMode)
+
+
+class myIconProvider(QtGui.QFileIconProvider):
+    def __init__(self, parent=None):
+        """Create a custom icon provider for the file picker"""
+        super(myIconProvider, self).__init__()
+
+    def icon(self, fileInfo):
+        if type(fileInfo) == QtCore.QFileInfo:
+            if str(fileInfo.filePath())[-3:] in ['sch', 'sym']:
+                with open(str(fileInfo.filePath()), 'rb') as file:
+                    loadItem = pickle.load(file)
+                scene = QtGui.QGraphicsScene()
+                loadItem.__init__(None, scene, QtCore.QPointF(0, 0), loadItem.listOfItems)
+                loadItem.loadItems('symbol')
+                rect = loadItem.boundingRect()
+                maxDim = 320
+                if max(rect.width(), rect.height()) < maxDim:
+                    maxDim = max(rect.width(), rect.height())
+                startX, startY = 0, 0
+                startPoint = QtCore.QPointF(startX, startY)
+                actualSize = rect.size()
+                maxSize = QtCore.QSizeF(maxDim, maxDim)
+                actualSize.scale(maxSize, QtCore.Qt.KeepAspectRatio)
+                pixRect = QtCore.QRectF(startPoint, actualSize)
+                pix = QtGui.QPixmap(pixRect.toRect().size())
+                pix.fill()
+
+                painter = QtGui.QPainter(pix)
+                pen = QtGui.QPen()
+                pen.setWidth(2)
+                scene.render(painter, pixRect, rect)
+                painter.setPen(pen)
+                painter.end()
+                icon = QtGui.QIcon()
+                icon.addPixmap(pix)
+                return icon
+            else:
+                return super(myIconProvider, self).icon(fileInfo)
+        else:
+            return super(myIconProvider, self).icon(fileInfo)
+
+
+class myStyledItemDelegate(QtGui.QStyledItemDelegate):
+    def __init__(self, *args):
+        super(myStyledItemDelegate, self).__init__(*args)
+        self.iconWidth, self.iconHeight = 200, 200
+
+    def paint(self, painter, option, index):
+        option.decorationPosition = option.Top
+        option.decorationSize = QtCore.QSize(self.iconWidth*0.9, self.iconHeight*0.9)
+        option.decorationAlignment = QtCore.Qt.AlignCenter
+        option.displayAlignment = QtCore.Qt.AlignCenter
+        super(myStyledItemDelegate, self).paint(painter, option, index)
+
+    def sizeHint(self, option, index):
+        return QtCore.QSize(self.iconWidth, self.iconHeight+30)

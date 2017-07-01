@@ -359,10 +359,13 @@ class DrawingArea(QtGui.QGraphicsView):
         possibleModes = ['schematic', 'symbol', 'symbolModify']
         if mode in possibleModes:
             if loadFile is None:
+                loadFile = ''
                 if mode == 'symbol' or mode == 'symbolModify':
-                    loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Symbol', './Resources/Symbols/', 'Symbols (*.sym)'))
+                    fileDialog = myFileDialog(self, 'Load Symbol', './Resources/Symbols/', filt='Symbols (*.sym)')
                 elif mode == 'schematic':
-                    loadFile = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Schematic', './', 'Schematics (*.sch)'))
+                    fileDialog = myFileDialog(self, 'Load Schematic', './', filt='Schematics (*.sch)')
+                while (fileDialog.exec_()):
+                    loadFile = str(fileDialog.selectedFiles())
             if loadFile != '':
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)
