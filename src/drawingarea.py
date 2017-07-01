@@ -221,20 +221,29 @@ class DrawingArea(QtGui.QGraphicsView):
                 # print item, item.origin
             saveObject.setItems(listOfItems)
 
+            saveFile = ''
             if mode == 'symbol':
                 if self.symbolFileName is None:
-                    saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save symbol', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
+                    fileDialog = myFileDialog(self, 'Save symbol', './Resources/Symbols/Custom/untitled.sym', filt='Symbols (*.sym)', mode='save')
+                    if (fileDialog.exec_()):
+                        saveFile = str(fileDialog.selectedFiles()[0])
                 else:
                     saveFile = self.symbolFileName
             elif mode == 'symbolAs':
-                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save symbol as', './Resources/Symbols/Custom/untitled.sym', 'Symbols (*.sym)'))
+                fileDialog = myFileDialog(self, 'Save symbol as', './Resources/Symbols/Custom/untitled.sym', filt='Symbols (*.sym)', mode='save')
+                if (fileDialog.exec_()):
+                    saveFile = str(fileDialog.selectedFiles()[0])
             elif mode == 'schematic':
                 if self.schematicFileName is None:
-                    saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save schematic', './untitled.sch', 'Schematics (*.sch)'))
+                    fileDialog = myFileDialog(self, 'Save schematic', './untitled.sch', filt='Schematics (*.sch)', mode='save')
+                    if (fileDialog.exec_()):
+                        saveFile = str(fileDialog.selectedFiles()[0])
                 else:
                     saveFile = self.schematicFileName
             elif mode == 'schematicAs':
-                saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Save schematic as', './untitled.sch', 'Schematics (*.sch)'))
+                fileDialog = myFileDialog(self, 'Save schematic as', './untitled.sch', filt='Schematics (*.sch)', mode='save')
+                if (fileDialog.exec_()):
+                    saveFile = str(fileDialog.selectedFiles()[0])
 
             if saveFile != '':
                 with open(saveFile, 'wb') as file:
@@ -361,11 +370,11 @@ class DrawingArea(QtGui.QGraphicsView):
             if loadFile is None:
                 loadFile = ''
                 if mode == 'symbol' or mode == 'symbolModify':
-                    fileDialog = myFileDialog(self, 'Load Symbol', './Resources/Symbols/', filt='Symbols (*.sym)')
+                    fileDialog = myFileDialog(self, 'Load Symbol', './Resources/Symbols/', filt='Symbols (*.sym)', mode='load')
                 elif mode == 'schematic':
-                    fileDialog = myFileDialog(self, 'Load Schematic', './', filt='Schematics (*.sch)')
-                while (fileDialog.exec_()):
-                    loadFile = str(fileDialog.selectedFiles())
+                    fileDialog = myFileDialog(self, 'Load Schematic', './', filt='Schematics (*.sch)', mode='load')
+                if (fileDialog.exec_()):
+                    loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)

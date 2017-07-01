@@ -310,6 +310,16 @@ class myFileDialog(QtGui.QFileDialog):
         self.iconProvider_ = myIconProvider()
         self.setIconProvider(self.iconProvider_)
         self.setFileMode(self.ExistingFile)
+        if 'mode' in kwargs:
+            self.mode = kwargs['mode']
+        else:
+            self.mode = 'load'
+        if self.mode == 'load':
+            self.setFileMode(self.ExistingFile)
+            self.setLabelText(self.Accept, 'Load')
+        elif self.mode == 'save':
+            self.setFileMode(self.AnyFile)
+            self.setLabelText(self.Accept, 'Save')
         if 'filt' in kwargs:
             self.setNameFilter(kwargs['filt'])
         self.setViewMode(self.List)
@@ -334,27 +344,33 @@ class myIconProvider(QtGui.QFileIconProvider):
                 with open(str(fileInfo.filePath()), 'rb') as file:
                     loadItem = pickle.load(file)
                 scene = QtGui.QGraphicsScene()
+                # Load the file
                 loadItem.__init__(None, scene, QtCore.QPointF(0, 0), loadItem.listOfItems)
                 loadItem.loadItems('symbol')
                 rect = loadItem.boundingRect()
+                # Set the maximum icon dimension
                 maxDim = 320
-                if max(rect.width(), rect.height()) < maxDim:
-                    maxDim = max(rect.width(), rect.height())
-                startX, startY = 0, 0
-                startPoint = QtCore.QPointF(startX, startY)
-                actualSize = rect.size()
                 maxSize = QtCore.QSizeF(maxDim, maxDim)
-                actualSize.scale(maxSize, QtCore.Qt.KeepAspectRatio)
-                pixRect = QtCore.QRectF(startPoint, actualSize)
+                pixRect = QtCore.QRectF(QtCore.QPointF(), maxSize)
+                # Create a pixmap and fill it with a white background
                 pix = QtGui.QPixmap(pixRect.toRect().size())
                 pix.fill()
+
+                # Find out the painter's starting position to have the icon drawn in the
+                # center of the pixmap
+                actualSize = rect.size()
+                actualSize.scale(maxSize, QtCore.Qt.KeepAspectRatio)
+                width, height = actualSize.width(), actualSize.height()
+                startX, startY = (maxDim - width)/2, (maxDim - height)/2
 
                 painter = QtGui.QPainter(pix)
                 pen = QtGui.QPen()
                 pen.setWidth(2)
-                scene.render(painter, pixRect, rect)
                 painter.setPen(pen)
+                painter.translate(startX, startY)
+                scene.render(painter, pixRect, rect)
                 painter.end()
+
                 icon = QtGui.QIcon()
                 icon.addPixmap(pix)
                 return icon
