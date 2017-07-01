@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\src\gui\ycircuit_mainWindow.ui'
+# Form implementation generated from reading ui file 'src/gui/ycircuit_mainWindow.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -41,13 +41,13 @@ class Ui_MainWindow(object):
         self.drawingArea.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.drawingArea.setTransformationAnchor(QtGui.QGraphicsView.NoAnchor)
         self.drawingArea.setResizeAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
-        self.drawingArea.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
+        self.drawingArea.setViewportUpdateMode(QtGui.QGraphicsView.MinimalViewportUpdate)
         self.drawingArea.setRubberBandSelectionMode(QtCore.Qt.ContainsItemShape)
         self.drawingArea.setObjectName(_fromUtf8("drawingArea"))
         self.horizontalLayout.addWidget(self.drawingArea)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 38))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 19))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))

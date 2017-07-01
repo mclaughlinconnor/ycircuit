@@ -56,6 +56,8 @@ class Add(QtGui.QUndoCommand):
                 self.reflect = kwargs['reflect']
             else:
                 self.reflect = 0
+            if 'transform' in kwargs:
+                self.transform_ = kwargs['transform']
         else:
             self.symbol = False
         if self.symbol is True:
@@ -71,11 +73,13 @@ class Add(QtGui.QUndoCommand):
             """Or if item is a symbol to be loaded"""
             self.item.__init__(None, self.scene, self.origin, self.item.listOfItems)
             self.item.loadItems('symbol')
-            if hasattr(self, 'rotateAngle'):
-                self.item.rotateBy(moving=False, origin=self.origin, angle=self.rotateAngle)
-            if hasattr(self, 'reflect'):
-                if self.reflect == 1:
-                    self.item.reflect(moving=False, origin=self.origin)
+            # if hasattr(self, 'reflect'):
+            #     if self.reflect == 1:
+            #         self.item.reflect(moving=False, origin=self.origin)
+            # if hasattr(self, 'rotateAngle'):
+            #     self.item.rotateBy(moving=False, origin=self.origin, angle=self.rotateAngle)
+            if hasattr(self, 'transform_'):
+                self.item.setTransform(self.transform_)
         self.scene.update(self.scene.sceneRect())
 
     def undo(self):
@@ -95,6 +99,22 @@ class Edit(QtGui.QUndoCommand):
 
     def undo(self):
         self.item.undoEdit()
+
+
+class EditNet(QtGui.QUndoCommand):
+    """Used for editing net lengths"""
+    def __init__(self, parent=None, scene=None, item=None, oldLine=None, newLine=None):
+       super(EditNet, self).__init__(parent)
+       self.scene = scene
+       self.item = item
+       self.oldLine = oldLine
+       self.newLine = newLine
+
+    def redo(self):
+        self.item.setLine(self.newLine)
+
+    def undo(self):
+        self.item.setLine(self.oldLine)
 
 
 class Move(QtGui.QUndoCommand):
