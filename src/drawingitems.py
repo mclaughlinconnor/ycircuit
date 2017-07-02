@@ -313,17 +313,16 @@ class myFileDialog(QtGui.QFileDialog):
         listView.setFlow(listView.LeftToRight)
         self.iconProvider_ = myIconProvider()
         self.setIconProvider(self.iconProvider_)
-        self.setFileMode(self.ExistingFile)
         if 'mode' in kwargs:
             self.mode = kwargs['mode']
         else:
             self.mode = 'load'
         if self.mode == 'load':
             self.setFileMode(self.ExistingFile)
-            self.setLabelText(self.Accept, 'Load')
+            self.setAcceptMode(self.AcceptOpen)
         elif self.mode == 'save':
             self.setFileMode(self.AnyFile)
-            self.setLabelText(self.Accept, 'Save')
+            self.setAcceptMode(self.AcceptSave)
         if 'filt' in kwargs:
             self.setNameFilter(kwargs['filt'])
         self.setViewMode(self.List)
