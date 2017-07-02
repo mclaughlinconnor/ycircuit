@@ -13,6 +13,9 @@ class myMainWindow(QtGui.QMainWindow):
         super(myMainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap('./Resources/icon.jpg'))
+        self.setWindowIcon(icon)
 
         # Connect actions to relevant slots
         # File menu
