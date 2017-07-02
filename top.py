@@ -5,6 +5,8 @@ from PyQt4 import QtCore, QtGui
 from src.gui.ycircuit_mainWindow import Ui_MainWindow
 import platform
 import sip
+if platform.system() == 'Windows':
+    import ctypes
 
 
 class myMainWindow(QtGui.QMainWindow):
@@ -320,10 +322,12 @@ class myMainWindow(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
+    if platform.system() == 'Windows':
+        sip.setdestroyonexit(False)
+        myappid = u'ycircuit.0.1'
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     app = QtGui.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()
-    if platform.system() == 'Windows':
-        sip.setdestroyonexit(False)
     form.ui.drawingArea.fitToViewRoutine()
     app.exec_()
