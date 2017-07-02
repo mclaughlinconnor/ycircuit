@@ -307,6 +307,10 @@ class TextEditor(QtGui.QDialog):
 class myFileDialog(QtGui.QFileDialog):
     def __init__(self, *args, **kwargs):
         super(myFileDialog, self).__init__(*args)
+        # Find the list view responsible for showing the files and change its flow
+        listViews = self.findChildren(QtGui.QListView)
+        listView = listViews[0]
+        listView.setFlow(listView.LeftToRight)
         self.iconProvider_ = myIconProvider()
         self.setIconProvider(self.iconProvider_)
         self.setFileMode(self.ExistingFile)
