@@ -105,15 +105,16 @@ class TextEditor(QtGui.QDialog):
                 cursor.setPosition(1)
                 self.ui.textEdit.setTextCursor(cursor)
                 if hasattr(self.textBox, 'latexImageBinary'):
-                    if not hasattr(self, 'tempFile'):
-                        self.tempFile = QtCore.QTemporaryFile()
-                    self.tempFile.open()
-                    img = QtGui.QImage()
-                    img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
-                    img.save(self.tempFile.fileName(), format='png')
+                    if not hasattr(self.textBox, 'data64'):
+                        img = QtGui.QImage()
+                        img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
+                        data = QtCore.QByteArray()
+                        buf = QtCore.QBuffer(data)
+                        img.save(buf, format='png')
+                        self.textBox.data64 = str(data.toBase64())
                 else:
-                    self.textBox.latexImageBinary, self.tempFile = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-                htmlString = '<img src="' + self.tempFile.fileName() + '">'
+                    self.textBox.latexImageBinary, self.base64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
+                htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.setHtml(htmlString)
 
@@ -134,8 +135,8 @@ class TextEditor(QtGui.QDialog):
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
         if self.ui.pushButton_latex.isChecked():
-            self.textBox.latexImageBinary, self.tempFile = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-            htmlString = '<img src="' + self.tempFile.fileName() + '">'
+            self.textBox.latexImageBinary, self.textBox.data64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
+            htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
             self.textBox.latexImageHtml = htmlString
             self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
             self.textBox.setHtml(htmlString)
@@ -268,12 +269,11 @@ class TextEditor(QtGui.QDialog):
         This saves the generated image within the object itself (which gets saved into a higher level
         schematic/symbol). As a result, the file size of the saved schematic/symbol is larger, but we
         benefit from greatly improved loading times."""
-        dpi = 625
+        dpi = 300
         obj = BytesIO()
 
         color = QtGui.QColor(fc)
         rgba = color.getRgbF()
-        print rgba
         r, g, b = rgba[0], rgba[1], rgba[2]
         fg = 'rgb ' + str(r) + ' ' + str(g) + ' ' + str(b)
         sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
@@ -281,11 +281,12 @@ class TextEditor(QtGui.QDialog):
         img = QtGui.QImage()
         img.loadFromData(obj.getvalue(), format='png')
 
-        tempFile = QtCore.QTemporaryFile()
-        tempFile.open()
-        img.save(tempFile.fileName(), format='png')
+        data = QtCore.QByteArray()
+        buf = QtCore.QBuffer(data)
+        img.save(buf, format='png')
+        data64 = str(data.toBase64())
 
-        return obj, tempFile
+        return obj, data64
 
 
 class myFileDialog(QtGui.QFileDialog):

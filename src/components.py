@@ -1054,8 +1054,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         if text != '':
             self.setHtml(text)
         elif self.latexImageHtml is not None:
-            # self.setHtml(self.latexImageHtml)
-            self.textEditor = TextEditor(self)
+            self.setHtml(self.latexImageHtml)
         elif hasattr(self, 'htmlText'):
             self.setHtml(self.htmlText)
         else:
@@ -1143,11 +1142,10 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         brush.setColor(QtGui.QColor(self.localBrushColour))
         brush.setStyle(self.localBrushStyle)
         if self.latexImageHtml is not None:
-            # newItem = self.__class__(parent, _start, text='', pen=pen, brush=brush)
             newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
-            newItem.textEditor = TextEditor(newItem)
+            newItem.data64 = self.data64
         else:
             newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
         newItem.setTransform(self.transform())
