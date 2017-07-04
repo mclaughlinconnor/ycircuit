@@ -926,7 +926,11 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def wheelEvent(self, event):
         # Pan or zoom depending on keyboard modifiers
-        scaleFactor = -event.delta() / 240.
+        if event.delta() >= 0:
+            delta = max(120, event.delta())
+        elif event.delta() < 0:
+            delta = min(-120, event.delta())
+        scaleFactor = -delta / 240.
         modifiers = QtGui.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ControlModifier:
             self.translate(0, -scaleFactor * 100)

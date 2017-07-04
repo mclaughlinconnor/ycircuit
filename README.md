@@ -23,7 +23,7 @@ YCircuit currently has the following dependencies:
 
   * Python - tested on 2.7.11
   * PyQt4 - for rendering the GUI
-  * matplotlib - for handling LaTeX inputs
+  * SymPy - for handling LaTeX inputs
   * NumPy - for handling some of the math
 
 The easiest way to satisfy all dependencies is to use [Anaconda](https://www.continuum.io/downloads). This is what I use also, and so we can be sure that the environments are (more or less) similar.
@@ -44,6 +44,7 @@ As of this point in time, the following options are available:
     * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
     * Save and load schematics (.sch files) (Ctrl+S, Ctrl+L)
     * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file (Ctrl+E)
+        * EPS objects exported this way are fully editable in Illustrator. It is worth noting that symbols such as resistors, opamps etc. remain editable as individual units (as opposed to being split into multiple lines). Text, however, is a little harder to handle because while it still remains editable as text, a multi-character string is rendered as made of multiple single-character strings. For example, "V2" would be editable as "V" and "2" separately.
   * Editing (Alt+E)
     * Undo (Ctrl+Z)
     * Redo (Ctrl+Y)
@@ -61,8 +62,8 @@ As of this point in time, the following options are available:
     * Ellipse (Alt+A->E)
     * Arcs (3-point and 4-point Bezier curves) (Alt+A->A)
     * Text box (with support for bold, italics, underline, overline, subscript and superscript) (Alt+A->T)
-        * LaTeX support is present, but each new expression is saved as a separate image for now. Font sizes are currently mismatched but will be fixed later on
-        * An option for a more coherent look would be to use symbols
+        * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed.
+        * An option for a more coherent look would be to use the symbols button in the text editor.
   * Symbols (Alt+S)
     * Wire (Right click to change the angle of the wire!) (Alt+S->W)
     * Resistor (Alt+S->R)

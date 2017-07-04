@@ -1,16 +1,9 @@
 from PyQt4 import QtCore, QtGui
 from src.gui.textEditor_gui import Ui_Dialog
 import numpy
-import uuid
-import platform
 import pickle
-import matplotlib as mpl
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['helvetica']})
-## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
-rc('text', usetex=True)
+import sympy
+from io import BytesIO
 
 
 class Grid(QtGui.QGraphicsItem):
@@ -99,17 +92,30 @@ class TextEditor(QtGui.QDialog):
 
         self.ui.textEdit.setFocus(True)
         if self.textBox is not None:
+            font = self.textBox.font()
+            self.ui.textEdit.setFont(font)
+            self.ui.textEdit.setTextColor(QtGui.QColor(self.textBox.localPenColour))
             if self.textBox.latexExpression is None:
                 self.ui.textEdit.setHtml(self.textBox.toHtml())
             else:
-                self.ui.textEdit.setPlainText('$' + self.textBox.latexExpression + '$')
+                plainText = '$' + self.textBox.latexExpression + '$'
+                self.ui.textEdit.setPlainText(plainText)
                 self.ui.pushButton_latex.setChecked(True)
                 cursor = self.ui.textEdit.textCursor()
                 cursor.setPosition(1)
                 self.ui.textEdit.setTextCursor(cursor)
-            font = self.textBox.font()
-            self.ui.textEdit.setFont(font)
-            self.ui.textEdit.setTextColor(QtGui.QColor(self.textBox.localPenColour))
+                if hasattr(self.textBox, 'latexImageBinary'):
+                    if not hasattr(self, 'tempFile'):
+                        self.tempFile = QtCore.QTemporaryFile()
+                    self.tempFile.open()
+                    img = QtGui.QImage()
+                    img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
+                    img.save(self.tempFile.fileName(), format='png')
+                else:
+                    self.textBox.latexImageBinary, self.tempFile = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
+                htmlString = '<img src="' + self.tempFile.fileName() + '">'
+                self.textBox.latexImageHtml = htmlString
+                self.textBox.setHtml(htmlString)
 
         self.ui.textEdit.cursorPositionChanged.connect(self.modifyPushButtons)
         self.ui.textEdit.textChanged.connect(self.latexDollarDecorators)
@@ -128,17 +134,8 @@ class TextEditor(QtGui.QDialog):
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
         if self.ui.pushButton_latex.isChecked():
-            image = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-            if self.textBox.latexImageHtml is None:
-                saveFile = str(uuid.uuid4()) + '.png'
-                image.save(saveFile, quality=80)
-                htmlString = '<img src="' + saveFile + '">'
-            elif self.textBox.latexExpression != plainText[1:-1]:
-                htmlString = self.textBox.latexImageHtml
-                saveFile = htmlString[10:-2]
-                image.save(saveFile, quality=80)
-            else:
-                htmlString = self.textBox.latexImageHtml
+            self.textBox.latexImageBinary, self.tempFile = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
+            htmlString = '<img src="' + self.tempFile.fileName() + '">'
             self.textBox.latexImageHtml = htmlString
             self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
             self.textBox.setHtml(htmlString)
@@ -267,41 +264,28 @@ class TextEditor(QtGui.QDialog):
             self.ui.textEdit.setTextCursor(cursor)
 
     def mathTexToQImage(self, mathTex, fs, fc):
-        # This function is adapted from http://stackoverflow.com/questions/32035251/displaying-latex-in-pyqt-pyside-qtablewidget
-        # This will likely be moved to a separate thread later because it is slow at startup
+        """Use SymPy to generate the latex expression as a binary object, and save it to a file as an image.
+        This saves the generated image within the object itself (which gets saved into a higher level
+        schematic/symbol). As a result, the file size of the saved schematic/symbol is larger, but we
+        benefit from greatly improved loading times."""
+        dpi = 625
+        obj = BytesIO()
 
-        #---- set up a mpl figure instance ----
+        color = QtGui.QColor(fc)
+        rgba = color.getRgbF()
+        print rgba
+        r, g, b = rgba[0], rgba[1], rgba[2]
+        fg = 'rgb ' + str(r) + ' ' + str(g) + ' ' + str(b)
+        sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
 
-        fig = mpl.figure.Figure()
-        fig.patch.set_facecolor('none')
-        fig.set_canvas(FigureCanvasAgg(fig))
-        fig.dpi = 640
-        renderer = fig.canvas.get_renderer()
+        img = QtGui.QImage()
+        img.loadFromData(obj.getvalue(), format='png')
 
-        #---- plot the mathTex expression ----
+        tempFile = QtCore.QTemporaryFile()
+        tempFile.open()
+        img.save(tempFile.fileName(), format='png')
 
-        ax = fig.add_axes([0, 0, 1, 1])
-        ax.axis('off')
-        ax.patch.set_facecolor('none')
-        t = ax.text(0, 0, mathTex, ha='left', va='bottom', color=fc, fontsize=fs)
-
-        #---- fit figure size to text artist ----
-
-        fwidth, fheight = fig.get_size_inches()
-        fig_bbox = fig.get_window_extent(renderer)
-        text_bbox = t.get_window_extent(renderer, fig.dpi)
-
-        tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
-        tight_fheight = text_bbox.height * fheight / fig_bbox.height
-
-        # Added some extra padding because fractions were getting clipped
-        fig.set_size_inches(tight_fwidth, tight_fheight + 0.05)
-
-        #---- convert mpl figure to QPixmap ----
-
-        buf, size = fig.canvas.print_to_buffer()
-        qimage = QtGui.QImage.rgbSwapped(QtGui.QImage(buf, size[0], size[1], QtGui.QImage.Format_ARGB32))
-        return qimage
+        return obj, tempFile
 
 
 class myFileDialog(QtGui.QFileDialog):

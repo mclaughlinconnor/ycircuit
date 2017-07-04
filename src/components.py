@@ -1053,10 +1053,11 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
             self.latexExpression = None
         if text != '':
             self.setHtml(text)
+        elif self.latexImageHtml is not None:
+            # self.setHtml(self.latexImageHtml)
+            self.textEditor = TextEditor(self)
         elif hasattr(self, 'htmlText'):
             self.setHtml(self.htmlText)
-        elif self.latexImageHtml is not None:
-            self.setHtml(self.latexImageHtml)
         else:
             self.showEditor()
 
@@ -1081,7 +1082,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         if 'pen' in kwargs:
             self.localPen = kwargs['pen']
             self.localPenWidth = self.localPen.width()
-            self.localPenColour = self.localPen.color()
+            self.localPenColour = str(self.localPen.color().name())
             self.localPenStyle = self.localPen.style()
         if 'width' in kwargs:
             self.localPenWidth = kwargs['width']
@@ -1141,7 +1142,14 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
         brush = QtGui.QBrush()
         brush.setColor(QtGui.QColor(self.localBrushColour))
         brush.setStyle(self.localBrushStyle)
-        newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
+        if self.latexImageHtml is not None:
+            # newItem = self.__class__(parent, _start, text='', pen=pen, brush=brush)
+            newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
+            newItem.latexExpression = self.latexExpression
+            newItem.latexImageBinary = self.latexImageBinary
+            newItem.textEditor = TextEditor(newItem)
+        else:
+            newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
