@@ -36,7 +36,7 @@ class Ui_MainWindow(object):
         self.drawingArea = DrawingArea(self.centralwidget)
         self.drawingArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.drawingArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.drawingArea.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.TextAntialiasing)
+        self.drawingArea.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform|QtGui.QPainter.TextAntialiasing)
         self.drawingArea.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
         self.drawingArea.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.drawingArea.setTransformationAnchor(QtGui.QGraphicsView.NoAnchor)

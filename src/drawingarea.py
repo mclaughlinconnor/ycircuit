@@ -320,14 +320,15 @@ class DrawingArea(QtGui.QGraphicsView):
             width, height = sourceRect.width(), sourceRect.height()
             if not scale < 1:
                 sourceRect.translate(-width*(scale - 1)/2., -height*(scale - 1)/2.)
-            # Create a pixmap object
-            pixmap = QtGui.QPixmap(QtCore.QSize(4*width, 4*height))
+            # Create an image object
+            img = QtGui.QImage(QtCore.QSize(4*width, 4*height), QtGui.QImage.Format_ARGB32_Premultiplied)
             # Set background to white
-            pixmap.fill()
-            painter = QtGui.QPainter(pixmap)
-            targetRect = QtCore.QRectF(pixmap.rect())
+            img.fill(QtGui.QColor('white'))
+            painter = QtGui.QPainter(img)
+            painter.setRenderHint(painter.SmoothPixmapTransform, True)
+            targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
-            pixmap.save(saveFile, saveFile[-3:])
+            img.save(saveFile, saveFile[-3:])
 
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()

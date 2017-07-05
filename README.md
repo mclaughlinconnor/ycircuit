@@ -5,7 +5,7 @@ In my experience with drawing pretty schematics that could create publication qu
 
 Just to be clear, this tool is intended to be used only for drawing circuit schematics. This is not intended to be a circuit simulator or anything more than a drawing program. This might change in the future, but I think it is useful to spell out exactly what YCircuit is intended to do.
 
-YCircuit is written in [Python](https://www.python.org) and uses [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download) as the GUI framework.
+YCircuit is written in [Python](https://www.python.org) and uses [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download) as the GUI framework. The dependence on PyQt4 implies that Python 3 is not supported at this point.
 
 ## Installation ##
 -------------------------------------------------------------------------------
@@ -36,6 +36,8 @@ The easiest way to satisfy all dependencies is to use [Anaconda](https://www.con
 The software is fairly easy to use (partially because of the limited feature set). To start the software, navigate to the directory where you extracted the zip or cloned the repository and run the following command:
 
 `python top.py`
+
+A lot of the keyboard shortcuts and mouse interactions have been based on those found in [Cadence's Virtuoso Schematic editor](https://www.cadence.com/content/cadence-www/global/en_US/home/tools/custom-ic-analog-rf-design/circuit-design/virtuoso-schematic-editor.html). As a result, the interface is best navigated with a keyboard and mouse. Scrolling with the mouse wheel zooms in and out of the schematic, while Ctrl (Shift) scrolling pans vertically (horizontally).
 
 As of this point in time, the following options are available:
 
