@@ -277,7 +277,7 @@ class DrawingArea(QtGui.QGraphicsView):
         selectedItems = self.scene().selectedItems()
         for item in selectedItems:
             item.setSelected(False)
-        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;EPS files (*.eps);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp)'))
+        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;EPS files (*.eps);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp);;TIFF files (*.tiff)'))
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
@@ -287,8 +287,22 @@ class DrawingArea(QtGui.QGraphicsView):
             mode = 'pdf'
         elif saveFile[-3:] == 'svg':
             mode = 'svg'
-        elif saveFile[-3:] in ['jpg', 'png', 'bmp', 'jpeg']:
+        elif saveFile[-3:] in ['jpg', 'png', 'bmp']:
             mode = 'image'
+            extension = saveFile[-3:]
+            if extension == 'jpg':
+                quality = 90
+            elif extension == 'png':
+                quality = 50
+            elif extension == 'bmp':
+                quality = 1
+        elif saveFile[-4:] in ['jpeg', 'tiff']:
+            mode = 'image'
+            extension = saveFile[-4:]
+            if extension == 'jpeg':
+                quality = 90
+            elif extension == 'tiff':
+                quality = 1
         if mode == 'pdf':
             # Initialize printer
             printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
@@ -321,14 +335,16 @@ class DrawingArea(QtGui.QGraphicsView):
             if not scale < 1:
                 sourceRect.translate(-width*(scale - 1)/2., -height*(scale - 1)/2.)
             # Create an image object
-            img = QtGui.QImage(QtCore.QSize(4*width, 4*height), QtGui.QImage.Format_ARGB32_Premultiplied)
+            img = QtGui.QImage(QtCore.QSize(2*width, 2*height), QtGui.QImage.Format_RGB32)
             # Set background to white
             img.fill(QtGui.QColor('white'))
             painter = QtGui.QPainter(img)
             painter.setRenderHint(painter.SmoothPixmapTransform, True)
+            painter.setRenderHint(painter.Antialiasing, True)
+            painter.setRenderHint(painter.TextAntialiasing, True)
             targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
-            img.save(saveFile, saveFile[-3:])
+            img.save(saveFile, extension, quality=quality)
 
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
