@@ -23,7 +23,7 @@ class DrawingArea(QtGui.QGraphicsView):
         """Initializes the object and various parameters to default values"""
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
-        self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+        # self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
@@ -32,7 +32,6 @@ class DrawingArea(QtGui.QGraphicsView):
                       'edit': False, 'net': False}
         self._mouse = {'1': False}
         self._grid = Grid(None, self, 10)
-        self.scene().addItem(self._grid)
         self._grid.createGrid()
         self.enableGrid = True
         self.snapToGrid = True
@@ -180,10 +179,10 @@ class DrawingArea(QtGui.QGraphicsView):
         """
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs']
         # Remove grid from the scene to avoid saving it
-        self.scene().removeItem(self._grid)
+        self._grid.removeGrid()
         # Return if no items are present
         if len(self.scene().items()) == 0:
-            self.scene().addItem(self._grid)
+            self._grid.createGrid()
             return
         if mode in possibleModes:
             listOfItems = self.scene().items()
@@ -193,7 +192,7 @@ class DrawingArea(QtGui.QGraphicsView):
             origin = QtCore.QPointF(x, y)
             # Override origin if it is to be saved as a symbol
             if mode == 'symbol' or mode == 'symbolAs':
-                self.scene().addItem(self._grid)
+                self._grid.createGrid()
                 self.selectOrigin = True
                 for item in listOfItems:
                     item.setAcceptHoverEvents(False)
@@ -209,7 +208,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 # Pressing escape sets selectOrigin to None
                 if self.selectOrigin is None:
                     return
-                self.scene().removeItem(self._grid)
+                self._grid.removeGrid()
 
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
@@ -259,7 +258,7 @@ class DrawingArea(QtGui.QGraphicsView):
                 saveObject.reparentItems()
                 self.scene().removeItem(saveObject)
         # Add the grid back to the scene when saving is done
-        self.scene().addItem(self._grid)
+        self._grid.createGrid()
 
     def exportRoutine(self):
         """
@@ -268,10 +267,10 @@ class DrawingArea(QtGui.QGraphicsView):
         create the final image.
         """
         # Remove grid from the scene to avoid saving it
-        self.scene().removeItem(self._grid)
+        self._grid.removeGrid()
         # Return if no items are present
         if len(self.scene().items()) == 0:
-            self.scene().addItem(self._grid)
+            self._grid.createGrid()
             return
         # Deselect items before exporting
         selectedItems = self.scene().selectedItems()
@@ -281,7 +280,7 @@ class DrawingArea(QtGui.QGraphicsView):
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
-            self.scene().addItem(self._grid)
+            self._grid.createGrid()
             return
         if saveFile[-3:] in ['pdf', 'eps']:
             mode = 'pdf'
@@ -349,7 +348,7 @@ class DrawingArea(QtGui.QGraphicsView):
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
         # Add the grid back to the scene when saving is done
-        self.scene().addItem(self._grid)
+        self._grid.createGrid()
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
@@ -405,9 +404,9 @@ class DrawingArea(QtGui.QGraphicsView):
                     self.schematicFileName = loadFile
                 elif mode == 'symbolModify':
                     self.symbolFileName = loadFile
-                self.scene().removeItem(self._grid)
+                    self._grid.removeGrid()
                 self.scene().clear()
-                self.scene().addItem(self._grid)
+                self._grid.createGrid()
                 loadItem.__init__(None, self.scene(), QtCore.QPointF(0, 0), loadItem.listOfItems)
                 loadItem.loadItems(mode)
             elif mode == 'symbol':
@@ -548,18 +547,15 @@ class DrawingArea(QtGui.QGraphicsView):
             rect = QtCore.QRectF(0, 0, 800, 800)
             self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
         else:
-            self.scene().removeItem(self._grid)
             self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
-            self.scene().addItem(self._grid)
-        self._grid.createGrid()
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
         self.enableGrid = not self.enableGrid
-        if self._grid in self.scene().items():
-            self.scene().removeItem(self._grid)
         if self.enableGrid is True:
-            self.scene().addItem(self._grid)
+            self._grid.createGrid()
+        else:
+            self.setBackgroundBrush(QtGui.QBrush())
 
     def toggleSnapToGridRoutine(self, state):
         """Toggles drawings snapping to grid"""
@@ -962,7 +958,6 @@ class DrawingArea(QtGui.QGraphicsView):
             newPos = self.mapToScene(event.pos())
             delta = newPos - oldPos
             self.translate(delta.x(), delta.y())
-        self._grid.createGrid()
 
     def editShape(self):
         if len(self.scene().selectedItems()) == 1:

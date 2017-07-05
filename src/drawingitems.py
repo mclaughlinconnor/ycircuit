@@ -6,72 +6,53 @@ import sympy
 from io import BytesIO
 
 
-class Grid(QtGui.QGraphicsItem):
+class Grid(QtCore.QObject):
     """temp docstring for the Gridclass"""
     def __init__(self, parent=None, view=None, spacing=10):
         super(Grid, self).__init__()
         self.parent = parent
         self.view = view
         self.spacing = spacing
-        self.displaySpacing = spacing
-        self.xLength = 10000
-        self.yLength = 10000
-        self.xPoints = numpy.arange(-self.xLength, self.xLength, self.spacing)
-        self.yPoints = numpy.arange(-self.yLength, self.yLength, self.spacing)
-
-    def boundingRect(self):
-        return self.scene().sceneRect()
-
-    def paint(self, painter, *args):
-        pen = QtGui.QPen()
-        # pen.setWidth(0.75*self.displaySpacing/self.spacing)
-        pen.setWidth(max(1,0.75*numpy.log10(self.displaySpacing)))
-        painter.setPen(pen)
-        painter.drawPoints(self.gridPolygonRegular)
-        # pen.setWidth(1.25*self.displaySpacing/self.spacing)
-        pen.setWidth(max(2,1.5*numpy.log10(self.displaySpacing)))
-        painter.setPen(pen)
-        painter.drawPoints(self.gridPolygonLarge)
+        self.displaySpacing = spacing*10
+        self.xLength = 200
+        self.yLength = 200
+        self.xPoints = numpy.arange(0, self.xLength + self.spacing, self.spacing)
+        self.yPoints = numpy.arange(0, self.yLength + self.spacing, self.spacing)
 
     def createGrid(self, **kwargs):
         if 'spacing' in kwargs:
             self.spacing = kwargs['spacing']
-        # xL = int(topLeft.x()/self.displaySpacing)*self.displaySpacing
-        # xL = numpy.minimum(xL, 0)
-        # xH = int(bottomRight.x()/self.displaySpacing)*self.displaySpacing
-        # xH = numpy.maximum(xH, int(self.scene().sceneRect().width()))
-        # yL = int(topLeft.y()/self.displaySpacing)*self.displaySpacing
-        # yL = numpy.minimum(yL, 0)
-        # yH = int(bottomRight.y()/self.displaySpacing)*self.displaySpacing
-        # yH = numpy.maximum(yH, int(self.scene().sceneRect().height()))
-        # self.displaySpacing = self.spacing*(xH - xL)/1000
-        # self.xDisplayPoints = numpy.arange(xL, xH, self.displaySpacing)
-        # self.yDisplayPoints = numpy.arange(yL, yH, self.displaySpacing)
-        # Determine the top left and bottom right corners of the viewport in scene coordinates
-        topLeft = self.snapTo(self.view.mapToScene(QtCore.QPoint(self.view.rect().topLeft())))
-        bottomRight = self.snapTo(self.view.mapToScene(QtCore.QPoint(self.view.rect().bottomRight())))
-        self.extent = numpy.minimum((bottomRight-topLeft).x(), (bottomRight-topLeft).y())
-        # Determine display spacing depending on the zoom level
-        self.displaySpacing = 10**(numpy.floor(numpy.log10(self.extent)))
-        if self.extent/self.displaySpacing < 3:
-            self.displaySpacing /= 10
-        if self.displaySpacing <= self.spacing:
-            self.displaySpacing = self.spacing*10
-        topLeft = self.snapTo(topLeft, self.displaySpacing)
-        bottomRight = self.snapTo(bottomRight, self.displaySpacing)
-        padding = 1*self.displaySpacing
-        # Add extra padding in order to ensure complete screen coverage
-        self.xDisplayPoints = numpy.arange(topLeft.x()-padding, bottomRight.x()+padding, self.displaySpacing/5)
-        self.yDisplayPoints = numpy.arange(topLeft.y()-padding, bottomRight.y()+padding, self.displaySpacing/5)
+        # displaySpacing has information about how far apart are the major grid points
+        self.displaySpacing = 100
+        self.xDisplayPoints = self.xPoints[::2]
+        self.yDisplayPoints = self.yPoints[::2]
         self.gridPolygonRegular = QtGui.QPolygon()
         for x in self.xDisplayPoints:
             for y in self.yDisplayPoints:
                 self.gridPolygonRegular.append(QtCore.QPoint(x, y))
         self.gridPolygonLarge = QtGui.QPolygon()
         # Larger pixels for points on the coarse grid
-        for x in self.xDisplayPoints[self.xDisplayPoints % self.displaySpacing*10 == 0]:
-            for y in self.yDisplayPoints[self.yDisplayPoints % self.displaySpacing*10 == 0]:
+        for x in self.xDisplayPoints[self.xDisplayPoints % self.displaySpacing == 0]:
+            for y in self.yDisplayPoints[self.yDisplayPoints % self.displaySpacing == 0]:
                 self.gridPolygonLarge.append(QtCore.QPoint(x, y))
+
+        pix = QtGui.QPixmap(QtCore.QSize(self.xLength, self.yLength))
+        # Set background to white
+        pix.fill(QtGui.QColor('white'))
+        painter = QtGui.QPainter(pix)
+        pen = QtGui.QPen()
+        pen.setWidth(1.5)
+        painter.setPen(pen)
+        painter.drawPoints(self.gridPolygonRegular)
+        pen.setWidth(3)
+        painter.setPen(pen)
+        painter.drawPoints(self.gridPolygonLarge)
+        painter.end()
+        self.view.setBackgroundBrush(QtGui.QBrush(pix))
+
+
+    def removeGrid(self):
+        self.view.setBackgroundBrush(QtGui.QBrush())
 
     def snapTo(self, point, spacing=None):
         if spacing is None:
