@@ -344,9 +344,7 @@ class DrawingArea(QtGui.QGraphicsView):
             painter.setRenderHint(painter.TextAntialiasing, True)
             targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
-            print 'hi'
             img.save(saveFile, extension, quality=quality)
-            print 'ho'
 
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
