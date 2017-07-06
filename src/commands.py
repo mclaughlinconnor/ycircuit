@@ -1,9 +1,9 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
 from components import myGraphicsItemGroup
 import copy
 
 
-class Delete(QtGui.QUndoCommand):
+class Delete(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None):
         super(Delete, self).__init__(parent)
         self.scene = scene
@@ -23,7 +23,7 @@ class Delete(QtGui.QUndoCommand):
             self.scene.addItem(item)
 
 
-class AddMulti(QtGui.QUndoCommand):
+class AddMulti(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None):
         super(AddMulti, self).__init__(parent)
         self.scene = scene
@@ -38,7 +38,7 @@ class AddMulti(QtGui.QUndoCommand):
             self.scene.removeItem(item)
 
 
-class Add(QtGui.QUndoCommand):
+class Add(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, item=None, **kwargs):
         super(Add, self).__init__(parent)
         self.scene = scene
@@ -71,8 +71,9 @@ class Add(QtGui.QUndoCommand):
             self.scene.addItem(self.item)
         else:
             """Or if item is a symbol to be loaded"""
-            self.item.__init__(None, self.scene, self.origin, self.item.listOfItems)
-            self.item.loadItems('symbol')
+            self.item.__init__(None, self.origin, self.item.listOfItems, mode='symbol')
+            self.scene.addItem(self.item)
+            # self.item.loadItems('symbol')
             # if hasattr(self, 'reflect'):
             #     if self.reflect == 1:
             #         self.item.reflect(moving=False, origin=self.origin)
@@ -86,7 +87,7 @@ class Add(QtGui.QUndoCommand):
         self.scene.removeItem(self.item)
 
 
-class Edit(QtGui.QUndoCommand):
+class Edit(QtWidgets.QUndoCommand):
     """Mainly used only for wires and arcs"""
     def __init__(self, parent=None, scene=None, item=None, point=None):
         super(Edit, self).__init__(parent)
@@ -101,7 +102,7 @@ class Edit(QtGui.QUndoCommand):
         self.item.undoEdit()
 
 
-class EditNet(QtGui.QUndoCommand):
+class EditNet(QtWidgets.QUndoCommand):
     """Used for editing net lengths"""
     def __init__(self, parent=None, scene=None, item=None, oldLine=None, newLine=None):
        super(EditNet, self).__init__(parent)
@@ -117,7 +118,7 @@ class EditNet(QtGui.QUndoCommand):
         self.item.setLine(self.oldLine)
 
 
-class Move(QtGui.QUndoCommand):
+class Move(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, startPoint=None, stopPoint=None):
         super(Move, self).__init__(parent)
         self.scene = scene
@@ -136,7 +137,7 @@ class Move(QtGui.QUndoCommand):
             item.moveTo(self.startPoint, 'done')
 
 
-class Copy(QtGui.QUndoCommand):
+class Copy(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, point=None):
         super(Copy, self).__init__(parent)
         self.scene = scene
@@ -155,7 +156,7 @@ class Copy(QtGui.QUndoCommand):
             self.scene.removeItem(item)
 
 
-class Rotate(QtGui.QUndoCommand):
+class Rotate(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None, angle=None):
         super(Rotate, self).__init__(parent)
         self.scene = scene
@@ -176,7 +177,7 @@ class Rotate(QtGui.QUndoCommand):
             item.rotateBy(self.moving, self.listOfPoints[str(item)], -self.angle)
 
 
-class Mirror(QtGui.QUndoCommand):
+class Mirror(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None):
         super(Mirror, self).__init__(parent)
         self.scene = scene
@@ -196,7 +197,7 @@ class Mirror(QtGui.QUndoCommand):
             item.reflect(self.moving, self.listOfPoints[str(item)])
 
 
-class ChangePen(QtGui.QUndoCommand):
+class ChangePen(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super(ChangePen, self).__init__(parent)
         if 'width' in kwargs:
@@ -228,7 +229,7 @@ class ChangePen(QtGui.QUndoCommand):
                         changePen = ChangePenStyle(self, i, **kwargs)
 
 
-class ChangePenWidth(QtGui.QUndoCommand):
+class ChangePenWidth(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super(ChangePenWidth, self).__init__(parent)
         self.item = item
@@ -245,7 +246,7 @@ class ChangePenWidth(QtGui.QUndoCommand):
             self.item.setLocalPenOptions(width=self.oldLocalPenWidth)
 
 
-class ChangePenColour(QtGui.QUndoCommand):
+class ChangePenColour(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super(ChangePenColour, self).__init__(parent)
         self.item = item
@@ -262,7 +263,7 @@ class ChangePenColour(QtGui.QUndoCommand):
             self.item.setLocalPenOptions(penColour=self.oldLocalPenColour)
 
 
-class ChangePenStyle(QtGui.QUndoCommand):
+class ChangePenStyle(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super(ChangePenStyle, self).__init__(parent)
         self.item = item
@@ -279,7 +280,7 @@ class ChangePenStyle(QtGui.QUndoCommand):
             self.item.setLocalPenOptions(penStyle=self.oldLocalPenStyle)
 
 
-class ChangeBrush(QtGui.QUndoCommand):
+class ChangeBrush(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super(ChangeBrush, self).__init__(parent)
         if 'brushColour' in kwargs:
@@ -302,7 +303,7 @@ class ChangeBrush(QtGui.QUndoCommand):
                         changeBrush = ChangeBrushStyle(self, i, **kwargs)
 
 
-class ChangeBrushColour(QtGui.QUndoCommand):
+class ChangeBrushColour(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super(ChangeBrushColour, self).__init__(parent)
         self.item = item
@@ -319,7 +320,7 @@ class ChangeBrushColour(QtGui.QUndoCommand):
             self.item.setLocalBrushOptions(brushColour=self.oldLocalBrushColour)
 
 
-class ChangeBrushStyle(QtGui.QUndoCommand):
+class ChangeBrushStyle(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super(ChangeBrushStyle, self).__init__(parent)
         self.item = item

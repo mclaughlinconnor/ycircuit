@@ -1,7 +1,7 @@
 import sys
 sys.path.append('./Resources/icons/')
 from src.drawingarea import DrawingArea
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from src.gui.ycircuit_mainWindow import Ui_MainWindow
 import platform
 import sip
@@ -9,7 +9,7 @@ if platform.system() == 'Windows':
     import ctypes
 
 
-class myMainWindow(QtGui.QMainWindow):
+class myMainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super(myMainWindow, self).__init__()
@@ -137,7 +137,7 @@ class myMainWindow(QtGui.QMainWindow):
         if self.ui.drawingArea.undoStack.isClean():
             event.accept()
         elif self.ui.drawingArea.schematicFileName is None:
-            msgBox = QtGui.QMessageBox(self)
+            msgBox = QtWidgets.QMessageBox(self)
             msgBox.setText("The schematic has been modified")
             msgBox.setInformativeText("Do you wish to save your changes?")
             msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
@@ -152,7 +152,7 @@ class myMainWindow(QtGui.QMainWindow):
             else:
                 event.ignore()
         elif self.ui.drawingArea.symbolFileName is None:
-            msgBox = QtGui.QMessageBox(self)
+            msgBox = QtWidgets.QMessageBox(self)
             msgBox.setText("The symbol has been modified")
             msgBox.setInformativeText("Do you wish to save your changes?")
             msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
@@ -326,7 +326,7 @@ if __name__ == "__main__":
         sip.setdestroyonexit(False)
         myappid = u'ycircuit.0.1'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()
     form.ui.drawingArea.fitToViewRoutine()

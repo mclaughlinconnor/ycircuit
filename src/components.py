@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy
 import pickle
 from src.drawingitems import TextEditor
@@ -7,14 +7,12 @@ class drawingElement(object):
     """The drawingElement forms part of the basis for all drawing classes.
     It contains methods for setting pen and brush options, moving, copying etc.
     """
-    def __init__(self, parent=None, start=None, **kwargs):
+    def __init__(self, parent=None, start=None):
         super(drawingElement, self).__init__()
         self.parent = parent
         self.start = start
         self.localPen = QtGui.QPen()
         self.localBrush = QtGui.QBrush()
-        self.setLocalPenOptions(**kwargs)
-        self.setLocalBrushOptions(**kwargs)
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         self.setAcceptHoverEvents(True)
@@ -44,7 +42,7 @@ class drawingElement(object):
         penStyle: int specifying style of the line to be drawn
         """
         # Necessary for objects with modified bounding rects
-        self.prepareGeometryChange()
+        # self.prepareGeometryChange()
         if 'pen' in kwargs:
             self.localPen = kwargs['pen']
             self.localPenWidth = self.localPen.width()
@@ -211,13 +209,19 @@ class drawingElement(object):
         pass
 
 
-class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
+class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     """Subclassed from QGraphicsItem. Provides additional methods so that
     the parent item remembers all the items that are its children.
     """
-    def __init__(self, parent=None, scene=None, start=None, listOfItems=None):
-        super(myGraphicsItemGroup, self).__init__(parent, scene)
+    def __init__(self, parent=None, start=None, listOfItems=None, **kwargs):
+        super(myGraphicsItemGroup, self).__init__(parent=parent, start=start)
         self.listOfItems = listOfItems
+        if 'mode' in kwargs:
+            self.loadItems(**kwargs)
+        if self.listOfItems != []:
+            self.setItems(self.listOfItems)
+            self.setLocalPenOptions(**kwargs)
+            self.setLocalBrushOptions(**kwargs)
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         if start is not None:
@@ -306,17 +310,21 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
 
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
-        for item in self.listOfItems:
-            if not hasattr(item, 'localPen'):
-                item.localPen = QtGui.QPen()
-            item.setLocalPenOptions(**kwargs)
+        self.prepareGeometryChange()
+        if hasattr(self, 'listOfItems'):
+            for item in self.listOfItems:
+                if not hasattr(item, 'localPen'):
+                    item.localPen = QtGui.QPen()
+                item.setLocalPenOptions(**kwargs)
 
     def setLocalBrushOptions(self, **kwargs):
         """Set brush individually for each child item"""
-        for item in self.listOfItems:
-            if not hasattr(item, 'localBrush'):
-                item.localBrush = QtGui.QBrush()
-            item.setLocalBrushOptions(**kwargs)
+        self.prepareGeometryChange()
+        if hasattr(self, 'listOfItems'):
+            for item in self.listOfItems:
+                if not hasattr(item, 'localBrush'):
+                    item.localBrush = QtGui.QBrush()
+                item.setLocalBrushOptions(**kwargs)
 
     def hoverEnterEvent(self, event):
         self.changeColourToGray(True)
@@ -334,9 +342,9 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             if not isinstance(item, myGraphicsItemGroup):
                 item.__init__(self, item.origin, penColour=item.localPenColour, width=item.localPenWidth, penStyle=item.localPenStyle, brushColour=item.localBrushColour, brushStyle=item.localBrushStyle)
             else:
-                item.__init__(self, self.scene(), item.origin, item.listOfItems)
+                item.__init__(self, item.origin, item.listOfItems, mode='symbol')
                 # Call loadItems if item is also a myGraphicsItemGroup
-                item.loadItems(mode)
+                # item.loadItems(mode)
         self.setItems(self.listOfItems)
 
     def undoEdit(self):
@@ -348,17 +356,19 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
             item.redoEdit(point)
 
 
-class Wire(QtGui.QGraphicsPathItem, drawingElement):
+class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
     """Subclassed from the PyQt implementation of standard lines. Provides some
     added convenience functions and enables object-like interaction"""
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
         # For when wire is being loaded from a file, oldPath already exists
         if not hasattr(self, 'oldPath'):
-            super(Wire, self).__init__(QtGui.QPainterPath(point), parent)
+            super(Wire, self).__init__(QtGui.QPainterPath(point), parent=parent, start=start)
         else:
-            super(Wire, self).__init__(self.oldPath, parent)
-        drawingElement.__init__(self, parent, start, **kwargs)
+            super(Wire, self).__init__(self.oldPath, parent=parent, start=start)
+        # drawingElement.__init__(self, parent, start, **kwargs)
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
         self.oldPath = self.path()
         if self.start is not None:
             self.setPos(self.start)
@@ -366,7 +376,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
     def __getstate__(self):
         localDict = super(Wire, self).__getstate__()
         # Add a list of all points part of the wire
-        polyPathList = self.oldPath.toSubpathPolygons()
+        polyPathList = self.oldPath.toSubpathPolygons(self.transform())
         polyPathPointList = []
         for poly in polyPathList:
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
@@ -405,7 +415,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
 
     def cancelSegment(self):
         # Remove from scene if no segment exists
-        if self.oldPath.toSubpathPolygons() == []:
+        if self.oldPath.toSubpathPolygons(self.transform()) == []:
             self.scene().removeItem(self)
         else:
             self.setPath(self.oldPath)
@@ -422,11 +432,11 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         return newWire
 
     def undoEdit(self):
-        if len(self.oldPath.toSubpathPolygons()) == 0:
+        if len(self.oldPath.toSubpathPolygons(self.transform())) == 0:
             return False
-        lastPoly = self.oldPath.toSubpathPolygons()[-1]
+        lastPoly = self.oldPath.toSubpathPolygons(self.transform())[-1]
         lastPoly.remove(lastPoly.size()-1)
-        otherPoly = self.oldPath.toSubpathPolygons()[:-1]
+        otherPoly = self.oldPath.toSubpathPolygons(self.transform())[:-1]
         path = QtGui.QPainterPath()
         for i in otherPoly:
             path.addPolygon(i)
@@ -438,7 +448,7 @@ class Wire(QtGui.QGraphicsPathItem, drawingElement):
         self.createSegment(point)
 
 
-class Net(QtGui.QGraphicsLineItem, drawingElement):
+class Net(QtWidgets.QGraphicsLineItem, drawingElement):
     def __init__(self, parent=None, start=None, **kwargs):
         """This class implements nets for connecting elements in a circuit. It
         is different from the Wire class in that it only supports right angle
@@ -453,7 +463,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
         self.oldLine = self.line()
         self.rightAngleMode = "top"
         self.perpLine = None #Perpendicular line
-        self.setFlag(QtGui.QGraphicsItem.ItemSendsScenePositionChanges)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsScenePositionChanges)
         if self.start is not None:
             self.setPos(self.start)
 
@@ -758,7 +768,7 @@ class Net(QtGui.QGraphicsLineItem, drawingElement):
                             break
 
 
-class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
+class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
     """Class responsible for drawing rectangular objects"""
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
@@ -873,7 +883,7 @@ class Rectangle(QtGui.QGraphicsRectItem, drawingElement):
             self.p2 = self.rect().topLeft()
 
 
-class Ellipse(QtGui.QGraphicsEllipseItem, drawingElement):
+class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
     """Class responsible for drawing elliptical objects"""
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
@@ -1026,7 +1036,7 @@ class Circle(Ellipse):
         # self.undoTransformList.append(self.transform())
 
 
-class TextBox(QtGui.QGraphicsTextItem, drawingElement):
+class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
     """Responsible for showing formatted text as well as LaTeX images.
     The following formatting options are supported:
         1. Bold
@@ -1102,7 +1112,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
 
     def changeTextColour(self, colour='gray'):
         # Create a textedit to conveniently change the text color
-        textEdit = QtGui.QTextEdit()
+        textEdit = QtWidgets.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
         textEdit.setTextColor(QtGui.QColor(colour))
@@ -1112,7 +1122,7 @@ class TextBox(QtGui.QGraphicsTextItem, drawingElement):
 
     def changeTextSize(self, weight=4):
         # Create a textedit to conveniently change the text size
-        textEdit = QtGui.QTextEdit()
+        textEdit = QtWidgets.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
         textEdit.setFontPointSize(weight*10)

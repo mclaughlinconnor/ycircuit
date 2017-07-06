@@ -1,4 +1,5 @@
-from PyQt4 import QtCore, QtGui, QtSvg
+# Missing SVG import
+from PyQt5 import QtCore, QtGui, QtWidgets
 from src.commands import *
 from src.components import *
 from src.drawingitems import *
@@ -10,7 +11,7 @@ from numpy import ceil, floor
 # sys.modules['components'] = components
 
 
-class DrawingArea(QtGui.QGraphicsView):
+class DrawingArea(QtWidgets.QGraphicsView):
     """The drawing area is subclassed from QGraphicsView to provide additional
     functionality specific to this schematic drawing tool. Further information about
     these modifications is present in the method docstrings.
@@ -22,10 +23,10 @@ class DrawingArea(QtGui.QGraphicsView):
     def __init__(self, parent=None):
         """Initializes the object and various parameters to default values"""
         super(DrawingArea, self).__init__(parent)
-        self.setScene(QtGui.QGraphicsScene(self))
+        self.setScene(QtWidgets.QGraphicsScene(self))
         # The default BSP tree index method could lead to segfaults
         # If that happens, uncomment the line below
-        # self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+        # self.scene().setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
@@ -37,7 +38,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self._grid.createGrid()
         self.enableGrid = True
         self.snapToGrid = True
-        self.undoStack = QtGui.QUndoStack(self)
+        self.undoStack = QtWidgets.QUndoStack(self)
         self.undoStack.setUndoLimit(1000)
         self.reflections = 0
         self.rotations = 0
@@ -52,6 +53,7 @@ class DrawingArea(QtGui.QGraphicsView):
         self.schematicFileName = None
         self.symbolFileName = None
         self.selectOrigin = False
+        self.currentPos = QtCore.QPoint(0, 0)
         # Fit to view when scroll bars are changed, e.g. when program starts, window is resized
         # self.horizontalScrollBar().valueChanged.connect(self.fitToViewRoutine)
         # self.verticalScrollBar().valueChanged.connect(self.fitToViewRoutine)
@@ -207,7 +209,8 @@ class DrawingArea(QtGui.QGraphicsView):
                 if self.selectOrigin is None:
                     return
 
-            saveObject = myGraphicsItemGroup(None, self.scene(), origin)
+            saveObject = myGraphicsItemGroup(None, origin, [])
+            self.scene().addItem(saveObject)
             saveObject.origin = origin
             # print saveObject, saveObject.origin
             # Set relative origins of child items
@@ -271,7 +274,7 @@ class DrawingArea(QtGui.QGraphicsView):
         selectedItems = self.scene().selectedItems()
         for item in selectedItems:
             item.setSelected(False)
-        saveFile = str(QtGui.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;EPS files (*.eps);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp);;TIFF files (*.tiff)'))
+        saveFile = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;EPS files (*.eps);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp);;TIFF files (*.tiff)'))
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
@@ -402,12 +405,14 @@ class DrawingArea(QtGui.QGraphicsView):
                     self._grid.removeGrid()
                 self.scene().clear()
                 self._grid.createGrid()
-                loadItem.__init__(None, self.scene(), QtCore.QPointF(0, 0), loadItem.listOfItems)
-                loadItem.loadItems(mode)
+                loadItem.__init__(None, QtCore.QPointF(0, 0), loadItem.listOfItems, mode='symbol')
+                self.scene().addItem(loadItem)
+                # loadItem.loadItems(mode)
             elif mode == 'symbol':
                 self.loadItem = loadItem
-                loadItem.__init__(None, self.scene(), self.mapToGrid(self.currentPos), loadItem.listOfItems)
-                loadItem.loadItems('symbol')
+                loadItem.__init__(None, self.mapToGrid(self.currentPos), loadItem.listOfItems, mode='symbol')
+                self.scene().addItem(self.loadItem)
+                # loadItem.loadItems('symbol')
             if mode == 'schematic' or mode == 'symbolModify':
                 loadItem.setPos(loadItem.origin)
                 loadItem.reparentItems()
@@ -698,7 +703,7 @@ class DrawingArea(QtGui.QGraphicsView):
         # If items have been selected
         if self.moveItems != []:
             if modifier is None:
-                modifier = QtGui.QApplication.keyboardModifiers()
+                modifier = QtWidgets.QApplication.keyboardModifiers()
             # If reflect mode is on
             if modifier == QtCore.Qt.ShiftModifier:
                 # Keep track of number of reflections
@@ -887,7 +892,7 @@ class DrawingArea(QtGui.QGraphicsView):
             self.oldY = self.currentY
             self.currentX = self.currentPos.x()
             self.currentY = self.currentPos.y()
-            modifiers = QtGui.QApplication.keyboardModifiers()
+            modifiers = QtWidgets.QApplication.keyboardModifiers()
             if modifiers != QtCore.Qt.ControlModifier:
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
@@ -934,12 +939,13 @@ class DrawingArea(QtGui.QGraphicsView):
 
     def wheelEvent(self, event):
         # Pan or zoom depending on keyboard modifiers
-        if event.delta() >= 0:
-            delta = max(120, event.delta())
-        elif event.delta() < 0:
-            delta = min(-120, event.delta())
+        eventDelta = event.angleDelta().y()
+        if eventDelta >= 0:
+            delta = max(120, eventDelta)
+        elif eventDelta < 0:
+            delta = min(-120, eventDelta)
         scaleFactor = -delta / 240.
-        modifiers = QtGui.QApplication.keyboardModifiers()
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ControlModifier:
             self.translate(0, -scaleFactor * 100)
         elif modifiers == QtCore.Qt.ShiftModifier:

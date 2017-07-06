@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from src.gui.textEditor_gui import Ui_Dialog
 import numpy
 import pickle
@@ -64,7 +64,7 @@ class Grid(QtCore.QObject):
         return QtCore.QPointF(newX, newY)
 
 
-class TextEditor(QtGui.QDialog):
+class TextEditor(QtWidgets.QDialog):
     def __init__(self, textBox=None):
         super(TextEditor, self).__init__()
         self.ui = Ui_Dialog()
@@ -270,11 +270,11 @@ class TextEditor(QtGui.QDialog):
         return obj, data64
 
 
-class myFileDialog(QtGui.QFileDialog):
+class myFileDialog(QtWidgets.QFileDialog):
     def __init__(self, *args, **kwargs):
         super(myFileDialog, self).__init__(*args)
         # Find the list view responsible for showing the files and change its flow
-        listViews = self.findChildren(QtGui.QListView)
+        listViews = self.findChildren(QtWidgets.QListView)
         listView = listViews[0]
         listView.setFlow(listView.LeftToRight)
         self.iconProvider_ = myIconProvider()
@@ -296,13 +296,13 @@ class myFileDialog(QtGui.QFileDialog):
 
     def setViewMode(self, viewMode):
         if viewMode == self.Detail:
-            self.setItemDelegate(QtGui.QStyledItemDelegate())
+            self.setItemDelegate(QtWidgets.QStyledItemDelegate())
         else:
             self.setItemDelegate(myStyledItemDelegate())
         super(myFileDialog, self).setViewMode(viewMode)
 
 
-class myIconProvider(QtGui.QFileIconProvider):
+class myIconProvider(QtWidgets.QFileIconProvider):
     def __init__(self, parent=None):
         """Create a custom icon provider for the file picker"""
         super(myIconProvider, self).__init__()
@@ -312,10 +312,10 @@ class myIconProvider(QtGui.QFileIconProvider):
             if str(fileInfo.filePath())[-3:] in ['sch', 'sym']:
                 with open(str(fileInfo.filePath()), 'rb') as file:
                     loadItem = pickle.load(file)
-                scene = QtGui.QGraphicsScene()
+                scene = QtWidgets.QGraphicsScene()
                 # Load the file
-                loadItem.__init__(None, scene, QtCore.QPointF(0, 0), loadItem.listOfItems)
-                loadItem.loadItems('symbol')
+                loadItem.__init__(None, QtCore.QPointF(0, 0), loadItem.listOfItems, mode='symbol')
+                scene.addItem(loadItem)
                 rect = loadItem.boundingRect()
                 # Set the maximum icon dimension
                 maxDim = 320
@@ -349,7 +349,7 @@ class myIconProvider(QtGui.QFileIconProvider):
             return super(myIconProvider, self).icon(fileInfo)
 
 
-class myStyledItemDelegate(QtGui.QStyledItemDelegate):
+class myStyledItemDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, *args):
         super(myStyledItemDelegate, self).__init__(*args)
         self.iconWidth, self.iconHeight = 200, 200
