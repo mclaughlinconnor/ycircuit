@@ -23,7 +23,7 @@ class DrawingArea(QtGui.QGraphicsView):
         """Initializes the object and various parameters to default values"""
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
-        # self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+        self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
@@ -51,8 +51,8 @@ class DrawingArea(QtGui.QGraphicsView):
         self.symbolFileName = None
         self.selectOrigin = False
         # Fit to view when scroll bars are changed, e.g. when program starts, window is resized
-        self.horizontalScrollBar().valueChanged.connect(self.fitToViewRoutine)
-        self.verticalScrollBar().valueChanged.connect(self.fitToViewRoutine)
+        # self.horizontalScrollBar().valueChanged.connect(self.fitToViewRoutine)
+        # self.verticalScrollBar().valueChanged.connect(self.fitToViewRoutine)
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -178,11 +178,8 @@ class DrawingArea(QtGui.QGraphicsView):
         unparented.
         """
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs']
-        # Remove grid from the scene to avoid saving it
-        self._grid.removeGrid()
         # Return if no items are present
         if len(self.scene().items()) == 0:
-            self._grid.createGrid()
             return
         if mode in possibleModes:
             listOfItems = self.scene().items()
@@ -192,7 +189,6 @@ class DrawingArea(QtGui.QGraphicsView):
             origin = QtCore.QPointF(x, y)
             # Override origin if it is to be saved as a symbol
             if mode == 'symbol' or mode == 'symbolAs':
-                self._grid.createGrid()
                 self.selectOrigin = True
                 for item in listOfItems:
                     item.setAcceptHoverEvents(False)
@@ -208,7 +204,6 @@ class DrawingArea(QtGui.QGraphicsView):
                 # Pressing escape sets selectOrigin to None
                 if self.selectOrigin is None:
                     return
-                self._grid.removeGrid()
 
             saveObject = myGraphicsItemGroup(None, self.scene(), origin)
             saveObject.origin = origin
@@ -257,8 +252,6 @@ class DrawingArea(QtGui.QGraphicsView):
             if mode == 'schematic' or mode == 'schematicAs':
                 saveObject.reparentItems()
                 self.scene().removeItem(saveObject)
-        # Add the grid back to the scene when saving is done
-        self._grid.createGrid()
 
     def exportRoutine(self):
         """
