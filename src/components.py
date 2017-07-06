@@ -287,6 +287,9 @@ class myGraphicsItemGroup(QtGui.QGraphicsItem, drawingElement):
 
     def reparentItems(self, newParent=None):
         """Sets parent of all child items to newParent"""
+        # Call prepareGeometryChange because the bounding rect for this
+        # item is going to change
+        self.prepareGeometryChange()
         for item in self.listOfItems:
             item.setParentItem(newParent)
             item.setFlag(item.ItemIsSelectable, True)

@@ -23,7 +23,9 @@ class DrawingArea(QtGui.QGraphicsView):
         """Initializes the object and various parameters to default values"""
         super(DrawingArea, self).__init__(parent)
         self.setScene(QtGui.QGraphicsScene(self))
-        self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+        # The default BSP tree index method could lead to segfaults
+        # If that happens, uncomment the line below
+        # self.scene().setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
         self.parent = parent
         self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
