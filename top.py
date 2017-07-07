@@ -4,6 +4,7 @@ from src.drawingarea import DrawingArea
 from PyQt5 import QtCore, QtGui, QtWidgets
 from src.gui.ycircuit_mainWindow import Ui_MainWindow
 import platform
+import os
 import sip
 if platform.system() == 'Windows':
     import ctypes
@@ -322,6 +323,7 @@ class myMainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
+    os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
     if platform.system() == 'Windows':
         sip.setdestroyonexit(False)
         myappid = u'ycircuit.0.1'

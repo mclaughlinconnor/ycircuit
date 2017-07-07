@@ -250,7 +250,7 @@ class TextEditor(QtWidgets.QDialog):
         This saves the generated image within the object itself (which gets saved into a higher level
         schematic/symbol). As a result, the file size of the saved schematic/symbol is larger, but we
         benefit from greatly improved loading times."""
-        dpi = 300
+        dpi = self.textBox.latexImageDpi * self.textBox.latexImageDpiScale
         obj = BytesIO()
 
         color = QtGui.QColor(fc)

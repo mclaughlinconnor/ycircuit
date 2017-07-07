@@ -259,9 +259,9 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         _start = self.pos()
         # If parent exists, will get added to parent's scene
         if parent is None:
-            newItem = self.__class__(parent, self.scene(), _start)
+            newItem = self.__class__(parent, _start, [])
         else:
-            newItem = self.__class__(parent, None, _start)
+            newItem = self.__class__(parent, _start, [])
         newItem.listOfItems = []
         for item in self.listOfItems:
             itemCopy = item.createCopy(newItem)
@@ -270,6 +270,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         newItem.setTransform(self.transform())
         newItem.origin = self.origin
         newItem.setSelected(True)
+        self.scene().addItem(newItem)
         if newItem.parentItem() is None:
             newItem.moveTo(self.scenePos(), 'start')
         else:
@@ -1068,10 +1069,13 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         self.setLocalPenOptions(**kwargs)
         self.setLocalBrushOptions(**kwargs)
         self.setTextWidth(-1)
-        # Instantiate variables if none exist already
-        if not hasattr(self, 'latexImageHtml'):
-            self.latexImageHtml = None
-            self.latexExpression = None
+        self.latexImageHtml = None
+        self.latexExpression = None
+        self.latexImageBinary = None
+        # Sets the desired DPI for the image being generated
+        self.latexImageDpi = 300
+        # Scale the DPI in order to avoid pixelation
+        self.latexImageDpiScale = 4
         if text != '':
             self.setHtml(text)
         elif self.latexImageHtml is not None:
@@ -1087,6 +1091,33 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         # Add htmlText to the dict
         localDict['htmlText'] = self.toHtml()
         return localDict
+
+    def boundingRect(self):
+        if self.latexImageBinary is None:
+            return super(TextBox, self).boundingRect()
+        else:
+            if not hasattr(self, 'rect_'):
+                pix = QtGui.QPixmap()
+                pix.loadFromData(self.latexImageBinary.getvalue(), format='png')
+                self.rect_ = QtCore.QRectF(QtCore.QPointF(0, 0), QtCore.QSizeF(pix.size()/self.latexImageDpiScale))
+            return self.rect_
+
+    def paint(self, painter, option, widget):
+        if self.latexImageBinary is None:
+            super(TextBox, self).paint(painter, option, widget)
+        else:
+            pix = QtGui.QPixmap()
+            pix.loadFromData(self.latexImageBinary.getvalue(), format='png')
+            painter.setPen(self.localPen)
+            painter.setBrush(self.localBrush)
+            self.rect_ = QtCore.QRectF(QtCore.QPointF(0, 0), QtCore.QSizeF(pix.size()/self.latexImageDpiScale))
+            painter.drawPixmap(self.rect_.toRect(), pix)
+            if self.isSelected() is True:
+                pen = QtGui.QPen()
+                pen.setWidth(0.5)
+                pen.setStyle(2)
+                painter.setPen(pen)
+                painter.drawRect(self.boundingRect())
 
     def showEditor(self):
         self.textEditor = TextEditor(self)
@@ -1112,7 +1143,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.localPenStyle = kwargs['penStyle']
         if hasattr(self, 'setFont'):
             font = self.font()
-            font.setPointSize(self.localPenWidth*5)
+            font.setPointSize(self.localPenWidth*10)
             font.setFamily('Arial')
             self.setFont(font)
         self.changeTextSize(self.localPenWidth)
@@ -1133,7 +1164,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         textEdit = QtWidgets.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setFontPointSize(weight*5)
+        textEdit.setFontPointSize(weight*10)
         self.setHtml(textEdit.toHtml())
         self.update()
         self.localPenWidth = weight
