@@ -1,5 +1,5 @@
 # Missing SVG import
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtSvg
 from src.commands import *
 from src.components import *
 from src.drawingitems import *
@@ -274,13 +274,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
         selectedItems = self.scene().selectedItems()
         for item in selectedItems:
             item.setSelected(False)
-        saveFile = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;EPS files (*.eps);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp);;TIFF files (*.tiff)'))
+        saveFile = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp);;TIFF files (*.tiff)')[0])
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
             self._grid.createGrid()
             return
-        if saveFile[-3:] in ['pdf', 'eps']:
+        if saveFile[-3:] in ['pdf']:
             mode = 'pdf'
         elif saveFile[-3:] == 'svg':
             mode = 'svg'
@@ -302,15 +302,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 quality = 1
         if mode == 'pdf':
             # Initialize printer
-            printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
+            printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
             sourceRect = self.scene().itemsBoundingRect()
             # Choose appropriate format
             if saveFile[-3:] == 'pdf':
                 printer.setOutputFormat(printer.PdfFormat)
-            if saveFile[-3:] == 'eps':
-                printer.setFullPage(True)
-                printer.setOutputFormat(printer.PostScriptFormat)
             printer.setOutputFileName(saveFile)
+            pageSize = QtGui.QPageSize(sourceRect.size().toSize(), matchPolicy=QtGui.QPageSize.ExactMatch)
+            printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
             self.scene().render(painter, source=sourceRect)
         elif mode == 'svg':
@@ -319,6 +318,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             sourceRect = self.scene().itemsBoundingRect()
             width, height = sourceRect.width(), sourceRect.height()
             svgGenerator.setSize(QtCore.QSize(width, height))
+            svgGenerator.setResolution(200)
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
@@ -350,30 +350,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
-        if saveFile[-3:] == 'eps':
-            printerSize = printer.paperSize(printer.DevicePixel)
-            self.fixEPSBoundingBox(saveFile, printerSize, sourceRect)
-
-    def fixEPSBoundingBox(self, saveFile, printerSize, sourceRect):
-        # Adapted from https://github.com/jeremysanders/veusz/blob/master/veusz/document/export.py
-        width, height = sourceRect.width(), sourceRect.height()
-        tempFile = '%s.eps.temp' % (saveFile[:-4])
-        with open(saveFile, 'rU') as fIn:
-            with open(tempFile, 'w') as fOut:
-                for line in fIn:
-                    if line[:14] == '%%BoundingBox:':
-                        parts = line.split()
-                        origwidth = float(parts[3])
-                        origheight = float(parts[4])
-                        if width/height >= printerSize.width()/printerSize.height():
-                            stretch = origwidth/width
-                            line = '%s %i %i %i %i\n' %(parts[0], 0, int(floor(origheight-stretch*height)), int(ceil(origwidth)), int(ceil(origheight)))
-                        else:
-                            stretch = origheight/height
-                            line = '%s %i %i %i %i\n' %(parts[0], 0, 0, int(ceil(stretch*width)), int(ceil(origheight)))
-                    fOut.write(line)
-        os.remove(saveFile)
-        os.rename(tempFile, saveFile)
 
     def loadRoutine(self, mode='symbol', loadFile=None):
         """This is the counterpart of the save routine. Used to load both schematics

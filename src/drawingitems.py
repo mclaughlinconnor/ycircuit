@@ -102,7 +102,7 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.textEdit.cursorPositionChanged.connect(self.modifyPushButtons)
         self.ui.textEdit.textChanged.connect(self.latexDollarDecorators)
 
-        QtGui.QShortcut('Ctrl+Return', self).activated.connect(self.accept)
+        QtWidgets.QShortcut('Ctrl+Return', self).activated.connect(self.accept)
 
         self.ui.pushButton_bold.clicked.connect(self.modifyText)
         self.ui.pushButton_italic.clicked.connect(self.modifyText)
@@ -273,6 +273,7 @@ class TextEditor(QtWidgets.QDialog):
 class myFileDialog(QtWidgets.QFileDialog):
     def __init__(self, *args, **kwargs):
         super(myFileDialog, self).__init__(*args)
+        self.setOption(self.DontUseNativeDialog)
         # Find the list view responsible for showing the files and change its flow
         listViews = self.findChildren(QtWidgets.QListView)
         listView = listViews[0]

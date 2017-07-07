@@ -376,7 +376,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
     def __getstate__(self):
         localDict = super(Wire, self).__getstate__()
         # Add a list of all points part of the wire
-        polyPathList = self.oldPath.toSubpathPolygons(self.transform())
+        polyPathList = self.oldPath.toSubpathPolygons(QtGui.QTransform())
         polyPathPointList = []
         for poly in polyPathList:
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
@@ -456,10 +456,12 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         point = QtCore.QPointF(0, 0)
         # For when the net is being loaded from a file, oldLine already exists
         if not hasattr(self, 'oldLine'):
-            super(Net, self).__init__(QtCore.QLineF(point, point), parent)
+            super(Net, self).__init__(QtCore.QLineF(point, point), parent=parent, start=start)
         else:
-            super(Net, self).__init__(self.oldLine, parent)
-        drawingElement.__init__(self, parent, start, **kwargs)
+            super(Net, self).__init__(self.oldLine, parent=parent, start=start)
+        # drawingElement.__init__(self, parent, start, **kwargs)
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
         self.oldLine = self.line()
         self.rightAngleMode = "top"
         self.perpLine = None #Perpendicular line
@@ -754,8 +756,8 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                                     break
                             if dotExists is False:
                                 dot1 = pickle.load(f)
-                                dot1.__init__(None, scene, dotPos, dot1.listOfItems)
-                                dot1.loadItems('symbol')
+                                dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
+                                scene.addItem(dot1)
                                 dot1.moveTo(dotPos, 'start')
                                 dot1.moveTo(dotPos, 'done')
                                 scene.removeItem(dot1)
@@ -774,14 +776,16 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
         if not hasattr(self, 'oldRect'):
-            super(Rectangle, self).__init__(rect, parent)
+            super(Rectangle, self).__init__(rect, parent=parent, start=point)
             self.setPos(start)
         else:
-            super(Rectangle, self).__init__(self.oldRect, parent)
+            super(Rectangle, self).__init__(self.oldRect, parent=parent, start=point)
             self.setPos(self.origin)
         self.oldRect = self.rect()
         # Set the fixed vertex to (0, 0) in local coordinates
-        drawingElement.__init__(self, parent, start=point, **kwargs)
+        # drawingElement.__init__(self, parent, start=point, **kwargs)
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
 
     def boundingRect(self):
         # Make the bounding rect a little bigger so it is easier to see
@@ -889,13 +893,15 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
         if not hasattr(self, 'oldRect'):
-            super(Ellipse, self).__init__(rect, parent)
+            super(Ellipse, self).__init__(rect, parent=parent, start=point)
             self.setPos(start)
         else:
-            super(Ellipse, self).__init__(self.oldRect, parent)
+            super(Ellipse, self).__init__(self.oldRect, parent=parent, start=point)
             self.setPos(self.origin)
         # Set the fixed vertex to (0, 0) in local coordinates
-        drawingElement.__init__(self, parent, start=point, **kwargs)
+        # drawingElement.__init__(self, parent, start=point, **kwargs)
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
         self.oldRect = self.rect()
 
     def boundingRect(self):
@@ -1052,13 +1058,15 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
     def __init__(self, parent=None, start=None, text='', **kwargs):
         point = QtCore.QPointF(0, 0)
         if not hasattr(self, 'origin'):
-            super(TextBox, self).__init__(parent)
+            super(TextBox, self).__init__(parent, start=point)
             self.setPos(start)
         else:
-            super(TextBox, self).__init__(parent)
+            super(TextBox, self).__init__(parent, start=point)
             self.setPos(self.origin)
         # Set the fixed vertex to (0, 0) in local coordinates
-        drawingElement.__init__(self, parent, start=point, **kwargs)
+        # drawingElement.__init__(self, parent, start=point, **kwargs)
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
         self.setTextWidth(-1)
         # Instantiate variables if none exist already
         if not hasattr(self, 'latexImageHtml'):
@@ -1104,7 +1112,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.localPenStyle = kwargs['penStyle']
         if hasattr(self, 'setFont'):
             font = self.font()
-            font.setPointSize(self.localPenWidth*10)
+            font.setPointSize(self.localPenWidth*5)
             font.setFamily('Arial')
             self.setFont(font)
         self.changeTextSize(self.localPenWidth)
@@ -1125,7 +1133,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         textEdit = QtWidgets.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setFontPointSize(weight*10)
+        textEdit.setFontPointSize(weight*5)
         self.setHtml(textEdit.toHtml())
         self.update()
         self.localPenWidth = weight
@@ -1172,7 +1180,7 @@ class Arc(Wire):
     """This is a special case of the Wire class where repeated clicks change the curvature
     of the wire."""
     def __init__(self, parent=None, start=None, **kwargs):
-        super(Arc, self).__init__(parent, start, **kwargs)
+        super(Arc, self).__init__(parent=parent, start=start, **kwargs)
         if 'points' in kwargs:
             self.points = kwargs['points']
         self.clicks = 0
