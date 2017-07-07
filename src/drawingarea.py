@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtSvg
 from src.commands import *
 from src.components import *
 from src.drawingitems import *
-import cPickle as pickle
+import pickle
 import os
 from numpy import ceil, floor
 # from src import components
@@ -22,7 +22,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def __init__(self, parent=None):
         """Initializes the object and various parameters to default values"""
-        super(DrawingArea, self).__init__(parent)
+        super().__init__(parent)
         self.setScene(QtWidgets.QGraphicsScene(self))
         # The default BSP tree index method could lead to segfaults
         # If that happens, uncomment the line below
@@ -60,7 +60,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
-        super(DrawingArea, self).keyReleaseEvent(event)
+        super().keyReleaseEvent(event)
         keyPressed = event.key()
         if (keyPressed == QtCore.Qt.Key_Escape):
             self.escapeRoutine()
@@ -195,6 +195,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if mode == 'symbol' or mode == 'symbolAs':
                 self.selectOrigin = True
                 for item in listOfItems:
+                    item.setAcceptedMouseButtons(QtCore.Qt.NoButton)
                     item.setAcceptHoverEvents(False)
                     item.setSelected(False)
                 self.statusbarMessage.emit("Pick an origin for the symbol (press ESC to cancel)", 0)
@@ -203,6 +204,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 origin = self.mapToGrid(self.currentPos)
                 self.statusbarMessage.emit("", 0)
                 for item in listOfItems:
+                    item.setAcceptedMouseButtons(QtCore.Qt.AllButtons)
                     item.setAcceptHoverEvents(True)
                     item.setSelected(False)
                 # Pressing escape sets selectOrigin to None
@@ -212,9 +214,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             saveObject = myGraphicsItemGroup(None, origin, [])
             self.scene().addItem(saveObject)
             saveObject.origin = origin
-            # print saveObject, saveObject.origin
-            # Set relative origins of child items
 
+            # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
                 # print item, item.origin
@@ -318,7 +319,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             sourceRect = self.scene().itemsBoundingRect()
             width, height = sourceRect.width(), sourceRect.height()
             svgGenerator.setSize(QtCore.QSize(width, height))
-            svgGenerator.setResolution(200)
+            svgGenerator.setResolution(96)
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
@@ -665,9 +666,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.endMacro()
         # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
         if self.moveItems == []:
-            super(DrawingArea, self).mousePressEvent(event)
+            super().mousePressEvent(event)
         elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False:
-            super(DrawingArea, self).mousePressEvent(event)
+            super().mousePressEvent(event)
 
     def updateMoveItems(self):
         """Simple function that generates a list of selected items"""
@@ -713,9 +714,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def mouseReleaseEvent(self, event):
         # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
         if self.moveItems == []:
-            super(DrawingArea, self).mouseReleaseEvent(event)
+            super().mouseReleaseEvent(event)
         elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False:
-            super(DrawingArea, self).mouseReleaseEvent(event)
+            super().mouseReleaseEvent(event)
         # If wire or arc mode are on
         if self._keys['w'] is True or self._keys['arc'] is True:
             # Keep drawing new wire segments
@@ -861,7 +862,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.selectOrigin = False
 
     def mouseMoveEvent(self, event):
-        super(DrawingArea, self).mouseMoveEvent(event)
+        super().mouseMoveEvent(event)
         self.currentPos = event.pos()
         if (self._mouse['1'] is True):
             self.oldX = self.currentX

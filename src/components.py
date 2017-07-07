@@ -8,7 +8,7 @@ class drawingElement(object):
     It contains methods for setting pen and brush options, moving, copying etc.
     """
     def __init__(self, parent=None, start=None):
-        super(drawingElement, self).__init__()
+        super().__init__()
         self.parent = parent
         self.start = start
         self.localPen = QtGui.QPen()
@@ -214,7 +214,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     the parent item remembers all the items that are its children.
     """
     def __init__(self, parent=None, start=None, listOfItems=None, **kwargs):
-        super(myGraphicsItemGroup, self).__init__(parent=parent, start=start)
+        super().__init__(parent=parent, start=start)
         self.listOfItems = listOfItems
         if 'mode' in kwargs:
             self.loadItems(**kwargs)
@@ -364,9 +364,9 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         point = QtCore.QPointF(0, 0)
         # For when wire is being loaded from a file, oldPath already exists
         if not hasattr(self, 'oldPath'):
-            super(Wire, self).__init__(QtGui.QPainterPath(point), parent=parent, start=start)
+            super().__init__(QtGui.QPainterPath(point), parent=parent, start=start)
         else:
-            super(Wire, self).__init__(self.oldPath, parent=parent, start=start)
+            super().__init__(self.oldPath, parent=parent, start=start)
         # drawingElement.__init__(self, parent, start, **kwargs)
         self.setLocalPenOptions(**kwargs)
         self.setLocalBrushOptions(**kwargs)
@@ -375,7 +375,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             self.setPos(self.start)
 
     def __getstate__(self):
-        localDict = super(Wire, self).__getstate__()
+        localDict = super().__getstate__()
         # Add a list of all points part of the wire
         polyPathList = self.oldPath.toSubpathPolygons(QtGui.QTransform())
         polyPathPointList = []
@@ -397,7 +397,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         self.oldPath = self.__dict__.pop('oldPath2', None)
 
     def boundingRect(self):
-        rect = super(Wire, self).boundingRect()
+        rect = super().boundingRect()
         return rect
 
     def updateWire(self, newEnd):
@@ -425,7 +425,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         """Reimplemented from drawingElement. Sets path and origin of the copy
         to that of the original.
         """
-        newWire = super(Wire, self).createCopy(parent)
+        newWire = super().createCopy(parent)
         newWire.setPath(self.path())
         newWire.oldPath = newWire.path()
         if hasattr(self, 'origin'):
@@ -457,9 +457,9 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         point = QtCore.QPointF(0, 0)
         # For when the net is being loaded from a file, oldLine already exists
         if not hasattr(self, 'oldLine'):
-            super(Net, self).__init__(QtCore.QLineF(point, point), parent=parent, start=start)
+            super().__init__(QtCore.QLineF(point, point), parent=parent, start=start)
         else:
-            super(Net, self).__init__(self.oldLine, parent=parent, start=start)
+            super().__init__(self.oldLine, parent=parent, start=start)
         # drawingElement.__init__(self, parent, start, **kwargs)
         self.setLocalPenOptions(**kwargs)
         self.setLocalBrushOptions(**kwargs)
@@ -471,7 +471,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
             self.setPos(self.start)
 
     def __getstate__(self):
-        localDict = super(Net, self).__getstate__()
+        localDict = super().__getstate__()
         # Add a list of all points part of the wire
         line = self.line()
         localDict['oldLine'] = line
@@ -484,7 +484,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         self.oldLine = state['oldLine']
 
     def boundingRect(self):
-        rect = super(Net, self).boundingRect()
+        rect = super().boundingRect()
         pad = 10
         if rect.width() < pad:
             rect.setWidth(pad)
@@ -533,7 +533,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         """Reimplemented from drawingElement. Sets the line and origin of the
         copy the same as the current line.
         """
-        newNet = super(Net, self).createCopy(parent)
+        newNet = super().createCopy(parent)
         newNet.setLine(self.line())
         newNet.oldLine = newNet.line()
         if hasattr(self, 'origin'):
@@ -745,17 +745,18 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                     if newNet1 is not None:
                         newNetList1 = [item for item in netList if item.collidesWithItem(newNet1)]
                         newNetList2 = [item for item in netList if item.collidesWithItem(newNet2)]
-                        with open('Resources/Symbols/Standard/dot.sym', 'rb') as f:
-                            allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
-                            dotExists = False
-                            for item in allDots:
-                                existingDotPos = item.scenePos()
-                                # The dot's scenePos is slightly to the left of actual center
-                                existingDotPos += QtCore.QPointF(5, 0)
-                                if dotPos == item.scenePos():
-                                    dotExists = True
-                                    break
-                            if dotExists is False:
+                        # Add a dot if required
+                        allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
+                        dotExists = False
+                        for item in allDots:
+                            existingDotPos = item.scenePos()
+                            # The dot's scenePos is slightly to the left of actual center
+                            existingDotPos += QtCore.QPointF(5, 0)
+                            if dotPos == item.scenePos():
+                                dotExists = True
+                                break
+                        if dotExists is False:
+                            with open('Resources/Symbols/Standard/dot.sym', 'rb') as f:
                                 dot1 = pickle.load(f)
                                 dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
                                 scene.addItem(dot1)
@@ -777,10 +778,10 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
         if not hasattr(self, 'oldRect'):
-            super(Rectangle, self).__init__(rect, parent=parent, start=point)
+            super().__init__(rect, parent=parent, start=point)
             self.setPos(start)
         else:
-            super(Rectangle, self).__init__(self.oldRect, parent=parent, start=point)
+            super().__init__(self.oldRect, parent=parent, start=point)
             self.setPos(self.origin)
         self.oldRect = self.rect()
         # Set the fixed vertex to (0, 0) in local coordinates
@@ -812,7 +813,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
     def paint(self, painter, *args):
         # We have to manually draw out the bounding rect
         if self.isSelected() is False:
-            super(Rectangle, self).paint(painter, *args)
+            super().paint(painter, *args)
         else:
             pen = QtGui.QPen()
             pen.setStyle(2)
@@ -841,7 +842,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         """Reimplemented from drawingElement. Sets the rect and origin of the
         copy the same as the current rect.
         """
-        newRectangle = super(Rectangle, self).createCopy(parent)
+        newRectangle = super().createCopy(parent)
         newRectangle.setRect(self.rect())
         newRectangle.oldRect = newRectangle.rect()
         if hasattr(self, 'origin'):
@@ -855,7 +856,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         self.prepareGeometryChange()
         self.setRect(rect)
         self.oldRect = rect
-        super(Rectangle, self).mouseReleaseEvent(event)
+        super().mouseReleaseEvent(event)
 
     def undoEdit(self):
         rect = self.undoRectList.pop()
@@ -894,10 +895,10 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
         if not hasattr(self, 'oldRect'):
-            super(Ellipse, self).__init__(rect, parent=parent, start=point)
+            super().__init__(rect, parent=parent, start=point)
             self.setPos(start)
         else:
-            super(Ellipse, self).__init__(self.oldRect, parent=parent, start=point)
+            super().__init__(self.oldRect, parent=parent, start=point)
             self.setPos(self.origin)
         # Set the fixed vertex to (0, 0) in local coordinates
         # drawingElement.__init__(self, parent, start=point, **kwargs)
@@ -930,7 +931,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
     def paint(self, painter, *args):
         # We have to manually draw out the bounding rect
         if self.isSelected() is False:
-            super(Ellipse, self).paint(painter, *args)
+            super().paint(painter, *args)
         else:
             pen = QtGui.QPen()
             pen.setStyle(2)
@@ -954,7 +955,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
     def createCopy(self, parent=None):
         """Reimplemented from drawingElement. Sets the rect and origin of the
         copy the same as the current ellipse."""
-        newEllipse = super(Ellipse, self).createCopy(parent)
+        newEllipse = super().createCopy(parent)
         newEllipse.setRect(self.rect())
         newEllipse.oldRect = newEllipse.rect()
         if hasattr(self, 'origin'):
@@ -970,7 +971,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         self.oldRect = rect
         # # Necessary so that bounding rect is drawn correctly
         # self.prepareGeometryChange()
-        super(Ellipse, self).mouseReleaseEvent(event)
+        super().mouseReleaseEvent(event)
 
     def updateP1P2(self):
         # Make sure start is top left and end is bottom right
@@ -991,7 +992,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
 class Circle(Ellipse):
     """This is a special case of the Ellipse class where a = b."""
     def __init__(self, parent=None, start=None, **kwargs):
-        super(Circle, self).__init__(parent, start, **kwargs)
+        super().__init__(parent, start, **kwargs)
 
     def updateCircle(self, end):
         # Update the opposite end of the diameter of the circle to end
@@ -1058,20 +1059,24 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
     """
     def __init__(self, parent=None, start=None, text='', **kwargs):
         point = QtCore.QPointF(0, 0)
-        if not hasattr(self, 'origin'):
-            super(TextBox, self).__init__(parent, start=point)
+        # For some reason, checking hasattr(self, 'origin')
+        # worked with Python 2 but not with Python 3. The following
+        # approach works with both though
+        if 'origin' not in self.__dict__:
+            super().__init__(parent, start=point)
             self.setPos(start)
         else:
-            super(TextBox, self).__init__(parent, start=point)
+            super().__init__(parent, start=point)
             self.setPos(self.origin)
         # Set the fixed vertex to (0, 0) in local coordinates
         # drawingElement.__init__(self, parent, start=point, **kwargs)
         self.setLocalPenOptions(**kwargs)
         self.setLocalBrushOptions(**kwargs)
         self.setTextWidth(-1)
-        self.latexImageHtml = None
-        self.latexExpression = None
-        self.latexImageBinary = None
+        if not hasattr(self, 'latexImageBinary'):
+            self.latexImageHtml = None
+            self.latexExpression = None
+            self.latexImageBinary = None
         # Sets the desired DPI for the image being generated
         self.latexImageDpi = 300
         # Scale the DPI in order to avoid pixelation
@@ -1086,7 +1091,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.showEditor()
 
     def __getstate__(self):
-        localDict = super(TextBox, self).__getstate__()
+        localDict = super().__getstate__()
         localDict.pop('textEditor', None)
         # Add htmlText to the dict
         localDict['htmlText'] = self.toHtml()
@@ -1094,7 +1099,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def boundingRect(self):
         if self.latexImageBinary is None:
-            return super(TextBox, self).boundingRect()
+            return super().boundingRect()
         else:
             if not hasattr(self, 'rect_'):
                 pix = QtGui.QPixmap()
@@ -1104,20 +1109,25 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def paint(self, painter, option, widget):
         if self.latexImageBinary is None:
-            super(TextBox, self).paint(painter, option, widget)
+            super().paint(painter, option, widget)
         else:
-            pix = QtGui.QPixmap()
-            pix.loadFromData(self.latexImageBinary.getvalue(), format='png')
-            painter.setPen(self.localPen)
-            painter.setBrush(self.localBrush)
-            self.rect_ = QtCore.QRectF(QtCore.QPointF(0, 0), QtCore.QSizeF(pix.size()/self.latexImageDpiScale))
-            painter.drawPixmap(self.rect_.toRect(), pix)
             if self.isSelected() is True:
                 pen = QtGui.QPen()
                 pen.setWidth(0.5)
                 pen.setStyle(2)
                 painter.setPen(pen)
                 painter.drawRect(self.boundingRect())
+            pix = QtGui.QPixmap()
+            pix.loadFromData(self.latexImageBinary.getvalue(), format='png')
+            # painter.setPen(self.localPen)
+            # painter.setBrush(self.localBrush)
+            self.rect_ = QtCore.QRectF(QtCore.QPointF(0, 0), QtCore.QSizeF(pix.size()/self.latexImageDpiScale))
+            painter.drawPixmap(self.rect_.toRect(), pix)
+
+    def shape(self):
+        path = QtGui.QPainterPath()
+        path.addRect(self.boundingRect())
+        return path
 
     def showEditor(self):
         self.textEditor = TextEditor(self)
@@ -1177,7 +1187,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
-        super(TextBox, self).mouseDoubleClickEvent(event)
+        super().mouseDoubleClickEvent(event)
         # Reset the text colour from gray
         self.changeColourToGray(False)
         self.showEditor()
@@ -1211,7 +1221,7 @@ class Arc(Wire):
     """This is a special case of the Wire class where repeated clicks change the curvature
     of the wire."""
     def __init__(self, parent=None, start=None, **kwargs):
-        super(Arc, self).__init__(parent=parent, start=start, **kwargs)
+        super().__init__(parent=parent, start=start, **kwargs)
         if 'points' in kwargs:
             self.points = kwargs['points']
         self.clicks = 0

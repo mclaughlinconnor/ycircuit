@@ -9,7 +9,7 @@ from io import BytesIO
 class Grid(QtCore.QObject):
     """temp docstring for the Gridclass"""
     def __init__(self, parent=None, view=None, spacing=10):
-        super(Grid, self).__init__()
+        super().__init__()
         self.parent = parent
         self.view = view
         self.spacing = spacing
@@ -66,7 +66,7 @@ class Grid(QtCore.QObject):
 
 class TextEditor(QtWidgets.QDialog):
     def __init__(self, textBox=None):
-        super(TextEditor, self).__init__()
+        super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.textBox = textBox
@@ -95,7 +95,8 @@ class TextEditor(QtWidgets.QDialog):
                         self.textBox.data64 = str(data.toBase64())
                 else:
                     self.textBox.latexImageBinary, self.base64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-                htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
+                # htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
+                htmlString = ''
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.setHtml(htmlString)
 
@@ -117,7 +118,8 @@ class TextEditor(QtWidgets.QDialog):
         plainText = self.ui.textEdit.toPlainText()
         if self.ui.pushButton_latex.isChecked():
             self.textBox.latexImageBinary, self.textBox.data64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-            htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
+            # htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
+            htmlString = ''
             self.textBox.latexImageHtml = htmlString
             self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
             self.textBox.setHtml(htmlString)
@@ -125,7 +127,7 @@ class TextEditor(QtWidgets.QDialog):
             self.textBox.setHtml(self.ui.textEdit.toHtml())
             self.textBox.latexImageHtml = None
             self.textBox.latexExpression= None
-        super(TextEditor, self).accept()
+        super().accept()
 
     def modifyPushButtons(self):
         cursor = self.ui.textEdit.textCursor()
@@ -272,7 +274,7 @@ class TextEditor(QtWidgets.QDialog):
 
 class myFileDialog(QtWidgets.QFileDialog):
     def __init__(self, *args, **kwargs):
-        super(myFileDialog, self).__init__(*args)
+        super().__init__(*args)
         self.setOption(self.DontUseNativeDialog)
         # Find the list view responsible for showing the files and change its flow
         listViews = self.findChildren(QtWidgets.QListView)
@@ -300,19 +302,22 @@ class myFileDialog(QtWidgets.QFileDialog):
             self.setItemDelegate(QtWidgets.QStyledItemDelegate())
         else:
             self.setItemDelegate(myStyledItemDelegate())
-        super(myFileDialog, self).setViewMode(viewMode)
+        super().setViewMode(viewMode)
 
 
 class myIconProvider(QtWidgets.QFileIconProvider):
     def __init__(self, parent=None):
         """Create a custom icon provider for the file picker"""
-        super(myIconProvider, self).__init__()
+        super().__init__()
 
     def icon(self, fileInfo):
         if type(fileInfo) == QtCore.QFileInfo:
             if str(fileInfo.filePath())[-3:] in ['sch', 'sym']:
-                with open(str(fileInfo.filePath()), 'rb') as file:
-                    loadItem = pickle.load(file)
+                with open(str(fileInfo.filePath()), 'rb') as f:
+                    try:
+                        loadItem = pickle.load(f)
+                    except:
+                        return super().icon(fileInfo)
                 scene = QtWidgets.QGraphicsScene()
                 # Load the file
                 loadItem.__init__(None, QtCore.QPointF(0, 0), loadItem.listOfItems, mode='symbol')
@@ -345,14 +350,14 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                 icon.addPixmap(pix)
                 return icon
             else:
-                return super(myIconProvider, self).icon(fileInfo)
+                return super().icon(fileInfo)
         else:
-            return super(myIconProvider, self).icon(fileInfo)
+            return super().icon(fileInfo)
 
 
 class myStyledItemDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, *args):
-        super(myStyledItemDelegate, self).__init__(*args)
+        super().__init__(*args)
         self.iconWidth, self.iconHeight = 200, 200
 
     def paint(self, painter, option, index):
@@ -360,7 +365,7 @@ class myStyledItemDelegate(QtWidgets.QStyledItemDelegate):
         option.decorationSize = QtCore.QSize(self.iconWidth*0.9, self.iconHeight*0.9)
         option.decorationAlignment = QtCore.Qt.AlignCenter
         option.displayAlignment = QtCore.Qt.AlignCenter
-        super(myStyledItemDelegate, self).paint(painter, option, index)
+        super().paint(painter, option, index)
 
     def sizeHint(self, option, index):
         return QtCore.QSize(self.iconWidth, self.iconHeight+30)

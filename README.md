@@ -5,7 +5,7 @@ In my experience with drawing pretty schematics that could create publication qu
 
 Just to be clear, this tool is intended to be used only for drawing circuit schematics. This is not intended to be a circuit simulator or anything more than a drawing program. This might change in the future, but I think it is useful to spell out exactly what YCircuit is intended to do.
 
-YCircuit is written in [Python](https://www.python.org) and uses [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download) as the GUI framework. The dependence on PyQt4 implies that Python 3 is not supported at this point.
+YCircuit is written in [Python 3](https://www.python.org) and uses [PyQt5](https://www.riverbankcomputing.com/software/pyqt/download) as the GUI framework. The move from PyQt4 to PyQt5 makes this a little more future-proof but it comes with some tradeoffs, the worst of which is the inability to export to EPS.
 
 ## Installation ##
 -------------------------------------------------------------------------------
@@ -21,14 +21,12 @@ The master branch is the latest stable branch and this is likely the one you wil
 
 YCircuit currently has the following dependencies:
 
-  * Python - tested on 2.7.11
-  * PyQt4 - for rendering the GUI
+  * Python - tested on 3.5.2 (**Note**: This version is incompatible with Python 2.x)
+  * PyQt5 - for rendering the GUI
   * SymPy - for handling LaTeX inputs
   * NumPy - for handling some of the math
 
 The easiest way to satisfy all dependencies is to use [Anaconda](https://www.continuum.io/downloads). This is what I use also, and so we can be sure that the environments are (more or less) similar.
-
-**Note:** With the most recent releases of Anaconda, performing `conda install PyQt` installs PyQt5 by default. The code was written specifically for PyQt4 and will not work with PyQt5. To [force Anaconda to install PyQt4](https://stackoverflow.com/questions/21637922/how-to-install-pyqt4-in-anaconda), use the following command `conda install pyqt=4`.
 
 ## Usage ##
 -------------------------------------------------------------------------------
@@ -45,8 +43,8 @@ As of this point in time, the following options are available:
     * Create a new schematic (Ctrl+N)
     * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
     * Save and load schematics (.sch files) (Ctrl+S, Ctrl+L)
-    * Export symbol or schematic as a PDF, EPS, JPEG, PNG or BMP file (Ctrl+E)
-        * EPS objects exported this way are fully editable in Illustrator. It is worth noting that symbols such as resistors, opamps etc. remain editable as individual units (as opposed to being split into multiple lines). Text, however, is a little harder to handle because while it still remains editable as text, a multi-character string is rendered as made of multiple single-character strings. For example, "V2" would be editable as "V" and "2" separately.
+    * Export symbol or schematic as a PDF, SVG, JPEG, PNG or BMP file (Ctrl+E)
+        * While exporting to EPS was natively supported by PyQt4, the Qt team decided to drop this during the transition to Qt5. As a result, EPS is no longer supported by YCircuit. If you need a vector-based exporting option, use the PDF or SVG options.
   * Editing (Alt+E)
     * Undo (Ctrl+Z)
     * Redo (Ctrl+Y)
@@ -64,7 +62,7 @@ As of this point in time, the following options are available:
     * Ellipse (Alt+A->E)
     * Arcs (3-point and 4-point Bezier curves) (Alt+A->A)
     * Text box (with support for bold, italics, underline, overline, subscript and superscript) (Alt+A->T)
-        * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed.
+        * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed. Check [here](https://bitbucket.org/siddharthshekar/ycircuit.git/raw/master/Resources/Examples/TIA Noise/tia_noise.png) in order to get an idea of what the LaTeX output looks like.
         * An option for a more coherent look would be to use the symbols button in the text editor.
   * Symbols (Alt+S)
     * Wire (Right click to change the angle of the wire!) (Alt+S->W)
