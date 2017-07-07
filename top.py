@@ -13,7 +13,7 @@ if platform.system() == 'Windows':
 class myMainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
-        super(myMainWindow, self).__init__()
+        super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         icon = QtGui.QIcon()

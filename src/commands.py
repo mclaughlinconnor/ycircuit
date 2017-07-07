@@ -1,11 +1,11 @@
 from PyQt5 import QtCore, QtWidgets
-from components import myGraphicsItemGroup
+from .components import myGraphicsItemGroup
 import copy
 
 
 class Delete(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None):
-        super(Delete, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         if type(listOfItems) != list:
             self.listOfItems = [listOfItems]
@@ -25,7 +25,7 @@ class Delete(QtWidgets.QUndoCommand):
 
 class AddMulti(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None):
-        super(AddMulti, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
 
@@ -40,7 +40,7 @@ class AddMulti(QtWidgets.QUndoCommand):
 
 class Add(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, item=None, **kwargs):
-        super(Add, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         if 'symbol' in kwargs:
             self.symbol = kwargs['symbol']
@@ -90,7 +90,7 @@ class Add(QtWidgets.QUndoCommand):
 class Edit(QtWidgets.QUndoCommand):
     """Mainly used only for wires and arcs"""
     def __init__(self, parent=None, scene=None, item=None, point=None):
-        super(Edit, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         self.item = item
         self.point = point
@@ -105,7 +105,7 @@ class Edit(QtWidgets.QUndoCommand):
 class EditNet(QtWidgets.QUndoCommand):
     """Used for editing net lengths"""
     def __init__(self, parent=None, scene=None, item=None, oldLine=None, newLine=None):
-       super(EditNet, self).__init__(parent)
+       super().__init__(parent)
        self.scene = scene
        self.item = item
        self.oldLine = oldLine
@@ -120,7 +120,7 @@ class EditNet(QtWidgets.QUndoCommand):
 
 class Move(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, startPoint=None, stopPoint=None):
-        super(Move, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
         self.startPoint = startPoint
@@ -139,7 +139,7 @@ class Move(QtWidgets.QUndoCommand):
 
 class Copy(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, point=None):
-        super(Copy, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
         self.point = point
@@ -158,7 +158,7 @@ class Copy(QtWidgets.QUndoCommand):
 
 class Rotate(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None, angle=None):
-        super(Rotate, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
         self.moving = moving
@@ -179,7 +179,7 @@ class Rotate(QtWidgets.QUndoCommand):
 
 class Mirror(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None):
-        super(Mirror, self).__init__(parent)
+        super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
         self.moving = moving
@@ -199,7 +199,7 @@ class Mirror(QtWidgets.QUndoCommand):
 
 class ChangePen(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
-        super(ChangePen, self).__init__(parent)
+        super().__init__(parent)
         if 'width' in kwargs:
             self.newLocalPenWidth = kwargs['width']
             if isinstance(item, list):
@@ -231,7 +231,7 @@ class ChangePen(QtWidgets.QUndoCommand):
 
 class ChangePenWidth(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
-        super(ChangePenWidth, self).__init__(parent)
+        super().__init__(parent)
         self.item = item
         self.oldLocalPenWidth = self.item.localPenWidth
         if 'width' in kwargs:
@@ -248,7 +248,7 @@ class ChangePenWidth(QtWidgets.QUndoCommand):
 
 class ChangePenColour(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
-        super(ChangePenColour, self).__init__(parent)
+        super().__init__(parent)
         self.item = item
         self.oldLocalPenColour = self.item.localPenColour
         if 'penColour' in kwargs:
@@ -265,7 +265,7 @@ class ChangePenColour(QtWidgets.QUndoCommand):
 
 class ChangePenStyle(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
-        super(ChangePenStyle, self).__init__(parent)
+        super().__init__(parent)
         self.item = item
         self.oldLocalPenStyle = self.item.localPenStyle
         if 'penStyle' in kwargs:
@@ -282,7 +282,7 @@ class ChangePenStyle(QtWidgets.QUndoCommand):
 
 class ChangeBrush(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
-        super(ChangeBrush, self).__init__(parent)
+        super().__init__(parent)
         if 'brushColour' in kwargs:
             self.newLocalBrushColour = kwargs['brushColour']
             if isinstance(item, list):
@@ -305,7 +305,7 @@ class ChangeBrush(QtWidgets.QUndoCommand):
 
 class ChangeBrushColour(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
-        super(ChangeBrushColour, self).__init__(parent)
+        super().__init__(parent)
         self.item = item
         self.oldLocalBrushColour = self.item.localBrushColour
         if 'brushColour' in kwargs:
@@ -322,7 +322,7 @@ class ChangeBrushColour(QtWidgets.QUndoCommand):
 
 class ChangeBrushStyle(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
-        super(ChangeBrushStyle, self).__init__(parent)
+        super().__init__(parent)
         self.item = item
         self.oldLocalBrushStyle = self.item.localBrushStyle
         if 'brushStyle' in kwargs:
