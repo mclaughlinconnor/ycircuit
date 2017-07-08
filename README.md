@@ -62,7 +62,7 @@ As of this point in time, the following options are available:
     * Ellipse (Alt+A->E)
     * Arcs (3-point and 4-point Bezier curves) (Alt+A->A)
     * Text box (with support for bold, italics, underline, overline, subscript and superscript) (Alt+A->T)
-        * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed. Check [here](https://bitbucket.org/siddharthshekar/ycircuit.git/raw/master/Resources/Examples/TIA Noise/tia_noise.png) in order to get an idea of what the LaTeX output looks like.
+        * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed. Check [here](https://bitbucket.org/siddharthshekar/ycircuit.git/raw/master/Resources/Examples/TIA noise/tia_noise.png) in order to get an idea of what the LaTeX output looks like.
         * An option for a more coherent look would be to use the symbols button in the text editor.
   * Symbols (Alt+S)
     * Wire (Right click to change the angle of the wire!) (Alt+S->W)
