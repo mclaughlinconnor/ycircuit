@@ -1,4 +1,3 @@
-# Missing SVG import
 from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtSvg
 from src.commands import *
 from src.components import *

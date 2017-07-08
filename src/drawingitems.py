@@ -295,7 +295,8 @@ class myFileDialog(QtWidgets.QFileDialog):
         if 'filt' in kwargs:
             self.setNameFilter(kwargs['filt'])
         self.setViewMode(self.List)
-        self.resize(1280, 960)
+        screenSize = QtWidgets.QDesktopWidget().screenGeometry(QtWidgets.QDesktopWidget().screenNumber()).size()
+        self.resize(screenSize*0.8)
 
     def setViewMode(self, viewMode):
         if viewMode == self.Detail:
