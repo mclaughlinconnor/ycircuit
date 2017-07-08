@@ -382,6 +382,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         for poly in polyPathList:
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
         localDict['polyPathPointList'] = polyPathPointList
+        localDict.pop('oldPath', None)
         return localDict
 
     def __setstate__(self, state):
