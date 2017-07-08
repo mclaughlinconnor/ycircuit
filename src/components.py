@@ -793,8 +793,8 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
     def boundingRect(self):
         # Make the bounding rect a little bigger so it is easier to see
         pad = 10
-        topLeft = self.rect().topLeft() + QtCore.QPointF(-pad, -pad)
-        bottomRight = self.rect().bottomRight() + QtCore.QPointF(pad, pad)
+        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-pad, -pad)
+        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(pad, pad)
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
@@ -832,9 +832,6 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         else:
             start = self.start
         rect = QtCore.QRectF(start, end)
-        self.setRect(rect)
-        self.updateP1P2()
-        rect = QtCore.QRectF(self.p1, self.p2)
         self.prepareGeometryChange()
         self.setRect(rect)
         self.oldRect = rect
@@ -876,18 +873,20 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
 
     def updateP1P2(self):
         # Make sure start is top left and end is bottom right
-        if self.rect().width() >= 0 and self.rect().height() >= 0:
-            self.p1 = self.rect().topLeft()
-            self.p2 = self.rect().bottomRight()
-        elif self.rect().width() >= 0 and self.rect().height() < 0:
-            self.p1 = self.rect().bottomLeft()
-            self.p2 = self.rect().topRight()
-        elif self.rect().width() < 0 and self.rect().height() >= 0:
-            self.p1 = self.rect().topRight()
-            self.p2 = self.rect().bottomLeft()
-        else:
-            self.p1 = self.rect().bottomRight()
-            self.p2 = self.rect().topLeft()
+        # if self.rect().width() >= 0 and self.rect().height() >= 0:
+        #     self.p1 = self.rect().topLeft()
+        #     self.p2 = self.rect().bottomRight()
+        # elif self.rect().width() >= 0 and self.rect().height() < 0:
+        #     self.p1 = self.rect().bottomLeft()
+        #     self.p2 = self.rect().topRight()
+        # elif self.rect().width() < 0 and self.rect().height() >= 0:
+        #     self.p1 = self.rect().topRight()
+        #     self.p2 = self.rect().bottomLeft()
+        # else:
+        #     self.p1 = self.rect().bottomRight()
+        #     self.p2 = self.rect().topLeft()
+        rect = self.rect().normalized()
+        self.p1, self.p2 = rect.topLeft(), rect.bottomRight()
 
 
 class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
@@ -910,9 +909,8 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
     def boundingRect(self):
         # Make the bounding rect a little bigger so that it is easier to see
         pad = 10
-        # Not sure why this is different from the Rectangle boundingRect
-        topLeft = self.rect().topLeft() + QtCore.QPointF(-pad, -pad)
-        bottomRight = self.rect().bottomRight() + QtCore.QPointF(pad, pad)
+        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-pad, -pad)
+        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(pad, pad)
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
@@ -942,13 +940,14 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
             painter.setBrush(self.localBrush)
             painter.drawEllipse(self.rect())
 
-    def updateEllipse(self, end):
+    def updateEllipse(self, end, edit=False):
         # Update the end point of the ellipse to end
         end = self.mapFromScene(end)
-        rect = QtCore.QRectF(self.start, end)
-        self.setRect(rect)
-        self.updateP1P2()
-        rect = QtCore.QRectF(self.p1, self.p2)
+        if edit is True:
+            start = self.p1
+        else:
+            start = self.start
+        rect = QtCore.QRectF(start, end)
         self.prepareGeometryChange()
         self.setRect(rect)
         self.oldRect = rect
@@ -976,18 +975,35 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
 
     def updateP1P2(self):
         # Make sure start is top left and end is bottom right
-        if self.rect().width() >= 0 and self.rect().height() >= 0:
-            self.p1 = self.rect().topLeft()
-            self.p2 = self.rect().bottomRight()
-        elif self.rect().width() >= 0 and self.rect().height() < 0:
-            self.p1 = self.rect().bottomLeft()
-            self.p2 = self.rect().topRight()
-        elif self.rect().width() < 0 and self.rect().height() >= 0:
-            self.p1 = self.rect().topRight()
-            self.p2 = self.rect().bottomLeft()
-        else:
-            self.p1 = self.rect().bottomRight()
-            self.p2 = self.rect().topLeft()
+        # if self.rect().width() >= 0 and self.rect().height() >= 0:
+        #     self.p1 = self.rect().topLeft()
+        #     self.p2 = self.rect().bottomRight()
+        # elif self.rect().width() >= 0 and self.rect().height() < 0:
+        #     self.p1 = self.rect().bottomLeft()
+        #     self.p2 = self.rect().topRight()
+        # elif self.rect().width() < 0 and self.rect().height() >= 0:
+        #     self.p1 = self.rect().topRight()
+        #     self.p2 = self.rect().bottomLeft()
+        # else:
+        #     self.p1 = self.rect().bottomRight()
+        #     self.p2 = self.rect().topLeft()
+        rect = self.rect().normalized()
+        self.p1, self.p2 = rect.topLeft(), rect.bottomRight()
+
+    def undoEdit(self):
+        rect = self.undoRectList.pop()
+        self.setRect(rect)
+        self.oldRect = rect
+        self.updateP1P2()
+
+    def redoEdit(self, point):
+        if not hasattr(self, 'undoRectList'):
+            self.undoRectList = []
+        rect = QtCore.QRectF(self.p1, self.mapFromScene(point))
+        self.setRect(rect)
+        self.oldRect = rect
+        self.undoRectList.append(self.rect())
+        self.updateP1P2()
 
 
 class Circle(Ellipse):

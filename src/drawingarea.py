@@ -895,8 +895,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     point = self.mapToGrid(event.pos())
                     if isinstance(item, Rectangle):
                         item.updateRectangle(point, edit=True)
+                    # Check for circle before ellipse because circle is a subclass of ellipse
                     elif isinstance(item, Circle):
                         item.updateCircle(point)
+                    elif isinstance(item, Ellipse):
+                        item.updateEllipse(point, edit=True)
 
     # def contextMenuEvent(self, event):
     #     # TODO: Make this work properly
@@ -940,10 +943,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if len(self.scene().selectedItems()) == 1:
             item = self.scene().selectedItems()[0]
             cursor = self.cursor()
-            if isinstance(item, Rectangle):
-                sceneP = item.mapToScene(item.p2).toPoint()
-            elif isinstance(item, Circle):
+            if isinstance(item, Circle):
                 sceneP = item.end.toPoint()
+            elif isinstance(item, Rectangle) or isinstance(item, Ellipse):
+                sceneP = item.mapToScene(item.p2).toPoint()
+            else:
+                return
             viewP = self.mapFromScene(sceneP)
             cursor.setPos(self.viewport().mapToGlobal(viewP))
             self.editStartPoint = sceneP
