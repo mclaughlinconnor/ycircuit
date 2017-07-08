@@ -501,6 +501,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def deleteRoutine(self):
         """Delete selected items"""
+        if self.scene().selectedItems() == []:
+            return
         self.undoStack.beginMacro('')
         for item2 in self.scene().selectedItems():
             if isinstance(item2, Net):
@@ -657,16 +659,32 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), transform=self.loadItem.transform())
                 self.undoStack.push(add)
         if self._keys['edit'] is True:
-            self._keys['edit'] = False
-            if (event.button() == QtCore.Qt.LeftButton):
-                self._mouse['1'] = False
-                edit = Edit(None, self.scene(), self.scene().selectedItems()[0], self.mapToGrid(event.pos()))
-                self.undoStack.push(edit)
+            item = self.scene().selectedItems()[0]
+            if isinstance(item, Wire):
+                if (event.button() == QtCore.Qt.LeftButton):
+                    edit = Edit(None, self.scene(), item, self.mapToGrid(event.pos()), clicked=True)
+                    self.undoStack.push(edit)
+                    self.undoStack.endMacro()
+                    self.undoStack.beginMacro('')
+                    # Adjust cursor if the item is a wire
+                    cursor = self.cursor()
+                    sceneP = item.mapToScene(item.editPointLocation(item.editPointNumber))
+                    viewP = self.mapFromScene(sceneP)
+                    cursor.setPos(self.viewport().mapToGlobal(viewP))
+                    edit = Edit(None, self.scene(), item, sceneP)
+                    self.undoStack.push(edit)
+            else:
+                self._keys['edit'] = False
+                if (event.button() == QtCore.Qt.LeftButton):
+                    self._mouse['1'] = False
+                    edit = Edit(None, self.scene(), item, self.mapToGrid(event.pos()))
+                    self.undoStack.push(edit)
+            if self._mouse['1'] is False:
                 self.undoStack.endMacro()
         # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
-        if self.moveItems == []:
+        if self.moveItems == [] and self._keys['m'] is True:
             super().mousePressEvent(event)
-        elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False:
+        if self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False and self._keys['edit'] is False:
             super().mousePressEvent(event)
 
     def updateMoveItems(self):
@@ -734,8 +752,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         self.scene().addItem(self.currentWire)
                     # If wire exists, add segments
                     else:
-                        edit = Edit(None, self.scene(), self.currentWire, start)
-                        self.undoStack.push(edit)
+                        draw = Draw(None, self.scene(), self.currentWire, start)
+                        self.undoStack.push(draw)
                 elif self._keys['arc'] is True:
                     # Create new arc if none exists
                     if self.currentArc is None:
@@ -743,8 +761,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         self.scene().addItem(self.currentArc)
                     # If arc exists, add segments
                     else:
-                        edit = Edit(None, self.scene(), self.currentArc, start)
-                        self.undoStack.push(edit)
+                        draw = Draw(None, self.scene(), self.currentArc, start)
+                        self.undoStack.push(draw)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         if self._keys['net'] is True:
@@ -900,6 +918,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         item.updateCircle(point)
                     elif isinstance(item, Ellipse):
                         item.updateEllipse(point, edit=True)
+                    elif isinstance(item, Wire):
+                        item.updateWire(point, edit=True)
 
     # def contextMenuEvent(self, event):
     #     # TODO: Make this work properly
@@ -940,21 +960,32 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.translate(delta.x(), delta.y())
 
     def editShape(self):
-        if len(self.scene().selectedItems()) == 1:
-            item = self.scene().selectedItems()[0]
-            cursor = self.cursor()
-            if isinstance(item, Circle):
-                sceneP = item.end.toPoint()
-            elif isinstance(item, Rectangle) or isinstance(item, Ellipse):
-                sceneP = item.mapToScene(item.p2).toPoint()
+        # Only process this if edit mode is not already active
+        if self._keys['edit'] is False:
+            if len(self.scene().selectedItems()) == 1:
+                item = self.scene().selectedItems()[0]
+                cursor = self.cursor()
+                if isinstance(item, Circle):
+                    sceneP = item.end.toPoint()
+                elif isinstance(item, Rectangle) or isinstance(item, Ellipse):
+                    sceneP = item.mapToScene(item.p2).toPoint()
+                elif isinstance(item, Wire):
+                    # poly = item.oldPath.toSubpathPolygons(item.transform())[0]
+                    # item.editPointNumber = poly.size() - 1
+                    item.editPointNumber = 0
+                    sceneP = item.mapToScene(item.editPointLocation(item.editPointNumber))
+                else:
+                    return
+                viewP = self.mapFromScene(sceneP)
+                cursor.setPos(self.viewport().mapToGlobal(viewP))
+                self.editStartPoint = sceneP
+                self.undoStack.beginMacro('')
+                self._keys['edit'], self._mouse['1'] = True, True
+                edit = Edit(None, self.scene(), item, self.editStartPoint)
+                self.undoStack.push(edit)
+                # Adjust cursor if the item is a wire
+                if isinstance(item, Wire):
+                    viewP = self.mapFromScene(item.mapToScene(item.editPointLocation(item.editPointNumber)))
+                    cursor.setPos(self.viewport().mapToGlobal(viewP))
             else:
-                return
-            viewP = self.mapFromScene(sceneP)
-            cursor.setPos(self.viewport().mapToGlobal(viewP))
-            self.editStartPoint = sceneP
-            self._keys['edit'], self._mouse['1'] = True, True
-            self.undoStack.beginMacro('')
-            edit = Edit(None, self.scene(), item, self.editStartPoint)
-            self.undoStack.push(edit)
-        else:
-            self.statusbarMessage.emit("Please select an item to edit", 1000)
+                self.statusbarMessage.emit("Please select an item to edit", 1000)

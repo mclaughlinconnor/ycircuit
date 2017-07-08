@@ -87,7 +87,7 @@ class Add(QtWidgets.QUndoCommand):
         self.scene.removeItem(self.item)
 
 
-class Edit(QtWidgets.QUndoCommand):
+class Draw(QtWidgets.QUndoCommand):
     """Mainly used only for wires and arcs"""
     def __init__(self, parent=None, scene=None, item=None, point=None):
         super().__init__(parent)
@@ -96,7 +96,26 @@ class Edit(QtWidgets.QUndoCommand):
         self.point = point
 
     def redo(self):
-        self.item.redoEdit(self.point)
+        self.item.redoDraw(self.point)
+
+    def undo(self):
+        self.item.undoDraw()
+
+
+class Edit(QtWidgets.QUndoCommand):
+    """Used for editing item shapes"""
+    def __init__(self, parent=None, scene=None, item=None, point=None, **kwargs):
+        super().__init__(parent)
+        self.scene = scene
+        self.item = item
+        self.point = point
+        if 'clicked' in kwargs:
+            self.clicked = True
+        else:
+            self.clicked = False
+
+    def redo(self):
+        self.item.redoEdit(self.point, clicked=self.clicked)
 
     def undo(self):
         self.item.undoEdit()

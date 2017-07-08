@@ -204,7 +204,7 @@ class drawingElement(object):
         """Handled by classes individually"""
         pass
 
-    def redoEdit(self, point=None):
+    def redoEdit(self, point=None, **kwargs):
         """Handled by classes individually"""
         pass
 
@@ -352,9 +352,9 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         for item in self.listOfItems:
             item.undoEdit()
 
-    def redoEdit(self, point=None):
+    def redoEdit(self, point=None, **kwargs):
         for item in self.listOfItems:
-            item.redoEdit(point)
+            item.redoEdit(point, **kwargs)
 
 
 class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
@@ -362,22 +362,27 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
     added convenience functions and enables object-like interaction"""
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
-        # For when wire is being loaded from a file, oldPath already exists
-        if not hasattr(self, 'oldPath'):
+        # For when wire is being loaded from a file, polyPathPointList already exists
+        if not hasattr(self, 'polyPathPointList'):
             super().__init__(QtGui.QPainterPath(point), parent=parent, start=start)
         else:
-            super().__init__(self.oldPath, parent=parent, start=start)
+            poly = QtGui.QPolygonF(self.polyPathPointList[0])
+            path = QtGui.QPainterPath()
+            path.addPolygon(poly)
+            super().__init__(path, parent=parent, start=start)
         # drawingElement.__init__(self, parent, start, **kwargs)
         self.setLocalPenOptions(**kwargs)
         self.setLocalBrushOptions(**kwargs)
         self.oldPath = self.path()
         if self.start is not None:
             self.setPos(self.start)
+        self.editPointNumber = 0
+        self.undoPathList = []
 
     def __getstate__(self):
         localDict = super().__getstate__()
         # Add a list of all points part of the wire
-        polyPathList = self.oldPath.toSubpathPolygons(QtGui.QTransform())
+        polyPathList = self.path().toSubpathPolygons(QtGui.QTransform())
         polyPathPointList = []
         for poly in polyPathList:
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
@@ -401,12 +406,23 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         rect = super().boundingRect()
         return rect
 
-    def updateWire(self, newEnd):
+    def updateWire(self, newEnd, edit=False):
         # Update existing segment to end at newEnd
         newEnd = self.mapFromScene(newEnd)
-        self.setPath(self.oldPath)
-        path = self.path()
-        path.lineTo(newEnd)
+        if edit is False:
+            self.setPath(self.oldPath)
+            path = self.path()
+            path.lineTo(newEnd)
+        else:
+            polyPathList = self.oldPath.toSubpathPolygons(QtGui.QTransform())
+            polyPathPointList = []
+            for poly in polyPathList:
+                for i in range(poly.count()):
+                    polyPathPointList.append(poly.at(i))
+            polyPathPointList[self.editPointNumber] = newEnd
+            polyPathList = QtGui.QPolygonF(polyPathPointList)
+            path = QtGui.QPainterPath()
+            path.addPolygon(polyPathList)
         self.setPath(path)
 
     def createSegment(self, newEnd):
@@ -433,7 +449,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             newWire.origin = self.origin
         return newWire
 
-    def undoEdit(self):
+    def undoDraw(self):
         if len(self.oldPath.toSubpathPolygons(self.transform())) == 0:
             return False
         lastPoly = self.oldPath.toSubpathPolygons(self.transform())[-1]
@@ -446,8 +462,51 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         self.oldPath = path
         self.setPath(self.oldPath)
 
-    def redoEdit(self, point=None):
+    def redoDraw(self, point=None):
         self.createSegment(point)
+
+    def editPointLocation(self, editPointNumber):
+        polyPathList = self.oldPath.toSubpathPolygons(QtGui.QTransform())
+        polyPathPointList = []
+        for poly in polyPathList:
+            for i in range(poly.count()):
+                polyPathPointList.append(poly.at(i))
+        return polyPathPointList[editPointNumber]
+
+    def undoEdit(self):
+        path = self.undoPathList.pop()
+        if path is None:
+            self.setPath(self.oldPath)
+            return
+        self.oldPath = path
+        self.setPath(path)
+        self.editPointNumber -= 1
+        poly = path.toSubpathPolygons(QtGui.QTransform())[0]
+        self.editPointNumber %= poly.size()
+
+    def redoEdit(self, point=None, clicked=False):
+        if self.editPointLocation(self.editPointNumber) == self.mapFromScene(point):
+            self.undoPathList.append(None)
+            if clicked is True:
+                self.editPointNumber += 1
+                self.editPointNumber %= self.oldPath.toSubpathPolygons(QtGui.QTransform())[0].size()
+            return
+        # Create a list of all points part of the wire
+        polyPathList = self.oldPath.toSubpathPolygons(QtGui.QTransform())
+        polyPathPointList = []
+        for poly in polyPathList:
+            for i in range(poly.count()):
+                polyPathPointList.append(poly.at(i))
+        polyPathPointList[self.editPointNumber] = self.mapFromScene(point)
+        poly = QtGui.QPolygonF(polyPathPointList)
+        path = QtGui.QPainterPath()
+        path.addPolygon(poly)
+        self.undoPathList.append(self.oldPath)
+        self.oldPath = path
+        self.setPath(path)
+        if clicked is True:
+            self.editPointNumber += 1
+            self.editPointNumber %= self.oldPath.toSubpathPolygons(QtGui.QTransform())[0].size()
 
 
 class Net(QtWidgets.QGraphicsLineItem, drawingElement):
@@ -862,7 +921,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         self.oldRect = rect
         self.updateP1P2()
 
-    def redoEdit(self, point):
+    def redoEdit(self, point, **kwargs):
         if not hasattr(self, 'undoRectList'):
             self.undoRectList = []
         rect = QtCore.QRectF(self.p1, self.mapFromScene(point))
@@ -996,7 +1055,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         self.oldRect = rect
         self.updateP1P2()
 
-    def redoEdit(self, point):
+    def redoEdit(self, point, **kwargs):
         if not hasattr(self, 'undoRectList'):
             self.undoRectList = []
         rect = QtCore.QRectF(self.p1, self.mapFromScene(point))
@@ -1051,7 +1110,7 @@ class Circle(Ellipse):
         # self.oldRect = rect
         # self.transform_ = transform_
 
-    def redoEdit(self, point):
+    def redoEdit(self, point, **kwargs):
         if not hasattr(self, 'undoPointList'):
             self.undoPointList = []
         # if not hasattr(self, 'undoTransformList'):
@@ -1290,9 +1349,9 @@ class Arc(Wire):
             self.oldPath.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(self.oldPath)
 
-    def undoEdit(self):
+    def undoDraw(self):
         if self.clicks > 0:
             self.clicks -= 1
 
-    def redoEdit(self, point=None):
+    def redoDraw(self, point=None):
         self.updateArc(point, click=True)

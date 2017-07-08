@@ -326,7 +326,11 @@ if __name__ == "__main__":
         sip.setdestroyonexit(False)
         myappid = u'ycircuit.0.1'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+    else:
+        import os
+        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
     app = QtWidgets.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()
