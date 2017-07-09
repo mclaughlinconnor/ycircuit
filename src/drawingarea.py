@@ -34,7 +34,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                       'ellipse': False, 'textBox': False, 'add': False,
                       'edit': False, 'net': False}
         self._mouse = {'1': False}
-        self._grid = Grid(None, self, 10, 100)
+        self._grid = Grid(None, self)
         self.undoStack = QtWidgets.QUndoStack(self)
         self.undoStack.setUndoLimit(1000)
         self.reflections = 0
@@ -71,8 +71,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Grid settings
         self.enableGrid = settings.value('Grid/Visibility', type=bool)
         self.snapToGrid = settings.value('Grid/Snap to grid', type=bool)
+        self._grid.snapToGridSpacing = settings.value('Grid/Snap to grid spacing', type=int)
         self._grid.majorSpacingVisibility = settings.value('Grid/Major grid points/Visibility', type=bool)
         self._grid.majorSpacing = settings.value('Grid/Major grid points/Spacing', type=int)
+        self._grid.minorSpacingVisibility = settings.value('Grid/Minor grid points/Visibility', type=bool)
+        self._grid.minorSpacing = settings.value('Grid/Minor grid points/Spacing', type=int)
         if self.enableGrid:
             self._grid.createGrid()
         else:
@@ -86,8 +89,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedBrushStyle = 0
         self.enableGrid = True
         self.snapToGrid = True
+        self._grid.snapToGridSpacing = 10
         self._grid.majorSpacingVisibility = True
         self._grid.majorSpacing = 100
+        self._grid.minorSpacingVisibility = True
+        self._grid.minorSpacing = 20
         if self.enableGrid:
             self._grid.createGrid()
         else:

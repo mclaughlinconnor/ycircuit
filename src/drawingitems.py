@@ -8,7 +8,7 @@ from io import BytesIO
 
 class Grid(QtCore.QObject):
     """temp docstring for the Gridclass"""
-    def __init__(self, parent=None, view=None, minorSpacing=10, majorSpacing=100):
+    def __init__(self, parent=None, view=None, minorSpacing=20, majorSpacing=100):
         super().__init__()
         self.parent = parent
         self.view = view
@@ -16,6 +16,7 @@ class Grid(QtCore.QObject):
         self.majorSpacing = majorSpacing
         self.minorSpacingVisibility = True
         self.majorSpacingVisibility = True
+        self.snapToGridSpacing = self.minorSpacing/2
         # Set it to 1200 because it is the LCM of 100, 200, 300 and 400 which are
         # the available major grid point spacings
         self.xLength = 1200
@@ -23,11 +24,11 @@ class Grid(QtCore.QObject):
         self.xPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
         self.yPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
 
-    def createGrid(self, **kwargs):
-        if 'minorSpacing' in kwargs:
-            self.minorSpacing = kwargs['minorSpacing']
-        self.xDisplayPoints = self.xPoints[::2]
-        self.yDisplayPoints = self.yPoints[::2]
+    def createGrid(self):
+        self.xPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
+        self.yPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
+        self.xDisplayPoints = self.xPoints
+        self.yDisplayPoints = self.yPoints
         self.gridPolygonRegular = QtGui.QPolygon()
         if self.minorSpacingVisibility is True:
             for x in self.xDisplayPoints:
@@ -58,13 +59,13 @@ class Grid(QtCore.QObject):
     def removeGrid(self):
         self.view.setBackgroundBrush(QtGui.QBrush())
 
-    def snapTo(self, point, minorSpacing=None):
-        if minorSpacing is None:
-            newX = numpy.round(point.x()/self.minorSpacing)*self.minorSpacing
-            newY = numpy.round(point.y()/self.minorSpacing)*self.minorSpacing
+    def snapTo(self, point, snapToGridSpacing=None):
+        if snapToGridSpacing is None:
+            newX = numpy.round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
+            newY = numpy.round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
         else:
-            newX = numpy.round(point.x()/minorSpacing)*minorSpacing
-            newY = numpy.round(point.y()/minorSpacing)*minorSpacing
+            newX = numpy.round(point.x()/snapToGridSpacing)*snapToGridSpacing
+            newY = numpy.round(point.y()/snapToGridSpacing)*snapToGridSpacing
         return QtCore.QPointF(newX, newY)
 
 

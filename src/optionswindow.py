@@ -28,21 +28,25 @@ class MyOptionsWindow(QtWidgets.QDialog):
     def readValues(self):
         if not os.path.isfile(self.fileName):
             self.createSettingsFile()
-        else:
-            # Painting pen settings
-            self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width'))
-            self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour'))
-            self.ui.comboBox_penStyle.setCurrentText(self.settings.value('Painting/Pen/Style'))
-            # Painting brush settings
-            self.ui.comboBox_brushColour.setCurrentText(self.settings.value('Painting/Brush/Colour'))
-            self.ui.comboBox_brushStyle.setCurrentText(self.settings.value('Painting/Brush/Style'))
+        # Read from the newly created settings file
+        # Painting pen settings
+        self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width'))
+        self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour'))
+        self.ui.comboBox_penStyle.setCurrentText(self.settings.value('Painting/Pen/Style'))
+        # Painting brush settings
+        self.ui.comboBox_brushColour.setCurrentText(self.settings.value('Painting/Brush/Colour'))
+        self.ui.comboBox_brushStyle.setCurrentText(self.settings.value('Painting/Brush/Style'))
 
-            # Grid settings
-            self.ui.checkBox_gridVisibility.setChecked(self.settings.value('Grid/Visibility', type=bool))
-            self.ui.checkBox_gridSnapToGrid.setChecked(self.settings.value('Grid/Snap to grid', type=bool))
-            # Major grid point settings
-            self.ui.checkBox_gridShowMajorGridPoints.setChecked(self.settings.value('Grid/Major grid points/Visibility', type=bool))
-            self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Major grid points/Spacing')))
+        # Grid settings
+        self.ui.checkBox_gridVisibility.setChecked(self.settings.value('Grid/Visibility', type=bool))
+        self.ui.checkBox_gridSnapToGrid.setChecked(self.settings.value('Grid/Snap to grid', type=bool))
+        self.ui.comboBox_gridSnapToGridSpacing.setCurrentText(str(self.settings.value('Grid/Snap to grid spacing')))
+        # Major grid point settings
+        self.ui.checkBox_gridShowMajorGridPoints.setChecked(self.settings.value('Grid/Major grid points/Visibility', type=bool))
+        self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Major grid points/Spacing')))
+        # Minor grid point settings
+        self.ui.checkBox_gridShowMinorGridPoints.setChecked(self.settings.value('Grid/Minor grid points/Visibility', type=bool))
+        self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Minor grid points/Spacing')))
 
     def writeValues(self):
         # Painting pen settings
@@ -56,9 +60,13 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Grid settings
         self.settings.setValue('Grid/Visibility', self.ui.checkBox_gridVisibility.isChecked())
         self.settings.setValue('Grid/Snap to grid', self.ui.checkBox_gridSnapToGrid.isChecked())
+        self.settings.setValue('Grid/Snap to grid spacing', int(self.ui.comboBox_gridSnapToGridSpacing.currentText()))
         # Major grid point settings
         self.settings.setValue('Grid/Major grid points/Visibility', self.ui.checkBox_gridShowMajorGridPoints.isChecked())
         self.settings.setValue('Grid/Major grid points/Spacing', int(self.ui.comboBox_gridMajorGridPointSpacing.currentText()))
+        # Minor grid point settings
+        self.settings.setValue('Grid/Minor grid points/Visibility', self.ui.checkBox_gridShowMinorGridPoints.isChecked())
+        self.settings.setValue('Grid/Minor grid points/Spacing', int(self.ui.comboBox_gridMinorGridPointSpacing.currentText()))
 
         # Sync changes to disk
         self.settings.sync()
@@ -83,10 +91,16 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.beginGroup('Grid')
         self.settings.setValue('Visibility', True)
         self.settings.setValue('Snap to grid', True)
+        self.settings.setValue('Snap to grid spacing', 10)
         # Major grid point settings
         self.settings.beginGroup('Major grid points')
         self.settings.setValue('Visibility', True)
         self.settings.setValue('Spacing', 100)
+        self.settings.endGroup()
+        # Minor grid point settings
+        self.settings.beginGroup('Minor grid points')
+        self.settings.setValue('Visibility', True)
+        self.settings.setValue('Spacing', 20)
         self.settings.endGroup()
         self.settings.endGroup()
 
