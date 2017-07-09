@@ -5,6 +5,9 @@ import os
 
 class MyOptionsWindow(QtWidgets.QDialog):
     """This class takes care of the options in YCircuit."""
+
+    applied = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         """Initializes the object and various parameters to default values"""
         super().__init__(parent)
@@ -17,6 +20,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)
         self.ui.buttonBox.button(self.ui.buttonBox.Apply).clicked.connect(self.writeValues)
+        self.ui.buttonBox.button(self.ui.buttonBox.Apply).clicked.connect(lambda: self.applied.emit())
 
     def accept(self):
         self.writeValues()
@@ -39,14 +43,15 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         # Grid settings
         self.ui.checkBox_gridVisibility.setChecked(self.settings.value('Grid/Visibility', type=bool))
-        self.ui.checkBox_gridSnapToGrid.setChecked(self.settings.value('Grid/Snap to grid', type=bool))
-        self.ui.comboBox_gridSnapToGridSpacing.setCurrentText(str(self.settings.value('Grid/Snap to grid spacing')))
+        # Snap settings
+        self.ui.checkBox_gridSnapToGrid.setChecked(self.settings.value('Grid/Snapping/Snap to grid', type=bool))
+        self.ui.comboBox_gridSnapToGridSpacing.setCurrentText(str(self.settings.value('Grid/Snapping/Snap to grid spacing')))
         # Major grid point settings
-        self.ui.checkBox_gridShowMajorGridPoints.setChecked(self.settings.value('Grid/Major grid points/Visibility', type=bool))
-        self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Major grid points/Spacing')))
+        self.ui.checkBox_gridShowMajorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Major grid points visibility', type=bool))
+        self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Major and minor grid points/Major grid points spacing')))
         # Minor grid point settings
-        self.ui.checkBox_gridShowMinorGridPoints.setChecked(self.settings.value('Grid/Minor grid points/Visibility', type=bool))
-        self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Minor grid points/Spacing')))
+        self.ui.checkBox_gridShowMinorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool))
+        self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing')))
 
     def writeValues(self):
         # Painting pen settings
@@ -59,14 +64,15 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         # Grid settings
         self.settings.setValue('Grid/Visibility', self.ui.checkBox_gridVisibility.isChecked())
-        self.settings.setValue('Grid/Snap to grid', self.ui.checkBox_gridSnapToGrid.isChecked())
-        self.settings.setValue('Grid/Snap to grid spacing', int(self.ui.comboBox_gridSnapToGridSpacing.currentText()))
+        # Snapping settings
+        self.settings.setValue('Grid/Snapping/Snap to grid', self.ui.checkBox_gridSnapToGrid.isChecked())
+        self.settings.setValue('Grid/Snapping/Snap to grid spacing', int(self.ui.comboBox_gridSnapToGridSpacing.currentText()))
         # Major grid point settings
-        self.settings.setValue('Grid/Major grid points/Visibility', self.ui.checkBox_gridShowMajorGridPoints.isChecked())
-        self.settings.setValue('Grid/Major grid points/Spacing', int(self.ui.comboBox_gridMajorGridPointSpacing.currentText()))
+        self.settings.setValue('Grid/Major and minor grid points/Major grid points visibility', self.ui.checkBox_gridShowMajorGridPoints.isChecked())
+        self.settings.setValue('Grid/Major and minor grid points/Major grid points spacing', int(self.ui.comboBox_gridMajorGridPointSpacing.currentText()))
         # Minor grid point settings
-        self.settings.setValue('Grid/Minor grid points/Visibility', self.ui.checkBox_gridShowMinorGridPoints.isChecked())
-        self.settings.setValue('Grid/Minor grid points/Spacing', int(self.ui.comboBox_gridMinorGridPointSpacing.currentText()))
+        self.settings.setValue('Grid/Major and minor grid points/Minor grid points visibility', self.ui.checkBox_gridShowMinorGridPoints.isChecked())
+        self.settings.setValue('Grid/Major and minor grid points/Minor grid points spacing', int(self.ui.comboBox_gridMinorGridPointSpacing.currentText()))
 
         # Sync changes to disk
         self.settings.sync()
@@ -90,17 +96,18 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Grid settings
         self.settings.beginGroup('Grid')
         self.settings.setValue('Visibility', True)
+        # Snapping settings
+        self.settings.beginGroup('Snapping')
         self.settings.setValue('Snap to grid', True)
         self.settings.setValue('Snap to grid spacing', 10)
-        # Major grid point settings
-        self.settings.beginGroup('Major grid points')
-        self.settings.setValue('Visibility', True)
-        self.settings.setValue('Spacing', 100)
         self.settings.endGroup()
+        # Major grid point settings
+        self.settings.beginGroup('Major and minor grid points')
+        self.settings.setValue('Major grid points visibility', True)
+        self.settings.setValue('Major grid points spacing', 100)
         # Minor grid point settings
-        self.settings.beginGroup('Minor grid points')
-        self.settings.setValue('Visibility', True)
-        self.settings.setValue('Spacing', 20)
+        self.settings.setValue('Minor grid points visibility', True)
+        self.settings.setValue('Minor grid points spacing', 20)
         self.settings.endGroup()
         self.settings.endGroup()
 

@@ -70,12 +70,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
         # Grid settings
         self.enableGrid = settings.value('Grid/Visibility', type=bool)
-        self.snapToGrid = settings.value('Grid/Snap to grid', type=bool)
-        self._grid.snapToGridSpacing = settings.value('Grid/Snap to grid spacing', type=int)
-        self._grid.majorSpacingVisibility = settings.value('Grid/Major grid points/Visibility', type=bool)
-        self._grid.majorSpacing = settings.value('Grid/Major grid points/Spacing', type=int)
-        self._grid.minorSpacingVisibility = settings.value('Grid/Minor grid points/Visibility', type=bool)
-        self._grid.minorSpacing = settings.value('Grid/Minor grid points/Spacing', type=int)
+        self.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
+        self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', type=int)
+        self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', type=bool)
+        self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', type=int)
+        self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool)
+        self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', type=int)
         if self.enableGrid:
             self._grid.createGrid()
         else:
@@ -1034,5 +1034,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def optionsRoutine(self):
         self.optionswindow = MyOptionsWindow(self)
+        self.optionswindow.applied.connect(lambda:self.applySettings(self.settingsFileName))
         self.optionswindow.finished.connect(lambda:self.applySettings(self.settingsFileName))
         self.optionswindow.exec_()
