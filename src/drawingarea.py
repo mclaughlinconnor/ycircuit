@@ -975,6 +975,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     item.editPointNumber = 0
                     sceneP = item.mapToScene(item.editPointLocation(item.editPointNumber))
                 else:
+                    self.statusbarMessage.emit("The selected item cannot be edited", 1000)
                     return
                 viewP = self.mapFromScene(sceneP)
                 cursor.setPos(self.viewport().mapToGlobal(viewP))
