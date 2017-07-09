@@ -8,12 +8,15 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
     applied = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, settingsFileName=None):
         """Initializes the object and various parameters to default values"""
         super().__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.fileName = '.config'
+        if settingsFileName is not None:
+            self.fileName = settingsFileName
+        else:
+            self.fileName = '.config'
         self.settings = QtCore.QSettings(self.fileName, QtCore.QSettings.IniFormat)
         self.readValues()
 

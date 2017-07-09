@@ -1033,7 +1033,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.statusbarMessage.emit("Please select an item to edit", 1000)
 
     def optionsRoutine(self):
-        self.optionswindow = MyOptionsWindow(self)
+        self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
         self.optionswindow.applied.connect(lambda:self.applySettings(self.settingsFileName))
         self.optionswindow.finished.connect(lambda:self.applySettings(self.settingsFileName))
         self.optionswindow.exec_()
