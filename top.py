@@ -49,6 +49,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_move.setChecked(False))
         self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_copy.setChecked(False))
         self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_delete.setChecked(False))
+        self.ui.action_options.triggered.connect(self.ui.drawingArea.optionsRoutine)
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(lambda x:self.action_setWidth_triggered(2))
@@ -249,6 +250,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setPenColourCyan.setChecked(False)
         self.ui.action_setPenColourMagenta.setChecked(False)
         self.ui.action_setPenColourYellow.setChecked(False)
+        penColour = penColour.lower()
         if penColour == 'black':
             self.ui.action_setPenColourBlack.setChecked(True)
         if penColour == 'red':
@@ -293,6 +295,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setBrushColourCyan.setChecked(False)
         self.ui.action_setBrushColourMagenta.setChecked(False)
         self.ui.action_setBrushColourYellow.setChecked(False)
+        brushColour = brushColour.lower()
         if brushColour == 'black':
             self.ui.action_setBrushColourBlack.setChecked(True)
         if brushColour == 'red':
@@ -331,6 +334,8 @@ if __name__ == "__main__":
     else:
         import os
         os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+    QtCore.QCoreApplication.setOrganizationName('YCircuit')
+    QtCore.QCoreApplication.setApplicationName('YCircuit')
     app = QtWidgets.QApplication(sys.argv)
     form = myMainWindow()
     form.showMaximized()

@@ -228,11 +228,11 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
             self.start = start
             self.setPos(start)
         # The pen and brush options are just place holders
-        self.localPenWidth = 2
-        self.localPenColour = 'black'
-        self.localPenStyle = 1
-        self.localBrushColour = 'black'
-        self.localBrushStyle = 0
+        # self.localPenWidth = 2
+        # self.localPenColour = 'black'
+        # self.localPenStyle = 1
+        # self.localBrushColour = 'black'
+        # self.localBrushStyle = 0
         self.setAcceptHoverEvents(True)
 
     def paint(self, painter, *args):
@@ -312,6 +312,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
         self.prepareGeometryChange()
+        super().setLocalPenOptions(**kwargs)
         if hasattr(self, 'listOfItems'):
             for item in self.listOfItems:
                 if not hasattr(item, 'localPen'):
@@ -321,6 +322,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def setLocalBrushOptions(self, **kwargs):
         """Set brush individually for each child item"""
         self.prepareGeometryChange()
+        super().setLocalBrushOptions(**kwargs)
         if hasattr(self, 'listOfItems'):
             for item in self.listOfItems:
                 if not hasattr(item, 'localBrush'):

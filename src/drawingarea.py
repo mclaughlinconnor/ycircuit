@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtSvg
 from src.commands import *
 from src.components import *
 from src.drawingitems import *
+from .optionswindow import MyOptionsWindow
 import pickle
 import os
 from numpy import ceil, floor
@@ -33,29 +34,64 @@ class DrawingArea(QtWidgets.QGraphicsView):
                       'ellipse': False, 'textBox': False, 'add': False,
                       'edit': False, 'net': False}
         self._mouse = {'1': False}
-        self._grid = Grid(None, self, 10)
-        self._grid.createGrid()
-        self.enableGrid = True
-        self.snapToGrid = True
+        self._grid = Grid(None, self, 10, 100)
         self.undoStack = QtWidgets.QUndoStack(self)
         self.undoStack.setUndoLimit(1000)
         self.reflections = 0
         self.rotations = 0
         self.rotateAngle = 45
-        self.selectedWidth = 4
-        self.selectedPenColour = 'black'
-        self.selectedPenStyle = 1
-        self.selectedBrushColour = 'black'
-        self.selectedBrushStyle = 0
+
+        self.settingsFileName = '.config'
+        self.applySettings(self.settingsFileName)
+
         self.items = []
         self.moveItems = []
         self.schematicFileName = None
         self.symbolFileName = None
         self.selectOrigin = False
         self.currentPos = QtCore.QPoint(0, 0)
-        # Fit to view when scroll bars are changed, e.g. when program starts, window is resized
-        # self.horizontalScrollBar().valueChanged.connect(self.fitToViewRoutine)
-        # self.verticalScrollBar().valueChanged.connect(self.fitToViewRoutine)
+
+    def applySettings(self, fileName=None):
+        if os.path.isfile(fileName):
+            self.applySettingsFromFile(fileName)
+        else:
+            self.applyDefaultSettings()
+
+    def applySettingsFromFile(self, fileName=None):
+        # Load settings file
+        settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
+        # Painting settings
+        self.selectedWidth = int(settings.value('Painting/Pen/Width'))
+        self.selectedPenColour = settings.value('Painting/Pen/Colour')
+        penStyles = {'Solid': 1, 'Dash': 2, 'Dot': 3, 'Dash-dot': 4, 'Dash-dot-dot': 5}
+        self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style')]
+        self.selectedBrushColour = settings.value('Painting/Brush/Colour')
+        brushStyles = {'No fill': 0, 'Solid': 1}
+        self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
+        # Grid settings
+        self.enableGrid = settings.value('Grid/Visibility', type=bool)
+        self.snapToGrid = settings.value('Grid/Snap to grid', type=bool)
+        self._grid.majorSpacingVisibility = settings.value('Grid/Major grid points/Visibility', type=bool)
+        self._grid.majorSpacing = settings.value('Grid/Major grid points/Spacing', type=int)
+        if self.enableGrid:
+            self._grid.createGrid()
+        else:
+            self._grid.removeGrid()
+
+    def applyDefaultSettings(self):
+        self.selectedWidth = 4
+        self.selectedPenColour = 'black'
+        self.selectedPenStyle = 1
+        self.selectedBrushColour = 'black'
+        self.selectedBrushStyle = 0
+        self.enableGrid = True
+        self.snapToGrid = True
+        self._grid.majorSpacingVisibility = True
+        self._grid.majorSpacing = 100
+        if self.enableGrid:
+            self._grid.createGrid()
+        else:
+            self._grid.removeGrid()
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -989,3 +1025,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     cursor.setPos(self.viewport().mapToGlobal(viewP))
             else:
                 self.statusbarMessage.emit("Please select an item to edit", 1000)
+
+    def optionsRoutine(self):
+        self.optionswindow = MyOptionsWindow(self)
+        self.optionswindow.finished.connect(lambda:self.applySettings(self.settingsFileName))
+        self.optionswindow.exec_()

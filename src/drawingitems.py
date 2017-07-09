@@ -8,33 +8,37 @@ from io import BytesIO
 
 class Grid(QtCore.QObject):
     """temp docstring for the Gridclass"""
-    def __init__(self, parent=None, view=None, spacing=10):
+    def __init__(self, parent=None, view=None, minorSpacing=10, majorSpacing=100):
         super().__init__()
         self.parent = parent
         self.view = view
-        self.spacing = spacing
-        self.displaySpacing = spacing*10
-        self.xLength = 200
-        self.yLength = 200
-        self.xPoints = numpy.arange(0, self.xLength + self.spacing, self.spacing)
-        self.yPoints = numpy.arange(0, self.yLength + self.spacing, self.spacing)
+        self.minorSpacing = minorSpacing
+        self.majorSpacing = majorSpacing
+        self.minorSpacingVisibility = True
+        self.majorSpacingVisibility = True
+        # Set it to 1200 because it is the LCM of 100, 200, 300 and 400 which are
+        # the available major grid point spacings
+        self.xLength = 1200
+        self.yLength = 1200
+        self.xPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
+        self.yPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
 
     def createGrid(self, **kwargs):
-        if 'spacing' in kwargs:
-            self.spacing = kwargs['spacing']
-        # displaySpacing has information about how far apart are the major grid points
-        self.displaySpacing = 100
+        if 'minorSpacing' in kwargs:
+            self.minorSpacing = kwargs['minorSpacing']
         self.xDisplayPoints = self.xPoints[::2]
         self.yDisplayPoints = self.yPoints[::2]
         self.gridPolygonRegular = QtGui.QPolygon()
-        for x in self.xDisplayPoints:
-            for y in self.yDisplayPoints:
-                self.gridPolygonRegular.append(QtCore.QPoint(x, y))
+        if self.minorSpacingVisibility is True:
+            for x in self.xDisplayPoints:
+                for y in self.yDisplayPoints:
+                    self.gridPolygonRegular.append(QtCore.QPoint(x, y))
         self.gridPolygonLarge = QtGui.QPolygon()
         # Larger pixels for points on the coarse grid
-        for x in self.xDisplayPoints[self.xDisplayPoints % self.displaySpacing == 0]:
-            for y in self.yDisplayPoints[self.yDisplayPoints % self.displaySpacing == 0]:
-                self.gridPolygonLarge.append(QtCore.QPoint(x, y))
+        if self.majorSpacingVisibility is True:
+            for x in self.xDisplayPoints[self.xDisplayPoints % self.majorSpacing == 0]:
+                for y in self.yDisplayPoints[self.yDisplayPoints % self.majorSpacing == 0]:
+                    self.gridPolygonLarge.append(QtCore.QPoint(x, y))
 
         pix = QtGui.QPixmap(QtCore.QSize(self.xLength, self.yLength))
         # Set background to white
@@ -54,13 +58,13 @@ class Grid(QtCore.QObject):
     def removeGrid(self):
         self.view.setBackgroundBrush(QtGui.QBrush())
 
-    def snapTo(self, point, spacing=None):
-        if spacing is None:
-            newX = numpy.round(point.x()/self.spacing)*self.spacing
-            newY = numpy.round(point.y()/self.spacing)*self.spacing
+    def snapTo(self, point, minorSpacing=None):
+        if minorSpacing is None:
+            newX = numpy.round(point.x()/self.minorSpacing)*self.minorSpacing
+            newY = numpy.round(point.y()/self.minorSpacing)*self.minorSpacing
         else:
-            newX = numpy.round(point.x()/spacing)*spacing
-            newY = numpy.round(point.y()/spacing)*spacing
+            newX = numpy.round(point.x()/minorSpacing)*minorSpacing
+            newY = numpy.round(point.y()/minorSpacing)*minorSpacing
         return QtCore.QPointF(newX, newY)
 
 

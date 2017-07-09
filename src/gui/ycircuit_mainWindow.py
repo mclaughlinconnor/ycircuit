@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'src/gui/ycircuit_mainWindow.ui'
+# Form implementation generated from reading ui file '.\src\gui\ycircuit_mainWindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.drawingArea)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 38))
         self.menubar.setObjectName("menubar")
         self.menu_File = QtWidgets.QMenu(self.menubar)
         self.menu_File.setObjectName("menu_File")
@@ -107,7 +107,7 @@ class Ui_MainWindow(object):
         self.action_setWidth2.setObjectName("action_setWidth2")
         self.action_setWidth4 = QtWidgets.QAction(MainWindow)
         self.action_setWidth4.setCheckable(True)
-        self.action_setWidth4.setChecked(True)
+        self.action_setWidth4.setChecked(False)
         self.action_setWidth4.setObjectName("action_setWidth4")
         self.action_setWidth6 = QtWidgets.QAction(MainWindow)
         self.action_setWidth6.setCheckable(True)
@@ -154,11 +154,11 @@ class Ui_MainWindow(object):
         self.action_setPenColourGreen.setObjectName("action_setPenColourGreen")
         self.action_setPenColourBlack = QtWidgets.QAction(MainWindow)
         self.action_setPenColourBlack.setCheckable(True)
-        self.action_setPenColourBlack.setChecked(True)
+        self.action_setPenColourBlack.setChecked(False)
         self.action_setPenColourBlack.setObjectName("action_setPenColourBlack")
         self.action_setPenStyleSolid = QtWidgets.QAction(MainWindow)
         self.action_setPenStyleSolid.setCheckable(True)
-        self.action_setPenStyleSolid.setChecked(True)
+        self.action_setPenStyleSolid.setChecked(False)
         self.action_setPenStyleSolid.setObjectName("action_setPenStyleSolid")
         self.action_setPenStyleDash = QtWidgets.QAction(MainWindow)
         self.action_setPenStyleDash.setCheckable(True)
@@ -178,7 +178,7 @@ class Ui_MainWindow(object):
         self.action_addGround.setObjectName("action_addGround")
         self.action_setBrushColourBlack = QtWidgets.QAction(MainWindow)
         self.action_setBrushColourBlack.setCheckable(True)
-        self.action_setBrushColourBlack.setChecked(True)
+        self.action_setBrushColourBlack.setChecked(False)
         self.action_setBrushColourBlack.setObjectName("action_setBrushColourBlack")
         self.action_setBrushColourRed = QtWidgets.QAction(MainWindow)
         self.action_setBrushColourRed.setCheckable(True)
@@ -191,7 +191,7 @@ class Ui_MainWindow(object):
         self.action_setBrushColourGreen.setObjectName("action_setBrushColourGreen")
         self.action_setBrushStyleNone = QtWidgets.QAction(MainWindow)
         self.action_setBrushStyleNone.setCheckable(True)
-        self.action_setBrushStyleNone.setChecked(True)
+        self.action_setBrushStyleNone.setChecked(False)
         self.action_setBrushStyleNone.setObjectName("action_setBrushStyleNone")
         self.action_setBrushStyleSolid = QtWidgets.QAction(MainWindow)
         self.action_setBrushStyleSolid.setCheckable(True)
@@ -290,6 +290,8 @@ class Ui_MainWindow(object):
         self.action_editShape.setObjectName("action_editShape")
         self.action_newSchematic = QtWidgets.QAction(MainWindow)
         self.action_newSchematic.setObjectName("action_newSchematic")
+        self.action_options = QtWidgets.QAction(MainWindow)
+        self.action_options.setObjectName("action_options")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -344,6 +346,8 @@ class Ui_MainWindow(object):
         self.menu_Edit.addAction(self.menu_setPenStyle.menuAction())
         self.menu_Edit.addAction(self.menu_setFillColour.menuAction())
         self.menu_Edit.addAction(self.menu_setFillStyle.menuAction())
+        self.menu_Edit.addSeparator()
+        self.menu_Edit.addAction(self.action_options)
         self.menu_N_type_MOSFET.addAction(self.action_addNMOSWithArrow)
         self.menu_N_type_MOSFET.addAction(self.action_addNMOSWithoutArrow)
         self.menu_P_type_MOSFET.addAction(self.action_addPMOSWithArrow)
@@ -556,6 +560,8 @@ class Ui_MainWindow(object):
         self.action_newSchematic.setText(_translate("MainWindow", "New Schematic"))
         self.action_newSchematic.setToolTip(_translate("MainWindow", "Create a new schematic"))
         self.action_newSchematic.setShortcut(_translate("MainWindow", "Ctrl+N"))
+        self.action_options.setText(_translate("MainWindow", "Options"))
+        self.action_options.setShortcut(_translate("MainWindow", "Ctrl+P"))
 
 from src.drawingarea import DrawingArea
 import icon_rc
