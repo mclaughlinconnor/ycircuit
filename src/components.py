@@ -156,7 +156,9 @@ class drawingElement(object):
             self.setSelected(False)
         _start = self.pos()
         # Create copy with same pen and brush and start location
-        newItem = self.__class__(parent, _start, pen=self.localPen, brush=self.localBrush)
+        # Manually add pen and brush colours because these are stored as strings
+        # as opposed to the #RRGGBB format that QColor.color() returns
+        newItem = self.__class__(parent, _start, pen=self.localPen, brush=self.localBrush, penColour=self.localPenColour, brushColour=self.localBrushColour)
         # Apply any transforms (rotations, reflections etc.)
         newItem.setTransform(self.transform())
         if parent is None:
