@@ -390,7 +390,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
         localDict['polyPathPointList'] = polyPathPointList
         localDict.pop('oldPath', None)
-        localDict.pop('undoPathList', None)
+        localDict['undoPathList'] = []
         return localDict
 
     def __setstate__(self, state):
@@ -1307,6 +1307,20 @@ class Arc(Wire):
         self.setFocus()
         self.undoPointsList = []
         self.startPoint = QtCore.QPointF(0, 0)
+
+    def __getstate__(self):
+        localDict = super().__getstate__()
+        localDict['undoPointsList'] = []
+        return localDict
+
+    def createCopy(self, parent=None):
+        newArc = super().createCopy(parent)
+        newArc.points = self.points
+        newArc.startPoint = self.startPoint
+        newArc.endPoint = self.endPoint
+        newArc.controlPoint = self.controlPoint
+        if self.points == 4:
+            newArc.controlPointAlt = self.controlPointAlt
 
     def updateArc(self, newEnd, click=False, edit=False):
         self.setFocus()
