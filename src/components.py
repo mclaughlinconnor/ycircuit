@@ -312,7 +312,6 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
         self.prepareGeometryChange()
-        super().setLocalPenOptions(**kwargs)
         if hasattr(self, 'listOfItems'):
             for item in self.listOfItems:
                 if not hasattr(item, 'localPen'):
@@ -322,7 +321,6 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def setLocalBrushOptions(self, **kwargs):
         """Set brush individually for each child item"""
         self.prepareGeometryChange()
-        super().setLocalBrushOptions(**kwargs)
         if hasattr(self, 'listOfItems'):
             for item in self.listOfItems:
                 if not hasattr(item, 'localBrush'):
@@ -390,6 +388,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
         localDict['polyPathPointList'] = polyPathPointList
         localDict.pop('oldPath', None)
+        localDict.pop('undoPathList', None)
         return localDict
 
     def __setstate__(self, state):
@@ -1304,44 +1303,71 @@ class Arc(Wire):
             self.points = kwargs['points']
         self.clicks = 0
         self.setFocus()
+        self.undoPointsList = []
+        self.startPoint = QtCore.QPointF(0, 0)
 
-    def updateArc(self, newEnd, click=False):
+    def updateArc(self, newEnd, click=False, edit=False):
         self.setFocus()
+        self.prepareGeometryChange()
         newEnd = self.mapFromScene(newEnd)
-        if click is True:
-            self.clicks += 1
-            if self.clicks == 1:
+        if edit is False:
+            if click is True:
+                self.clicks += 1
+                if self.clicks == 1:
+                    self.endPoint = newEnd
+                elif self.clicks == 2:
+                    self.controlPoint = newEnd
+                elif self.clicks == 3:
+                    self.controlPointAlt = newEnd
+            self.clicks %= self.points
+            if self.clicks == 0:
                 self.endPoint = newEnd
-            elif self.clicks == 2:
                 self.controlPoint = newEnd
+                self.controlPointAlt = newEnd
+            elif self.clicks == 1:
+                self.controlPoint = newEnd
+                self.controlPointAlt = newEnd
+            elif self.clicks == 2:
+                if self.points == 3:
+                    self.createSegment()
+                    self.clicks = 3
+                    return True
+                elif self.points == 4:
+                    self.controlPointAlt = newEnd
             elif self.clicks == 3:
-                self.controlPointAlt = newEnd
-        self.clicks %= self.points
-        if self.clicks == 0:
-            self.endPoint = newEnd
-            self.controlPoint = newEnd
-            self.controlPointAlt = newEnd
-        elif self.clicks == 1:
-            self.controlPoint = newEnd
-            self.controlPointAlt = newEnd
-        elif self.clicks == 2:
-            if self.points == 3:
                 self.createSegment()
-                self.clicks = 3
+                self.clicks = 4
                 return True
+            self.setPath(self.oldPath)
+            path = self.path()
+            if self.points == 3:
+                path.quadTo(self.controlPoint, self.endPoint)
             elif self.points == 4:
-                self.controlPointAlt = newEnd
-        elif self.clicks == 3:
-            self.createSegment()
-            self.clicks = 4
-            return True
-        self.setPath(self.oldPath)
-        path = self.path()
-        if self.points == 3:
-            path.quadTo(self.controlPoint, self.endPoint)
-        elif self.points == 4:
-            path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
-        self.setPath(path)
+                path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
+            self.setPath(path)
+        else:
+            if self.editPointNumber == 0:
+                path = QtGui.QPainterPath(newEnd)
+                if self.points == 3:
+                    path.quadTo(self.controlPoint, self.endPoint)
+                elif self.points == 4:
+                    path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
+            else:
+                path = QtGui.QPainterPath(self.startPoint)
+            if self.editPointNumber == 1:
+                if self.points == 3:
+                    path.quadTo(self.controlPoint, newEnd)
+                elif self.points == 4:
+                    path.cubicTo(self.controlPoint, self.controlPointAlt, newEnd)
+            elif self.editPointNumber == 2:
+                if self.points == 3:
+                    path.quadTo(newEnd, self.endPoint)
+                elif self.points == 4:
+                    path.cubicTo(newEnd, self.controlPointAlt, self.endPoint)
+            elif self.editPointNumber == 3:
+                if self.points == 4:
+                    path.cubicTo(self.controlPoint, newEnd, self.endPoint)
+            self.setPath(path)
 
     def createSegment(self):
         # Create a new segment (e.g. when LMB is clicked)
@@ -1351,9 +1377,74 @@ class Arc(Wire):
             self.oldPath.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.setPath(self.oldPath)
 
-    def undoDraw(self):
-        if self.clicks > 0:
-            self.clicks -= 1
+    def editPointLocation(self, editPointNumber):
+        if editPointNumber == 0:
+            return self.startPoint
+        elif editPointNumber == 1:
+            return self.endPoint
+        elif editPointNumber == 2:
+            return self.controlPoint
+        elif editPointNumber == 3:
+            return self.controlPointAlt
 
-    def redoDraw(self, point=None):
-        self.updateArc(point, click=True)
+    def undoEdit(self):
+        points = self.undoPointsList.pop()
+        if points is None:
+            self.setPath(self.oldPath)
+            return
+        self.startPoint = points[0]
+        # Create a new path
+        path = QtGui.QPainterPath(self.startPoint)
+        if self.points == 3:
+            self.controlPoint = points[1]
+            self.endPoint = points[2]
+            path.quadTo(self.controlPoint, self.endPoint)
+        elif self.points == 4:
+            self.controlPoint = points[1]
+            self.controlPointAlt = points[2]
+            self.endPoint = points[3]
+            path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
+        self.oldPath = path
+        self.setPath(path)
+        self.editPointNumber -= 1
+        self.editPointNumber %= self.points
+
+    def redoEdit(self, point=None, clicked=False):
+        point = self.mapFromScene(point)
+        if self.editPointLocation(self.editPointNumber) == point:
+            self.undoPointsList.append(None)
+            if clicked is True:
+                if self.editPointNumber == 0:
+                    self.startPoint = point
+                elif self.editPointNumber == 1:
+                    self.endPoint = point
+                elif self.editPointNumber == 2:
+                    self.controlPoint = point
+                elif self.editPointNumber == 3 and self.points == 4:
+                    self.controlPointAlt = point
+                self.editPointNumber += 1
+                self.editPointNumber %= self.points
+            return
+        if self.points == 3:
+            self.undoPointsList.append([self.startPoint, self.controlPoint, self.endPoint])
+        elif self.points == 4:
+            self.undoPointsList.append([self.startPoint, self.controlPoint, self.controlPointAlt, self.endPoint])
+        if clicked is True:
+            if self.editPointNumber == 0:
+                self.startPoint = point
+            elif self.editPointNumber == 1:
+                self.endPoint = point
+            elif self.editPointNumber == 2:
+                self.controlPoint = point
+            elif self.editPointNumber == 3 and self.points == 4:
+                self.controlPointAlt = point
+            self.editPointNumber += 1
+            self.editPointNumber %= self.points
+        # Create a new path
+        path = QtGui.QPainterPath(self.startPoint)
+        if self.points == 3:
+            path.quadTo(self.controlPoint, self.endPoint)
+        elif self.points == 4:
+            path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
+        self.oldPath = path
+        self.setPath(path)

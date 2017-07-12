@@ -42,7 +42,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.rotateAngle = 45
 
         self.settingsFileName = '.config'
-        self.applySettings(self.settingsFileName)
+        self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
+        self.applySettingsFromFile(self.settingsFileName)
 
         self.items = []
         self.moveItems = []
@@ -50,12 +51,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.symbolFileName = None
         self.selectOrigin = False
         self.currentPos = QtCore.QPoint(0, 0)
-
-    def applySettings(self, fileName=None):
-        if os.path.isfile(fileName):
-            self.applySettingsFromFile(fileName)
-        else:
-            self.applyDefaultSettings()
 
     def applySettingsFromFile(self, fileName=None):
         # Load settings file
@@ -69,32 +64,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
         brushStyles = {'No fill': 0, 'Solid': 1}
         self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
         # Grid settings
-        self.enableGrid = settings.value('Grid/Visibility', type=bool)
-        self.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
+        self._grid.enableGrid = settings.value('Grid/Visibility', type=bool)
+        self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
         self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', type=int)
         self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', type=bool)
         self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', type=int)
         self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool)
         self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', type=int)
-        if self.enableGrid:
-            self._grid.createGrid()
-        else:
-            self._grid.removeGrid()
-
-    def applyDefaultSettings(self):
-        self.selectedWidth = 4
-        self.selectedPenColour = 'black'
-        self.selectedPenStyle = 1
-        self.selectedBrushColour = 'black'
-        self.selectedBrushStyle = 0
-        self.enableGrid = True
-        self.snapToGrid = True
-        self._grid.snapToGridSpacing = 10
-        self._grid.majorSpacingVisibility = True
-        self._grid.majorSpacing = 100
-        self._grid.minorSpacingVisibility = True
-        self._grid.minorSpacing = 20
-        if self.enableGrid:
+        if self._grid.enableGrid:
             self._grid.createGrid()
         else:
             self._grid.removeGrid()
@@ -491,7 +468,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.currentNet.cancelSegment()
             # Remove last arc being drawn
             if self._keys['arc'] is True:
-                self.currentArc.cancelSegment()
+                if self.currentArc is not None:
+                    self.currentArc.cancelSegment()
             # Remove last rectangle being drawn
             if self._keys['rectangle'] is True:
                 self.scene().removeItem(self.currentRectangle)
@@ -571,15 +549,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
-        self.enableGrid = not self.enableGrid
-        if self.enableGrid is True:
+        self._grid.enableGrid = not self._grid.enableGrid
+        if self._grid.enableGrid is True:
             self._grid.createGrid()
         else:
             self.setBackgroundBrush(QtGui.QBrush())
 
     def toggleSnapToGridRoutine(self, state):
         """Toggles drawings snapping to grid"""
-        self.snapToGrid = state
+        self._grid.snapToGrid = state
 
     def changeWidthRoutine(self, selectedWidth):
         if selectedWidth != self.selectedWidth:
@@ -702,6 +680,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.push(add)
         if self._keys['edit'] is True:
             item = self.scene().selectedItems()[0]
+            # Also accounts for arcs because they are subclassed from Wire
             if isinstance(item, Wire):
                 if (event.button() == QtCore.Qt.LeftButton):
                     edit = Edit(None, self.scene(), item, self.mapToGrid(event.pos()), clicked=True)
@@ -800,11 +779,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Create new arc if none exists
                     if self.currentArc is None:
                         self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, points=self.arcPoints)
-                        self.scene().addItem(self.currentArc)
+                        add = Add(None, self.scene(), self.currentArc)
+                        self.undoStack.push(add)
                     # If arc exists, add segments
                     else:
-                        draw = Draw(None, self.scene(), self.currentArc, start)
-                        self.undoStack.push(draw)
+                        self.currentArc.updateArc(start, click=True)
+                        if self.currentArc.clicks == self.currentArc.points:
+                            self.currentArc = None
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         if self._keys['net'] is True:
@@ -935,7 +916,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['net'] is True:
                     self.currentNet.updateNet(self.mapToGrid(event.pos()))
                 if self._keys['arc'] is True:
-                    self.currentArc.updateArc(self.mapToGrid(event.pos()))
+                    if self.currentArc is not None:
+                        self.currentArc.updateArc(self.mapToGrid(event.pos()))
                 if self._keys['rectangle'] is True:
                     self.currentRectangle.updateRectangle(self.mapToGrid(event.pos()))
                 if self._keys['circle'] is True:
@@ -960,6 +942,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         item.updateCircle(point)
                     elif isinstance(item, Ellipse):
                         item.updateEllipse(point, edit=True)
+                    elif isinstance(item, Arc):
+                        item.updateArc(point, edit=True)
                     elif isinstance(item, Wire):
                         item.updateWire(point, edit=True)
 
@@ -973,7 +957,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def mapToGrid(self, point):
         # Convenience function to map given point on to the grid
         point = self.mapToScene(point)
-        if self.snapToGrid is True:
+        if self._grid.snapToGrid is True:
             return self._grid.snapTo(point)
         else:
             return point
@@ -1034,6 +1018,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def optionsRoutine(self):
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
-        self.optionswindow.applied.connect(lambda:self.applySettings(self.settingsFileName))
-        self.optionswindow.finished.connect(lambda:self.applySettings(self.settingsFileName))
+        self.optionswindow.applied.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
+        self.optionswindow.finished.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.exec_()

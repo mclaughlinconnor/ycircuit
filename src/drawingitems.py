@@ -12,6 +12,8 @@ class Grid(QtCore.QObject):
         super().__init__()
         self.parent = parent
         self.view = view
+        self.enableGrid = True
+        self.snapToGrid = True
         self.minorSpacing = minorSpacing
         self.majorSpacing = majorSpacing
         self.minorSpacingVisibility = True
