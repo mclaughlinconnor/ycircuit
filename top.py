@@ -139,6 +139,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             event.accept()
         elif self.ui.drawingArea.schematicFileName is None:
             msgBox = QtWidgets.QMessageBox(self)
+            msgBox.setWindowTitle("Confirm exit")
             msgBox.setText("The schematic has been modified")
             msgBox.setInformativeText("Do you wish to save your changes?")
             msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
@@ -154,6 +155,7 @@ class myMainWindow(QtWidgets.QMainWindow):
                 event.ignore()
         elif self.ui.drawingArea.symbolFileName is None:
             msgBox = QtWidgets.QMessageBox(self)
+            msgBox.setWindowTitle("Confirm exit")
             msgBox.setText("The symbol has been modified")
             msgBox.setInformativeText("Do you wish to save your changes?")
             msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
