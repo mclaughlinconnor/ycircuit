@@ -89,6 +89,7 @@ class Add(QtWidgets.QUndoCommand):
 
 class Draw(QtWidgets.QUndoCommand):
     """Mainly used only for wires and arcs"""
+
     def __init__(self, parent=None, scene=None, item=None, point=None):
         super().__init__(parent)
         self.scene = scene
@@ -104,7 +105,13 @@ class Draw(QtWidgets.QUndoCommand):
 
 class Edit(QtWidgets.QUndoCommand):
     """Used for editing item shapes"""
-    def __init__(self, parent=None, scene=None, item=None, point=None, **kwargs):
+
+    def __init__(self,
+                 parent=None,
+                 scene=None,
+                 item=None,
+                 point=None,
+                 **kwargs):
         super().__init__(parent)
         self.scene = scene
         self.item = item
@@ -123,12 +130,18 @@ class Edit(QtWidgets.QUndoCommand):
 
 class EditNet(QtWidgets.QUndoCommand):
     """Used for editing net lengths"""
-    def __init__(self, parent=None, scene=None, item=None, oldLine=None, newLine=None):
-       super().__init__(parent)
-       self.scene = scene
-       self.item = item
-       self.oldLine = oldLine
-       self.newLine = newLine
+
+    def __init__(self,
+                 parent=None,
+                 scene=None,
+                 item=None,
+                 oldLine=None,
+                 newLine=None):
+        super().__init__(parent)
+        self.scene = scene
+        self.item = item
+        self.oldLine = oldLine
+        self.newLine = newLine
 
     def redo(self):
         self.item.setLine(self.newLine)
@@ -138,7 +151,12 @@ class EditNet(QtWidgets.QUndoCommand):
 
 
 class Move(QtWidgets.QUndoCommand):
-    def __init__(self, parent=None, scene=None, listOfItems=None, startPoint=None, stopPoint=None):
+    def __init__(self,
+                 parent=None,
+                 scene=None,
+                 listOfItems=None,
+                 startPoint=None,
+                 stopPoint=None):
         super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
@@ -176,7 +194,13 @@ class Copy(QtWidgets.QUndoCommand):
 
 
 class Rotate(QtWidgets.QUndoCommand):
-    def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None, angle=None):
+    def __init__(self,
+                 parent=None,
+                 scene=None,
+                 listOfItems=None,
+                 moving=False,
+                 point=None,
+                 angle=None):
         super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
@@ -197,7 +221,12 @@ class Rotate(QtWidgets.QUndoCommand):
 
 
 class Mirror(QtWidgets.QUndoCommand):
-    def __init__(self, parent=None, scene=None, listOfItems=None, moving=False, point=None):
+    def __init__(self,
+                 parent=None,
+                 scene=None,
+                 listOfItems=None,
+                 moving=False,
+                 point=None):
         super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems

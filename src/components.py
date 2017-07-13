@@ -3,10 +3,12 @@ import numpy
 import pickle
 from src.drawingitems import TextEditor
 
+
 class drawingElement(object):
     """The drawingElement forms part of the basis for all drawing classes.
     It contains methods for setting pen and brush options, moving, copying etc.
     """
+
     def __init__(self, parent=None, start=None):
         super().__init__()
         self.parent = parent
@@ -142,7 +144,8 @@ class drawingElement(object):
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
-        rotation_ = 180/numpy.pi * numpy.arctan2(-transform_.m21(), transform_.m11())
+        rotation_ = 180 / numpy.pi * numpy.arctan2(-transform_.m21(),
+                                                   transform_.m11())
         transform_.rotate(-rotation_)
         transform_.scale(-1, 1)
         transform_.rotate(rotation_)
@@ -158,7 +161,13 @@ class drawingElement(object):
         # Create copy with same pen and brush and start location
         # Manually add pen and brush colours because these are stored as strings
         # as opposed to the #RRGGBB format that QColor.color() returns
-        newItem = self.__class__(parent, _start, pen=self.localPen, brush=self.localBrush, penColour=self.localPenColour, brushColour=self.localBrushColour)
+        newItem = self.__class__(
+            parent,
+            _start,
+            pen=self.localPen,
+            brush=self.localBrush,
+            penColour=self.localPenColour,
+            brushColour=self.localBrushColour)
         # Apply any transforms (rotations, reflections etc.)
         newItem.setTransform(self.transform())
         if parent is None:
@@ -215,6 +224,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     """Subclassed from QGraphicsItem. Provides additional methods so that
     the parent item remembers all the items that are its children.
     """
+
     def __init__(self, parent=None, start=None, listOfItems=None, **kwargs):
         super().__init__(parent=parent, start=start)
         self.listOfItems = listOfItems
@@ -343,9 +353,17 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         """Initializes items in self.listOfItems."""
         for item in self.listOfItems:
             if not isinstance(item, myGraphicsItemGroup):
-                item.__init__(self, item.origin, penColour=item.localPenColour, width=item.localPenWidth, penStyle=item.localPenStyle, brushColour=item.localBrushColour, brushStyle=item.localBrushStyle)
+                item.__init__(
+                    self,
+                    item.origin,
+                    penColour=item.localPenColour,
+                    width=item.localPenWidth,
+                    penStyle=item.localPenStyle,
+                    brushColour=item.localBrushColour,
+                    brushStyle=item.localBrushStyle)
             else:
-                item.__init__(self, item.origin, item.listOfItems, mode='symbol')
+                item.__init__(
+                    self, item.origin, item.listOfItems, mode='symbol')
                 # Call loadItems if item is also a myGraphicsItemGroup
                 # item.loadItems(mode)
         self.setItems(self.listOfItems)
@@ -456,7 +474,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         if len(self.oldPath.toSubpathPolygons(self.transform())) == 0:
             return False
         lastPoly = self.oldPath.toSubpathPolygons(self.transform())[-1]
-        lastPoly.remove(lastPoly.size()-1)
+        lastPoly.remove(lastPoly.size() - 1)
         otherPoly = self.oldPath.toSubpathPolygons(self.transform())[:-1]
         path = QtGui.QPainterPath()
         for i in otherPoly:
@@ -528,7 +546,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         self.setLocalBrushOptions(**kwargs)
         self.oldLine = self.line()
         self.rightAngleMode = "top"
-        self.perpLine = None #Perpendicular line
+        self.perpLine = None  #Perpendicular line
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsScenePositionChanges)
         if self.start is not None:
             self.setPos(self.start)
@@ -551,10 +569,10 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         pad = 10
         if rect.width() < pad:
             rect.setWidth(pad)
-            rect.moveLeft(-pad/2)
+            rect.moveLeft(-pad / 2)
         elif rect.height() < pad:
             rect.setHeight(pad)
-            rect.moveTop(-pad/2)
+            rect.moveTop(-pad / 2)
         return rect
 
     def updateNet(self, newEnd):
@@ -837,6 +855,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
 
 class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
     """Class responsible for drawing rectangular objects"""
+
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
@@ -865,10 +884,10 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         path.addRect(self.boundingRect())
         hollowRect = self.boundingRect()
         pad = 10
-        hollowRect.setWidth(hollowRect.width() - 4*pad)
-        hollowRect.setHeight(hollowRect.height() - 4*pad)
-        hollowRect.moveLeft(hollowRect.left() + 2*pad)
-        hollowRect.moveTop(hollowRect.top() + 2*pad)
+        hollowRect.setWidth(hollowRect.width() - 4 * pad)
+        hollowRect.setHeight(hollowRect.height() - 4 * pad)
+        hollowRect.moveLeft(hollowRect.left() + 2 * pad)
+        hollowRect.moveTop(hollowRect.top() + 2 * pad)
         hollowPath = QtGui.QPainterPath()
         hollowPath.addRect(hollowRect)
         return path.subtracted(hollowPath)
@@ -953,6 +972,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
 
 class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
     """Class responsible for drawing elliptical objects"""
+
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
@@ -981,10 +1001,10 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         path.addEllipse(self.boundingRect())
         hollowRect = self.boundingRect()
         pad = 10
-        hollowRect.setWidth(hollowRect.width() - 4*pad)
-        hollowRect.setHeight(hollowRect.height() - 4*pad)
-        hollowRect.moveLeft(hollowRect.left() + 2*pad)
-        hollowRect.moveTop(hollowRect.top() + 2*pad)
+        hollowRect.setWidth(hollowRect.width() - 4 * pad)
+        hollowRect.setHeight(hollowRect.height() - 4 * pad)
+        hollowRect.moveLeft(hollowRect.left() + 2 * pad)
+        hollowRect.moveTop(hollowRect.top() + 2 * pad)
         hollowPath = QtGui.QPainterPath()
         hollowPath.addEllipse(hollowRect)
         return path.subtracted(hollowPath)
@@ -1070,6 +1090,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
 
 class Circle(Ellipse):
     """This is a special case of the Ellipse class where a = b."""
+
     def __init__(self, parent=None, start=None, **kwargs):
         super().__init__(parent, start, **kwargs)
 
@@ -1092,9 +1113,11 @@ class Circle(Ellipse):
             else:
                 theta = 0
         else:
-            theta = 180/numpy.pi*numpy.arctan2(distanceLine.y(), distanceLine.x())
+            theta = 180 / numpy.pi * numpy.arctan2(distanceLine.y(),
+                                                   distanceLine.x())
         sideLength = numpy.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
-        square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength/2), QtCore.QSizeF(sideLength, sideLength))
+        square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength / 2),
+                               QtCore.QSizeF(sideLength, sideLength))
         self.setRect(square)
         self.transform_ = QtGui.QTransform()
         self.transform_.translate(0, 0)
@@ -1116,11 +1139,8 @@ class Circle(Ellipse):
     def redoEdit(self, point, **kwargs):
         if not hasattr(self, 'undoPointList'):
             self.undoPointList = []
-        # if not hasattr(self, 'undoTransformList'):
-        #     self.undoTransformList = []
         self.updateCircle(point)
         self.undoPointList.append(point)
-        # self.undoTransformList.append(self.transform())
 
 
 class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
@@ -1136,6 +1156,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
     TODO: Grey out LaTeX images on mouse hover
     TODO: Delete corresponding LaTeX image files when textbox is deleted
     """
+
     def __init__(self, parent=None, start=None, text='', **kwargs):
         point = QtCore.QPointF(0, 0)
         # For some reason, checking hasattr(self, 'origin')
@@ -1232,7 +1253,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.localPenStyle = kwargs['penStyle']
         if hasattr(self, 'setFont'):
             font = self.font()
-            font.setPointSize(self.localPenWidth*10)
+            font.setPointSize(self.localPenWidth * 10)
             font.setFamily('Arial')
             self.setFont(font)
         self.changeTextSize(self.localPenWidth)
@@ -1253,7 +1274,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         textEdit = QtWidgets.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setFontPointSize(weight*10)
+        textEdit.setFontPointSize(weight * 10)
         self.setHtml(textEdit.toHtml())
         self.update()
         self.localPenWidth = weight
@@ -1283,12 +1304,14 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         brush.setColor(QtGui.QColor(self.localBrushColour))
         brush.setStyle(self.localBrushStyle)
         if self.latexImageHtml is not None:
-            newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
+            newItem = self.__class__(
+                parent, _start, text=self.toHtml(), pen=pen, brush=brush)
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
             newItem.data64 = self.data64
         else:
-            newItem = self.__class__(parent, _start, text=self.toHtml(), pen=pen, brush=brush)
+            newItem = self.__class__(
+                parent, _start, text=self.toHtml(), pen=pen, brush=brush)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
@@ -1299,6 +1322,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 class Arc(Wire):
     """This is a special case of the Wire class where repeated clicks change the curvature
     of the wire."""
+
     def __init__(self, parent=None, start=None, **kwargs):
         super().__init__(parent=parent, start=start, **kwargs)
         if 'points' in kwargs:
@@ -1321,6 +1345,7 @@ class Arc(Wire):
         newArc.controlPoint = self.controlPoint
         if self.points == 4:
             newArc.controlPointAlt = self.controlPointAlt
+        return newArc
 
     def updateArc(self, newEnd, click=False, edit=False):
         self.setFocus()

@@ -8,7 +8,12 @@ from io import BytesIO
 
 class Grid(QtCore.QObject):
     """temp docstring for the Gridclass"""
-    def __init__(self, parent=None, view=None, minorSpacing=20, majorSpacing=100):
+
+    def __init__(self,
+                 parent=None,
+                 view=None,
+                 minorSpacing=20,
+                 majorSpacing=100):
         super().__init__()
         self.parent = parent
         self.view = view
@@ -18,7 +23,7 @@ class Grid(QtCore.QObject):
         self.majorSpacing = majorSpacing
         self.minorSpacingVisibility = True
         self.majorSpacingVisibility = True
-        self.snapToGridSpacing = self.minorSpacing/2
+        self.snapToGridSpacing = self.minorSpacing / 2
         # Set it to 1200 because it is the LCM of 100, 200, 300 and 400 which are
         # the available major grid point spacings
         self.xLength = 1200
@@ -133,7 +138,7 @@ class TextEditor(QtWidgets.QDialog):
         else:
             self.textBox.setHtml(self.ui.textEdit.toHtml())
             self.textBox.latexImageHtml = None
-            self.textBox.latexExpression= None
+            self.textBox.latexExpression = None
         super().accept()
 
     def modifyPushButtons(self):
@@ -184,7 +189,7 @@ class TextEditor(QtWidgets.QDialog):
             if plainText[-1] != '$':
                 plainText.append('$')
                 self.ui.textEdit.setPlainText(plainText)
-                cursor.setPosition(len(plainText)-1)
+                cursor.setPosition(len(plainText) - 1)
             if len(plainText) < 2:
                 self.ui.textEdit.setPlainText('$$')
                 cursor.setPosition(1)
@@ -328,7 +333,11 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                         return super().icon(fileInfo)
                 scene = QtWidgets.QGraphicsScene()
                 # Load the file
-                loadItem.__init__(None, QtCore.QPointF(0, 0), loadItem.listOfItems, mode='symbol')
+                loadItem.__init__(
+                    None,
+                    QtCore.QPointF(0, 0),
+                    loadItem.listOfItems,
+                    mode='symbol')
                 scene.addItem(loadItem)
                 rect = loadItem.boundingRect()
                 # Set the maximum icon dimension
@@ -344,7 +353,7 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                 actualSize = rect.size()
                 actualSize.scale(maxSize, QtCore.Qt.KeepAspectRatio)
                 width, height = actualSize.width(), actualSize.height()
-                startX, startY = (maxDim - width)/2, (maxDim - height)/2
+                startX, startY = (maxDim - width) / 2, (maxDim - height) / 2
 
                 painter = QtGui.QPainter(pix)
                 pen = QtGui.QPen()
@@ -370,10 +379,11 @@ class myStyledItemDelegate(QtWidgets.QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         option.decorationPosition = option.Top
-        option.decorationSize = QtCore.QSize(self.iconWidth*0.9, self.iconHeight*0.9)
+        option.decorationSize = QtCore.QSize(self.iconWidth * 0.9,
+                                             self.iconHeight * 0.9)
         option.decorationAlignment = QtCore.Qt.AlignCenter
         option.displayAlignment = QtCore.Qt.AlignCenter
         super().paint(painter, option, index)
 
     def sizeHint(self, option, index):
-        return QtCore.QSize(self.iconWidth, self.iconHeight+30)
+        return QtCore.QSize(self.iconWidth, self.iconHeight + 30)
