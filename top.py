@@ -10,7 +10,6 @@ if platform.system() == 'Windows':
 
 
 class myMainWindow(QtWidgets.QMainWindow):
-
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
@@ -21,102 +20,177 @@ class myMainWindow(QtWidgets.QMainWindow):
 
         # Connect actions to relevant slots
         # File menu
-        self.ui.action_newSchematic.triggered.connect(self.action_newSchematic_triggered)
-        self.ui.action_saveSchematic.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematic'))
-        self.ui.action_saveSchematicAs.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('schematicAs'))
-        self.ui.action_loadSchematic.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('schematic'))
-        self.ui.action_loadSchematic.triggered.connect(lambda x: self.changeWindowTitle(True))
-        self.ui.action_saveSymbol.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbol'))
-        self.ui.action_saveSymbolAs.triggered.connect(lambda x: self.ui.drawingArea.saveRoutine('symbolAs'))
-        self.ui.action_loadSymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbol'))
-        self.ui.action_modifySymbol.triggered.connect(lambda x: self.ui.drawingArea.loadRoutine('symbolModify'))
-        self.ui.action_modifySymbol.triggered.connect(lambda x: self.changeWindowTitle(True))
-        self.ui.action_exportFile.triggered.connect(self.ui.drawingArea.exportRoutine)
+        self.ui.action_newSchematic.triggered.connect(
+            self.action_newSchematic_triggered)
+        self.ui.action_saveSchematic.triggered.connect(
+            lambda x: self.ui.drawingArea.saveRoutine('schematic'))
+        self.ui.action_saveSchematicAs.triggered.connect(
+            lambda x: self.ui.drawingArea.saveRoutine('schematicAs'))
+        self.ui.action_loadSchematic.triggered.connect(
+            lambda x: self.ui.drawingArea.loadRoutine('schematic'))
+        self.ui.action_loadSchematic.triggered.connect(
+            lambda x: self.changeWindowTitle(True))
+        self.ui.action_saveSymbol.triggered.connect(
+            lambda x: self.ui.drawingArea.saveRoutine('symbol'))
+        self.ui.action_saveSymbolAs.triggered.connect(
+            lambda x: self.ui.drawingArea.saveRoutine('symbolAs'))
+        self.ui.action_loadSymbol.triggered.connect(
+            lambda x: self.ui.drawingArea.loadRoutine('symbol'))
+        self.ui.action_modifySymbol.triggered.connect(
+            lambda x: self.ui.drawingArea.loadRoutine('symbolModify'))
+        self.ui.action_modifySymbol.triggered.connect(
+            lambda x: self.changeWindowTitle(True))
+        self.ui.action_exportFile.triggered.connect(
+            self.ui.drawingArea.exportRoutine)
         self.ui.action_quit.triggered.connect(self.close)
 
         # Edit menu
-        self.ui.action_undo.triggered.connect(self.ui.drawingArea.undoStack.undo)
-        self.ui.action_undo.triggered.connect(lambda x: self.ui.statusbar.showMessage("Undo", 1000))
-        self.ui.action_redo.triggered.connect(self.ui.drawingArea.undoStack.redo)
-        self.ui.action_redo.triggered.connect(lambda x: self.ui.statusbar.showMessage("Redo", 1000))
-        self.ui.drawingArea.undoStack.canRedoChanged.connect(self.ui.action_redo.setEnabled)
-        self.ui.drawingArea.undoStack.canUndoChanged.connect(self.ui.action_undo.setEnabled)
-        self.ui.action_rotate.triggered.connect(self.ui.drawingArea.rotateRoutine)
+        self.ui.action_undo.triggered.connect(
+            self.ui.drawingArea.undoStack.undo)
+        self.ui.action_undo.triggered.connect(
+            lambda x: self.ui.statusbar.showMessage("Undo", 1000))
+        self.ui.action_redo.triggered.connect(
+            self.ui.drawingArea.undoStack.redo)
+        self.ui.action_redo.triggered.connect(
+            lambda x: self.ui.statusbar.showMessage("Redo", 1000))
+        self.ui.drawingArea.undoStack.canRedoChanged.connect(
+            self.ui.action_redo.setEnabled)
+        self.ui.drawingArea.undoStack.canUndoChanged.connect(
+            self.ui.action_undo.setEnabled)
+        self.ui.action_rotate.triggered.connect(
+            self.ui.drawingArea.rotateRoutine)
         self.ui.action_mirror.triggered.connect(lambda x:self.ui.drawingArea.rotateRoutine(modifier=QtCore.Qt.ShiftModifier))
         self.ui.action_move.triggered.connect(self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(self.ui.drawingArea.copyRoutine)
-        self.ui.action_delete.triggered.connect(self.ui.drawingArea.deleteRoutine)
-        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_move.setChecked(False))
-        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_copy.setChecked(False))
-        self.ui.drawingArea.resetToolbarButtons.connect(lambda: self.ui.action_delete.setChecked(False))
-        self.ui.action_options.triggered.connect(self.ui.drawingArea.optionsRoutine)
+        self.ui.action_delete.triggered.connect(
+            self.ui.drawingArea.deleteRoutine)
+        self.ui.drawingArea.resetToolbarButtons.connect(
+            lambda: self.ui.action_move.setChecked(False))
+        self.ui.drawingArea.resetToolbarButtons.connect(
+            lambda: self.ui.action_copy.setChecked(False))
+        self.ui.drawingArea.resetToolbarButtons.connect(
+            lambda: self.ui.action_delete.setChecked(False))
+        self.ui.action_options.triggered.connect(
+            self.ui.drawingArea.optionsRoutine)
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
-        self.ui.action_setWidth2.triggered.connect(lambda x:self.action_setWidth_triggered(2))
-        self.ui.action_setWidth4.triggered.connect(lambda x:self.action_setWidth_triggered(4))
-        self.ui.action_setWidth6.triggered.connect(lambda x:self.action_setWidth_triggered(6))
-        self.ui.action_setWidth8.triggered.connect(lambda x:self.action_setWidth_triggered(8))
-        self.ui.action_setWidth10.triggered.connect(lambda x:self.action_setWidth_triggered(10))
+        self.ui.action_setWidth2.triggered.connect(
+            lambda x: self.action_setWidth_triggered(2))
+        self.ui.action_setWidth4.triggered.connect(
+            lambda x: self.action_setWidth_triggered(4))
+        self.ui.action_setWidth6.triggered.connect(
+            lambda x: self.action_setWidth_triggered(6))
+        self.ui.action_setWidth8.triggered.connect(
+            lambda x: self.action_setWidth_triggered(8))
+        self.ui.action_setWidth10.triggered.connect(
+            lambda x: self.action_setWidth_triggered(10))
 
-        self.ui.action_setPenColourBlack.triggered.connect(lambda x: self.action_setPenColour_triggered('black'))
-        self.ui.action_setPenColourRed.triggered.connect(lambda x: self.action_setPenColour_triggered('red'))
-        self.ui.action_setPenColourGreen.triggered.connect(lambda x: self.action_setPenColour_triggered('green'))
-        self.ui.action_setPenColourBlue.triggered.connect(lambda x: self.action_setPenColour_triggered('blue'))
-        self.ui.action_setPenColourCyan.triggered.connect(lambda x: self.action_setPenColour_triggered('cyan'))
-        self.ui.action_setPenColourMagenta.triggered.connect(lambda x: self.action_setPenColour_triggered('magenta'))
-        self.ui.action_setPenColourYellow.triggered.connect(lambda x: self.action_setPenColour_triggered('yellow'))
+        self.ui.action_setPenColourBlack.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('black'))
+        self.ui.action_setPenColourRed.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('red'))
+        self.ui.action_setPenColourGreen.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('green'))
+        self.ui.action_setPenColourBlue.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('blue'))
+        self.ui.action_setPenColourCyan.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('cyan'))
+        self.ui.action_setPenColourMagenta.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('magenta'))
+        self.ui.action_setPenColourYellow.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('yellow'))
 
-        self.ui.action_setPenStyleSolid.triggered.connect(lambda x: self.action_setPenStyle_triggered(1))
-        self.ui.action_setPenStyleDash.triggered.connect(lambda x: self.action_setPenStyle_triggered(2))
-        self.ui.action_setPenStyleDot.triggered.connect(lambda x: self.action_setPenStyle_triggered(3))
-        self.ui.action_setPenStyleDashDot.triggered.connect(lambda x: self.action_setPenStyle_triggered(4))
-        self.ui.action_setPenStyleDashDotDot.triggered.connect(lambda x: self.action_setPenStyle_triggered(5))
+        self.ui.action_setPenStyleSolid.triggered.connect(
+            lambda x: self.action_setPenStyle_triggered(1))
+        self.ui.action_setPenStyleDash.triggered.connect(
+            lambda x: self.action_setPenStyle_triggered(2))
+        self.ui.action_setPenStyleDot.triggered.connect(
+            lambda x: self.action_setPenStyle_triggered(3))
+        self.ui.action_setPenStyleDashDot.triggered.connect(
+            lambda x: self.action_setPenStyle_triggered(4))
+        self.ui.action_setPenStyleDashDotDot.triggered.connect(
+            lambda x: self.action_setPenStyle_triggered(5))
 
-        self.ui.action_setBrushColourBlack.triggered.connect(lambda x: self.action_setBrushColour_triggered('black'))
-        self.ui.action_setBrushColourRed.triggered.connect(lambda x: self.action_setBrushColour_triggered('red'))
-        self.ui.action_setBrushColourGreen.triggered.connect(lambda x: self.action_setBrushColour_triggered('green'))
-        self.ui.action_setBrushColourBlue.triggered.connect(lambda x: self.action_setBrushColour_triggered('blue'))
-        self.ui.action_setBrushColourCyan.triggered.connect(lambda x: self.action_setBrushColour_triggered('cyan'))
-        self.ui.action_setBrushColourMagenta.triggered.connect(lambda x: self.action_setBrushColour_triggered('magenta'))
-        self.ui.action_setBrushColourYellow.triggered.connect(lambda x: self.action_setBrushColour_triggered('yellow'))
+        self.ui.action_setBrushColourBlack.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('black'))
+        self.ui.action_setBrushColourRed.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('red'))
+        self.ui.action_setBrushColourGreen.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('green'))
+        self.ui.action_setBrushColourBlue.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('blue'))
+        self.ui.action_setBrushColourCyan.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('cyan'))
+        self.ui.action_setBrushColourMagenta.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('magenta'))
+        self.ui.action_setBrushColourYellow.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('yellow'))
 
-        self.ui.action_setBrushStyleNone.triggered.connect(lambda x: self.action_setBrushStyle_triggered(0))
-        self.ui.action_setBrushStyleSolid.triggered.connect(lambda x: self.action_setBrushStyle_triggered(1))
+        self.ui.action_setBrushStyleNone.triggered.connect(
+            lambda x: self.action_setBrushStyle_triggered(0))
+        self.ui.action_setBrushStyleSolid.triggered.connect(
+            lambda x: self.action_setBrushStyle_triggered(1))
 
         # View menu
-        self.ui.action_fitToView.triggered.connect(self.ui.drawingArea.fitToViewRoutine)
-        self.ui.action_showGrid.triggered.connect(self.ui.drawingArea.toggleGridRoutine)
-        self.ui.action_snapToGrid.triggered.connect(self.ui.drawingArea.toggleSnapToGridRoutine)
+        self.ui.action_fitToView.triggered.connect(
+            self.ui.drawingArea.fitToViewRoutine)
+        self.ui.action_showGrid.triggered.connect(
+            self.ui.drawingArea.toggleGridRoutine)
+        self.ui.action_snapToGrid.triggered.connect(
+            self.ui.drawingArea.toggleSnapToGridRoutine)
 
         # Shape menu
         self.ui.action_addLine.triggered.connect(self.ui.drawingArea.addWire)
-        self.ui.action_addArc3Point.triggered.connect(lambda x: self.ui.drawingArea.addArc(3))
-        self.ui.action_addArc4Point.triggered.connect(lambda x: self.ui.drawingArea.addArc(4))
-        self.ui.action_addRectangle.triggered.connect(self.ui.drawingArea.addRectangle)
-        self.ui.action_addCircle.triggered.connect(self.ui.drawingArea.addCircle)
-        self.ui.action_addEllipse.triggered.connect(self.ui.drawingArea.addEllipse)
-        self.ui.action_addTextBox.triggered.connect(self.ui.drawingArea.addTextBox)
-        self.ui.action_editShape.triggered.connect(self.ui.drawingArea.editShape)
+        self.ui.action_addArc3Point.triggered.connect(
+            lambda x: self.ui.drawingArea.addArc(3))
+        self.ui.action_addArc4Point.triggered.connect(
+            lambda x: self.ui.drawingArea.addArc(4))
+        self.ui.action_addRectangle.triggered.connect(
+            self.ui.drawingArea.addRectangle)
+        self.ui.action_addCircle.triggered.connect(
+            self.ui.drawingArea.addCircle)
+        self.ui.action_addEllipse.triggered.connect(
+            self.ui.drawingArea.addEllipse)
+        self.ui.action_addTextBox.triggered.connect(
+            self.ui.drawingArea.addTextBox)
+        self.ui.action_editShape.triggered.connect(
+            self.ui.drawingArea.editShape)
 
         # Symbol menu
         self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addNet)
-        self.ui.action_addResistor.triggered.connect(self.ui.drawingArea.addResistor)
-        self.ui.action_addCapacitor.triggered.connect(self.ui.drawingArea.addCapacitor)
-        self.ui.action_addGround.triggered.connect(self.ui.drawingArea.addGround)
+        self.ui.action_addResistor.triggered.connect(
+            self.ui.drawingArea.addResistor)
+        self.ui.action_addCapacitor.triggered.connect(
+            self.ui.drawingArea.addCapacitor)
+        self.ui.action_addGround.triggered.connect(
+            self.ui.drawingArea.addGround)
         self.ui.action_addDot.triggered.connect(self.ui.drawingArea.addDot)
-        self.ui.action_addNMOSWithArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', True))
-        self.ui.action_addNMOSWithoutArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', False))
-        self.ui.action_addPMOSWithArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', True))
-        self.ui.action_addPMOSWithoutArrow.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', False))
-        self.ui.action_addNPNBJT.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('BJT', 'N', True))
-        self.ui.action_addPNPBJT.triggered.connect(lambda x: self.ui.drawingArea.addTransistor('BJT', 'P', True))
-        self.ui.action_addDCVoltageSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('DCV'))
-        self.ui.action_addDCCurrentSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('DCI'))
-        self.ui.action_addACSource.triggered.connect(lambda x: self.ui.drawingArea.addSource('AC'))
-        self.ui.action_addVCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCVS'))
-        self.ui.action_addVCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('VCCS'))
-        self.ui.action_addCCVS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCVS'))
-        self.ui.action_addCCCS.triggered.connect(lambda x: self.ui.drawingArea.addSource('CCCS'))
+        self.ui.action_addNMOSWithArrow.triggered.connect(
+            lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', True))
+        self.ui.action_addNMOSWithoutArrow.triggered.connect(
+            lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', False))
+        self.ui.action_addPMOSWithArrow.triggered.connect(
+            lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', True))
+        self.ui.action_addPMOSWithoutArrow.triggered.connect(
+            lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', False))
+        self.ui.action_addNPNBJT.triggered.connect(
+            lambda x: self.ui.drawingArea.addTransistor('BJT', 'N', True))
+        self.ui.action_addPNPBJT.triggered.connect(
+            lambda x: self.ui.drawingArea.addTransistor('BJT', 'P', True))
+        self.ui.action_addDCVoltageSource.triggered.connect(
+            lambda x: self.ui.drawingArea.addSource('DCV'))
+        self.ui.action_addDCCurrentSource.triggered.connect(
+            lambda x: self.ui.drawingArea.addSource('DCI'))
+        self.ui.action_addACSource.triggered.connect(
+            lambda x: self.ui.drawingArea.addSource('AC'))
+        self.ui.action_addVCVS.triggered.connect(
+            lambda x: self.ui.drawingArea.addSource('VCVS'))
+        self.ui.action_addVCCS.triggered.connect(
+            lambda x: self.ui.drawingArea.addSource('VCCS'))
+        self.ui.action_addCCVS.triggered.connect(
+            lambda x: self.ui.drawingArea.addSource('CCVS'))
+        self.ui.action_addCCCS.triggered.connect(
+            lambda x: self.ui.drawingArea.addSource('CCCS'))
 
         # Miscellaneous signal and slot connections
         self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)

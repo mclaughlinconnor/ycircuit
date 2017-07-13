@@ -6,6 +6,7 @@ from .optionswindow import MyOptionsWindow
 import pickle
 import os
 from numpy import ceil, floor
+
 # from src import components
 # import sys
 # sys.modules['components'] = components
@@ -29,10 +30,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # self.scene().setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
         self.parent = parent
-        self._keys = {'c': False, 'm': False, 'r': False, 'w': False,
-                      'arc': False, 'rectangle': False, 'circle': False,
-                      'ellipse': False, 'textBox': False, 'add': False,
-                      'edit': False, 'net': False}
+        self._keys = {
+            'c': False,
+            'm': False,
+            'r': False,
+            'w': False,
+            'arc': False,
+            'rectangle': False,
+            'circle': False,
+            'ellipse': False,
+            'textBox': False,
+            'add': False,
+            'edit': False,
+            'net': False
+        }
         self._mouse = {'1': False}
         self._grid = Grid(None, self)
         self.undoStack = QtWidgets.QUndoStack(self)
@@ -242,24 +253,44 @@ class DrawingArea(QtWidgets.QGraphicsView):
             saveFile = ''
             if mode == 'symbol':
                 if self.symbolFileName is None:
-                    fileDialog = myFileDialog(self, 'Save symbol', './Resources/Symbols/Custom/untitled.sym', filt='Symbols (*.sym)', mode='save')
+                    fileDialog = myFileDialog(
+                        self,
+                        'Save symbol',
+                        './Resources/Symbols/Custom/untitled.sym',
+                        filt='Symbols (*.sym)',
+                        mode='save')
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
                 else:
                     saveFile = self.symbolFileName
             elif mode == 'symbolAs':
-                fileDialog = myFileDialog(self, 'Save symbol as', './Resources/Symbols/Custom/untitled.sym', filt='Symbols (*.sym)', mode='save')
+                fileDialog = myFileDialog(
+                    self,
+                    'Save symbol as',
+                    './Resources/Symbols/Custom/untitled.sym',
+                    filt='Symbols (*.sym)',
+                    mode='save')
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
             elif mode == 'schematic':
                 if self.schematicFileName is None:
-                    fileDialog = myFileDialog(self, 'Save schematic', './untitled.sch', filt='Schematics (*.sch)', mode='save')
+                    fileDialog = myFileDialog(
+                        self,
+                        'Save schematic',
+                        './untitled.sch',
+                        filt='Schematics (*.sch)',
+                        mode='save')
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
                 else:
                     saveFile = self.schematicFileName
             elif mode == 'schematicAs':
-                fileDialog = myFileDialog(self, 'Save schematic as', './untitled.sch', filt='Schematics (*.sch)', mode='save')
+                fileDialog = myFileDialog(
+                    self,
+                    'Save schematic as',
+                    './untitled.sch',
+                    filt='Schematics (*.sch)',
+                    mode='save')
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
 
@@ -345,13 +376,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Create a rect that's 1.5 times the boundingrect of all items
             sourceRect = self.scene().itemsBoundingRect()
             scale = 1.1
-            sourceRect.setWidth(int(scale*sourceRect.width()))
-            sourceRect.setHeight(int(scale*sourceRect.height()))
+            sourceRect.setWidth(int(scale * sourceRect.width()))
+            sourceRect.setHeight(int(scale * sourceRect.height()))
             width, height = sourceRect.width(), sourceRect.height()
             if not scale < 1:
-                sourceRect.translate(-width*(scale - 1)/2., -height*(scale - 1)/2.)
+                sourceRect.translate(-width * (scale - 1) / 2.,
+                                     -height * (scale - 1) / 2.)
             # Create an image object
-            img = QtGui.QImage(QtCore.QSize(2*width, 2*height), QtGui.QImage.Format_RGB32)
+            img = QtGui.QImage(
+                QtCore.QSize(2 * width, 2 * height), QtGui.QImage.Format_RGB32)
             # Set background to white
             img.fill(QtGui.QColor('white'))
             painter = QtGui.QPainter(img)
@@ -379,9 +412,19 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if loadFile is None:
                 loadFile = ''
                 if mode == 'symbol' or mode == 'symbolModify':
-                    fileDialog = myFileDialog(self, 'Load Symbol', './Resources/Symbols/', filt='Symbols (*.sym)', mode='load')
+                    fileDialog = myFileDialog(
+                        self,
+                        'Load Symbol',
+                        './Resources/Symbols/',
+                        filt='Symbols (*.sym)',
+                        mode='load')
                 elif mode == 'schematic':
-                    fileDialog = myFileDialog(self, 'Load Schematic', './', filt='Schematics (*.sch)', mode='load')
+                    fileDialog = myFileDialog(
+                        self,
+                        'Load Schematic',
+                        './',
+                        filt='Schematics (*.sch)',
+                        mode='load')
                 if (fileDialog.exec_()):
                     loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':
@@ -400,12 +443,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self._grid.removeGrid()
                 self.scene().clear()
                 self._grid.createGrid()
-                loadItem.__init__(None, QtCore.QPointF(0, 0), loadItem.listOfItems, mode='symbol')
+                loadItem.__init__(
+                    None,
+                    QtCore.QPointF(0, 0),
+                    loadItem.listOfItems,
+                    mode='symbol')
                 self.scene().addItem(loadItem)
                 # loadItem.loadItems(mode)
             elif mode == 'symbol':
                 self.loadItem = loadItem
-                loadItem.__init__(None, self.mapToGrid(self.currentPos), loadItem.listOfItems, mode='symbol')
+                loadItem.__init__(
+                    None,
+                    self.mapToGrid(self.currentPos),
+                    loadItem.listOfItems,
+                    mode='symbol')
                 self.scene().addItem(self.loadItem)
                 # loadItem.loadItems('symbol')
             if mode == 'schematic' or mode == 'symbolModify':
@@ -563,41 +614,61 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if selectedWidth != self.selectedWidth:
             self.selectedWidth = selectedWidth
             if self.scene().selectedItems() != []:
-                changePen = ChangePen(None, self.scene().selectedItems(), width=self.selectedWidth)
+                changePen = ChangePen(
+                    None,
+                    self.scene().selectedItems(),
+                    width=self.selectedWidth)
                 self.undoStack.push(changePen)
-        self.statusbarMessage.emit("Changed pen width to %d" %(self.selectedWidth), 1000)
+        self.statusbarMessage.emit("Changed pen width to %d" %
+                                   (self.selectedWidth), 1000)
 
     def changePenColourRoutine(self, selectedPenColour):
         if selectedPenColour != self.selectedPenColour:
             self.selectedPenColour = selectedPenColour
             if self.scene().selectedItems() != []:
-                changePen = ChangePen(None, self.scene().selectedItems(), penColour=self.selectedPenColour)
+                changePen = ChangePen(
+                    None,
+                    self.scene().selectedItems(),
+                    penColour=self.selectedPenColour)
                 self.undoStack.push(changePen)
-        self.statusbarMessage.emit("Changed pen colour to %s" %(self.selectedPenColour), 1000)
+        self.statusbarMessage.emit("Changed pen colour to %s" %
+                                   (self.selectedPenColour), 1000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
         if selectedPenStyle != self.selectedPenStyle:
             self.selectedPenStyle = selectedPenStyle
             if self.scene().selectedItems() != []:
-                changePen = ChangePen(None, self.scene().selectedItems(), penStyle=self.selectedPenStyle)
+                changePen = ChangePen(
+                    None,
+                    self.scene().selectedItems(),
+                    penStyle=self.selectedPenStyle)
                 self.undoStack.push(changePen)
-        self.statusbarMessage.emit("Changed pen style to %s" %(self.selectedPenStyle), 1000)
+        self.statusbarMessage.emit("Changed pen style to %s" %
+                                   (self.selectedPenStyle), 1000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
         if selectedBrushColour != self.selectedBrushColour:
             self.selectedBrushColour = selectedBrushColour
             if self.scene().selectedItems() != []:
-                changeBrush = ChangeBrush(None, self.scene().selectedItems(), brushColour=self.selectedBrushColour)
+                changeBrush = ChangeBrush(
+                    None,
+                    self.scene().selectedItems(),
+                    brushColour=self.selectedBrushColour)
                 self.undoStack.push(changeBrush)
-        self.statusbarMessage.emit("Changed brush colour to %s" %(self.selectedBrushColour), 1000)
+        self.statusbarMessage.emit("Changed brush colour to %s" %
+                                   (self.selectedBrushColour), 1000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
         if selectedBrushStyle != self.selectedBrushStyle:
             self.selectedBrushStyle = selectedBrushStyle
             if self.scene().selectedItems() != []:
-                changeBrush = ChangeBrush(None, self.scene().selectedItems(), brushStyle=self.selectedBrushStyle)
+                changeBrush = ChangeBrush(
+                    None,
+                    self.scene().selectedItems(),
+                    brushStyle=self.selectedBrushStyle)
                 self.undoStack.push(changeBrush)
-        self.statusbarMessage.emit("Changed brush style to %s" %(self.selectedBrushStyle), 1000)
+        self.statusbarMessage.emit("Changed brush style to %s" %
+                                   (self.selectedBrushStyle), 1000)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
@@ -652,7 +723,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Cancel the move and add the move to undo stack properly
                     for item in self.moveItems:
                         item.moveTo(None, 'cancel')
-                    move = Move(None, self.scene(), self.moveItems, startPoint=self.moveStartPoint, stopPoint=point)
+                    move = Move(
+                        None,
+                        self.scene(),
+                        self.moveItems,
+                        startPoint=self.moveStartPoint,
+                        stopPoint=point)
                     self.undoStack.push(move)
                 # Evaluate if any new nets need to be split/merged
                 # if self._keys['c'] is False:
@@ -676,14 +752,25 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if self._keys['add'] is True:
             if (event.button() == QtCore.Qt.LeftButton):
                 # add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)
-                add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), transform=self.loadItem.transform())
+                add = Add(
+                    None,
+                    self.scene(),
+                    self.loadItem,
+                    symbol=True,
+                    origin=self.mapToGrid(event.pos()),
+                    transform=self.loadItem.transform())
                 self.undoStack.push(add)
         if self._keys['edit'] is True:
             item = self.scene().selectedItems()[0]
             # Also accounts for arcs because they are subclassed from Wire
             if isinstance(item, Wire):
                 if (event.button() == QtCore.Qt.LeftButton):
-                    edit = Edit(None, self.scene(), item, self.mapToGrid(event.pos()), clicked=True)
+                    edit = Edit(
+                        None,
+                        self.scene(),
+                        item,
+                        self.mapToGrid(event.pos()),
+                        clicked=True)
                     self.undoStack.push(edit)
                     self.undoStack.endMacro()
                     self.undoStack.beginMacro('')
@@ -698,7 +785,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self._keys['edit'] = False
                 if (event.button() == QtCore.Qt.LeftButton):
                     self._mouse['1'] = False
-                    edit = Edit(None, self.scene(), item, self.mapToGrid(event.pos()))
+                    edit = Edit(None,
+                                self.scene(), item,
+                                self.mapToGrid(event.pos()))
                     self.undoStack.push(edit)
             if self._mouse['1'] is False:
                 self.undoStack.endMacro()
@@ -725,7 +814,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.reflections += 1
                 self.reflections %= 2
                 point = self.mapToGrid(self.currentPos)
-                mirror = Mirror(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point)
+                mirror = Mirror(None,
+                                self.scene(), self.moveItems,
+                                self._keys['m'] and self._mouse['1'], point)
                 # If a new item is being added, don't push mirror onto the undo stack
                 if self._keys['add'] is False:
                     self.undoStack.push(mirror)
@@ -737,9 +828,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
             else:
                 # Keep track of number of rotations
                 self.rotations += 1
-                self.rotations %= 360/self.rotateAngle
+                self.rotations %= 360 / self.rotateAngle
                 point = self.mapToGrid(self.currentPos)
-                rotate = Rotate(None, self.scene(), self.moveItems, self._keys['m'] and self._mouse['1'], point, self.rotateAngle)
+                rotate = Rotate(None,
+                                self.scene(), self.moveItems,
+                                self._keys['m'] and self._mouse['1'], point,
+                                self.rotateAngle)
                 # If a new item is being added, don't push rotate onto the undo stack
                 if self._keys['add'] is False:
                     self.undoStack.push(rotate)
@@ -769,7 +863,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['w'] is True:
                     # Create new wire if none exists
                     if self.currentWire is None:
-                        self.currentWire = Wire(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                        self.currentWire = Wire(
+                            None,
+                            start,
+                            penColour=self.selectedPenColour,
+                            width=self.selectedWidth,
+                            penStyle=self.selectedPenStyle,
+                            brushColour=self.selectedBrushColour,
+                            brushStyle=self.selectedBrushStyle)
                         self.scene().addItem(self.currentWire)
                     # If wire exists, add segments
                     else:
@@ -778,7 +879,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 elif self._keys['arc'] is True:
                     # Create new arc if none exists
                     if self.currentArc is None:
-                        self.currentArc = Arc(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle, points=self.arcPoints)
+                        self.currentArc = Arc(
+                            None,
+                            start,
+                            penColour=self.selectedPenColour,
+                            width=self.selectedWidth,
+                            penStyle=self.selectedPenStyle,
+                            brushColour=self.selectedBrushColour,
+                            brushStyle=self.selectedBrushStyle,
+                            points=self.arcPoints)
                         add = Add(None, self.scene(), self.currentArc)
                         self.undoStack.push(add)
                     # If arc exists, add segments
@@ -789,14 +898,21 @@ class DrawingArea(QtWidgets.QGraphicsView):
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         if self._keys['net'] is True:
-            if event.button () == QtCore.Qt.LeftButton:
+            if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 # Create new net if none exists
                 if self.currentNet is None:
-                    self.currentNet = Net(None, start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.currentNet = Net(
+                        None,
+                        start,
+                        penColour=self.selectedPenColour,
+                        width=self.selectedWidth,
+                        penStyle=self.selectedPenStyle,
+                        brushColour=self.selectedBrushColour,
+                        brushStyle=self.selectedBrushStyle)
                     # Add the original net
                     self.scene().addItem(self.currentNet)
             else:
@@ -835,13 +951,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
         if self._keys['rectangle'] is True:
-            if event.button () == QtCore.Qt.LeftButton:
+            if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentRectangle is None:
-                    self.currentRectangle = Rectangle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.currentRectangle = Rectangle(
+                        None,
+                        start=start,
+                        penColour=self.selectedPenColour,
+                        width=self.selectedWidth,
+                        penStyle=self.selectedPenStyle,
+                        brushColour=self.selectedBrushColour,
+                        brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentRectangle)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentRectangle)
@@ -849,13 +972,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 item.setSelected(False)
         # If circle mode is on, add a new circle
         if self._keys['circle'] is True:
-            if event.button () == QtCore.Qt.LeftButton:
+            if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentCircle is None:
-                    self.currentCircle = Circle(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.currentCircle = Circle(
+                        None,
+                        start=start,
+                        penColour=self.selectedPenColour,
+                        width=self.selectedWidth,
+                        penStyle=self.selectedPenStyle,
+                        brushColour=self.selectedBrushColour,
+                        brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentCircle)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentCircle)
@@ -863,13 +993,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 item.setSelected(False)
         # If ellipse mode is on, add a new ellipse
         if self._keys['ellipse'] is True:
-            if event.button () == QtCore.Qt.LeftButton:
+            if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentEllipse is None:
-                    self.currentEllipse = Ellipse(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.currentEllipse = Ellipse(
+                        None,
+                        start=start,
+                        penColour=self.selectedPenColour,
+                        width=self.selectedWidth,
+                        penStyle=self.selectedPenStyle,
+                        brushColour=self.selectedBrushColour,
+                        brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentEllipse)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentEllipse)
@@ -877,13 +1014,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 item.setSelected(False)
         # If textbox mode is on, add a new textbox
         if self._keys['textBox'] is True:
-            if event.button () == QtCore.Qt.LeftButton:
+            if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentTextBox is None:
-                    self.currentTextBox = TextBox(None, start=start, penColour=self.selectedPenColour, width=self.selectedWidth, penStyle=self.selectedPenStyle, brushColour=self.selectedBrushColour, brushStyle=self.selectedBrushStyle)
+                    self.currentTextBox = TextBox(
+                        None,
+                        start=start,
+                        penColour=self.selectedPenColour,
+                        width=self.selectedWidth,
+                        penStyle=self.selectedPenStyle,
+                        brushColour=self.selectedBrushColour,
+                        brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentTextBox)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)
