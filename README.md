@@ -87,7 +87,7 @@ As of this point in time, the following options are available:
         * [Controlled sources](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
 /icons/Symbols/controlledSources.png) (all 4 types) (Alt+S->S->C)
 
-Image previews for other symbols not listed above can be found in the [symbol images](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols) directory.
+Image previews for other symbols not listed above can be found in the [symbol images](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/) directory.
 
 Item shapes can typically be edited by selecting them and pressing the E key. The contents of text box items can be edited by double clicking on the text box. It is recommended to use the Wire symbol for drawing schematic nets. Nets support automatically inserting dots at appropriate intersections and split and merge as required. The Line shape should be thought of as being a polyline that should be used for drawing lines at arbitrary angles.
 
