@@ -68,19 +68,28 @@ As of this point in time, the following options are available:
         * An option for a more coherent look would be to use the symbols button in the text editor.
   * Symbols (Alt+S)
     * Wire (Right click to change the angle of the wire!) (Alt+S->W)
-    * Resistor (Alt+S->R)
-    * Capacitor (Alt+S->C)
-    * Ground (Alt+S->G)
+    * [Resistor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/resistor.png) (Alt+S->R)
+    * [Capacitor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/capacitor.png) (Alt+S->C)
+    * [Ground](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/ground.png) (Alt+S->G)
     * Connectivity dot (Alt+S->D)
     * Transistors (Alt+S->T)
-        * NFET (With and without arrow) (Alt+S->T->N)
-        * PFET (With and without arrow) (Alt+S->T->P)
-        * NPN BJT
-        * PNP BJT
+        * [NFET](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
+/icons/Symbols/nfet.png) (With and without arrow) (Alt+S->T->N)
+        * [PFET](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
+/icons/Symbols/pfet.png) (With and without arrow) (Alt+S->T->P)
+        * [NPN](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
+/icons/Symbols/bjt.png) BJT
+        * [PNP](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
+/icons/Symbols/bjt.png) BJT
     * Sources (Alt+S->S)
-        * DC (both voltage and current) (Alt+S->S->D->V,C)
-        * AC (Alt+S->S->A)
-        * Controlled sources (all 4 types) (Alt+S->S->C)
+        * DC source (both [voltage](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
+/icons/Symbols/dcv.png) and [current](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/dci.png)) (Alt+S->S->D->V,C)
+        * [AC source](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
+/icons/Symbols/ac.png) (Alt+S->S->A)
+        * [Controlled sources](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
+/icons/Symbols/controlledSources.png) (all 4 types) (Alt+S->S->C)
+
+Image previews for other symbols not listed above can be found in the [symbol images](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/resistor.png) directory.
 
 Item shapes can typically be edited by selecting them and pressing the E key. The contents of text box items can be edited by double clicking on the text box. It is recommended to use the Wire symbol for drawing schematic nets. Nets support automatically inserting dots at appropriate intersections and split and merge as required. The Line shape should be thought of as being a polyline that should be used for drawing lines at arbitrary angles.
 
