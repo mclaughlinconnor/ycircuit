@@ -132,12 +132,39 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.action_setBrushStyle_triggered(1))
 
         # View menu
+        self.ui.menu_View.hovered.connect(self.menu_View_hovered)
         self.ui.action_fitToView.triggered.connect(
             self.ui.drawingArea.fitToViewRoutine)
         self.ui.action_showGrid.triggered.connect(
             self.ui.drawingArea.toggleGridRoutine)
         self.ui.action_snapToGrid.triggered.connect(
             self.ui.drawingArea.toggleSnapToGridRoutine)
+        self.ui.action_showMajorGridPoints.triggered.connect(
+            self.ui.drawingArea.toggleMajorGridPointsRoutine)
+        self.ui.action_majorGridPointSpacing100.triggered.connect(
+            lambda x: self.action_majorGridPointSpacing(100))
+        self.ui.action_majorGridPointSpacing200.triggered.connect(
+            lambda x: self.action_majorGridPointSpacing(200))
+        self.ui.action_majorGridPointSpacing300.triggered.connect(
+            lambda x: self.action_majorGridPointSpacing(300))
+        self.ui.action_majorGridPointSpacing400.triggered.connect(
+            lambda x: self.action_majorGridPointSpacing(400))
+        self.ui.action_showMinorGridPoints.triggered.connect(
+            self.ui.drawingArea.toggleMinorGridPointsRoutine)
+        self.ui.action_minorGridPointSpacing1.triggered.connect(
+            lambda x: self.action_minorGridPointSpacing(1))
+        self.ui.action_minorGridPointSpacing2.triggered.connect(
+            lambda x: self.action_minorGridPointSpacing(2))
+        self.ui.action_minorGridPointSpacing5.triggered.connect(
+            lambda x: self.action_minorGridPointSpacing(5))
+        self.ui.action_minorGridPointSpacing10.triggered.connect(
+            lambda x: self.action_minorGridPointSpacing(10))
+        self.ui.action_minorGridPointSpacing20.triggered.connect(
+            lambda x: self.action_minorGridPointSpacing(20))
+        self.ui.action_minorGridPointSpacing30.triggered.connect(
+            lambda x: self.action_minorGridPointSpacing(30))
+        self.ui.action_minorGridPointSpacing40.triggered.connect(
+            lambda x: self.action_minorGridPointSpacing(40))
 
         # Shape menu
         self.ui.action_addLine.triggered.connect(self.ui.drawingArea.addWire)
@@ -398,6 +425,63 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_setBrushStyleSolid.setChecked(True)
         if temporary is False:
             self.ui.drawingArea.changeBrushStyleRoutine(brushStyle)
+
+    def menu_View_hovered(self):
+        self.ui.action_showGrid.setChecked(
+            self.ui.drawingArea._grid.enableGrid)
+        self.ui.action_snapToGrid.setChecked(
+            self.ui.drawingArea._grid.snapToGrid)
+        self.ui.action_showMajorGridPoints.setChecked(
+            self.ui.drawingArea._grid.majorSpacingVisibility)
+        self.ui.action_showMinorGridPoints.setChecked(
+            self.ui.drawingArea._grid.minorSpacingVisibility)
+
+        # Set the major and minor grid point checks appropriately
+        majorSpacing = self.ui.drawingArea._grid.majorSpacing
+        minorSpacing = self.ui.drawingArea._grid.minorSpacing
+        self.action_majorGridPointSpacing(majorSpacing)
+        self.action_minorGridPointSpacing(minorSpacing)
+
+    def action_majorGridPointSpacing(self, spacing, temporary=False):
+        self.ui.action_majorGridPointSpacing100.setChecked(False)
+        self.ui.action_majorGridPointSpacing200.setChecked(False)
+        self.ui.action_majorGridPointSpacing300.setChecked(False)
+        self.ui.action_majorGridPointSpacing400.setChecked(False)
+        if spacing == 100:
+            self.ui.action_majorGridPointSpacing100.setChecked(True)
+        if spacing == 200:
+            self.ui.action_majorGridPointSpacing200.setChecked(True)
+        if spacing == 300:
+            self.ui.action_majorGridPointSpacing300.setChecked(True)
+        if spacing == 400:
+            self.ui.action_majorGridPointSpacing400.setChecked(True)
+        if temporary is False:
+            self.ui.drawingArea.changeMajorGridPointSpacing(spacing)
+
+    def action_minorGridPointSpacing(self, spacing, temporary=False):
+        self.ui.action_minorGridPointSpacing1.setChecked(False)
+        self.ui.action_minorGridPointSpacing2.setChecked(False)
+        self.ui.action_minorGridPointSpacing5.setChecked(False)
+        self.ui.action_minorGridPointSpacing10.setChecked(False)
+        self.ui.action_minorGridPointSpacing20.setChecked(False)
+        self.ui.action_minorGridPointSpacing30.setChecked(False)
+        self.ui.action_minorGridPointSpacing40.setChecked(False)
+        if spacing == 1:
+            self.ui.action_minorGridPointSpacing1.setChecked(True)
+        if spacing == 2:
+            self.ui.action_minorGridPointSpacing2.setChecked(True)
+        if spacing == 5:
+            self.ui.action_minorGridPointSpacing5.setChecked(True)
+        if spacing == 10:
+            self.ui.action_minorGridPointSpacing10.setChecked(True)
+        if spacing == 20:
+            self.ui.action_minorGridPointSpacing20.setChecked(True)
+        if spacing == 30:
+            self.ui.action_minorGridPointSpacing30.setChecked(True)
+        if spacing == 40:
+            self.ui.action_minorGridPointSpacing40.setChecked(True)
+        if temporary is False:
+            self.ui.drawingArea.changeMinorGridPointSpacing(spacing)
 
 
 if __name__ == "__main__":

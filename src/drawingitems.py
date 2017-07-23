@@ -28,24 +28,26 @@ class Grid(QtCore.QObject):
         # the available major grid point spacings
         self.xLength = 1200
         self.yLength = 1200
-        self.xPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
-        self.yPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
+        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
+        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
+        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
+        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
 
     def createGrid(self):
-        self.xPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
-        self.yPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
-        self.xDisplayPoints = self.xPoints
-        self.yDisplayPoints = self.yPoints
+        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
+        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
+        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
+        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
         self.gridPolygonRegular = QtGui.QPolygon()
         if self.minorSpacingVisibility is True:
-            for x in self.xDisplayPoints:
-                for y in self.yDisplayPoints:
+            for x in self.xMinorPoints:
+                for y in self.yMinorPoints:
                     self.gridPolygonRegular.append(QtCore.QPoint(x, y))
         self.gridPolygonLarge = QtGui.QPolygon()
         # Larger pixels for points on the coarse grid
         if self.majorSpacingVisibility is True:
-            for x in self.xDisplayPoints[self.xDisplayPoints % self.majorSpacing == 0]:
-                for y in self.yDisplayPoints[self.yDisplayPoints % self.majorSpacing == 0]:
+            for x in self.xMajorPoints:
+                for y in self.yMajorPoints:
                     self.gridPolygonLarge.append(QtCore.QPoint(x, y))
 
         pix = QtGui.QPixmap(QtCore.QSize(self.xLength, self.yLength))

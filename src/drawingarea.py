@@ -610,6 +610,28 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Toggles drawings snapping to grid"""
         self._grid.snapToGrid = state
 
+    def toggleMajorGridPointsRoutine(self, state):
+        """Toggles major grid points on and off"""
+        self._grid.majorSpacingVisibility = state
+        if self._grid.enableGrid is True:
+            self._grid.createGrid()
+
+    def changeMajorGridPointSpacing(self, spacing):
+        self._grid.majorSpacing = spacing
+        if self._grid.enableGrid is True:
+            self._grid.createGrid()
+
+    def toggleMinorGridPointsRoutine(self, state):
+        """Toggles minor grid points on and off"""
+        self._grid.minorSpacingVisibility = state
+        if self._grid.enableGrid is True:
+            self._grid.createGrid()
+
+    def changeMinorGridPointSpacing(self, spacing):
+        self._grid.minorSpacing = spacing
+        if self._grid.enableGrid is True:
+            self._grid.createGrid()
+
     def changeWidthRoutine(self, selectedWidth):
         if selectedWidth != self.selectedWidth:
             self.selectedWidth = selectedWidth
