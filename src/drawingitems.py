@@ -4,6 +4,7 @@ import numpy
 import pickle
 import sympy
 from io import BytesIO
+from distutils.spawn import find_executable
 
 
 class Grid(QtCore.QObject):
@@ -126,17 +127,22 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.pushButton_subscript.clicked.connect(self.modifyText)
         self.ui.pushButton_superscript.clicked.connect(self.modifyText)
         self.ui.pushButton_symbol.clicked.connect(self.modifyText)
+        if not find_executable('latex'):
+            self.ui.pushButton_latex.setEnabled(False)
         self.ui.pushButton_latex.clicked.connect(self.modifyText)
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
         if self.ui.pushButton_latex.isChecked():
             self.textBox.latexImageBinary, self.textBox.data64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-            # htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
-            htmlString = ''
-            self.textBox.latexImageHtml = htmlString
-            self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
-            self.textBox.setHtml(htmlString)
+            # This will not be None if latex is installed
+            if self.textBox.latexImageBinary is not None:
+                htmlString = ''
+                self.textBox.latexImageHtml = htmlString
+                self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
+                self.textBox.setHtml(htmlString)
+            else:
+                self.textBox.setHtml(self.ui.textEdit.toHtml())
         else:
             self.textBox.setHtml(self.ui.textEdit.toHtml())
             self.textBox.latexImageHtml = None
@@ -273,7 +279,11 @@ class TextEditor(QtWidgets.QDialog):
         rgba = color.getRgbF()
         r, g, b = rgba[0], rgba[1], rgba[2]
         fg = 'rgb ' + str(r) + ' ' + str(g) + ' ' + str(b)
-        sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
+        try:
+            sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
+        except RuntimeError:
+            self.ui.pushButton_latex.setChecked(False)
+            return None, None
 
         img = QtGui.QImage()
         img.loadFromData(obj.getvalue(), format='png')
