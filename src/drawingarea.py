@@ -90,21 +90,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
         else:
             self._grid.removeGrid()
         # Save/export settings
-        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show schematic preview', type=bool)
-        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default schematic save folder')
+        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
+        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSchematicSaveFolder):
             os.mkdir(self.defaultSchematicSaveFolder)
-        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show symbol preview', type=bool)
-        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default symbol save folder')
+        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', type=bool)
+        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSymbolSaveFolder):
             os.mkdir(self.defaultSymbolSaveFolder)
-        self.defaultExportFormat = str(settings.value('SaveExport/Export/Default export format')).lower()
-        self.defaultExportFolder = settings.value('SaveExport/Export/Default export folder')
+        self.defaultExportFormat = str(settings.value('SaveExport/Export/Default format')).lower()
+        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultExportFolder):
             os.mkdir(self.defaultExportFolder)
+        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', type=float)
+        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', type=float)
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -334,7 +336,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if mode == 'schematic' or mode == 'schematicAs':
                     self.schematicFileName = saveFile
                     self.symbolFileName = None
-                self.undoStack.clear()
+                self.undoStack.setClean()
             if mode == 'schematic' or mode == 'schematicAs':
                 saveObject.reparentItems()
                 self.scene().removeItem(saveObject)
@@ -395,40 +397,38 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 quality = 1
             elif saveFilter == 'tiff':
                 quality = 1
+        # Create a rect that's scaled appropriately to have some whitespace
+        sourceRect = self.scene().itemsBoundingRect()
+        padding = self.exportImageWhitespacePadding
+        scale = self.exportImageScaleFactor
+        sourceRect.setWidth(int(padding * sourceRect.width()))
+        sourceRect.setHeight(int(padding * sourceRect.height()))
+        width, height = sourceRect.width(), sourceRect.height()
+        if not padding < 1:
+            sourceRect.translate(-width * (padding - 1) / (padding * 2.),
+                                 -height * (padding - 1) / (padding * 2.))
         if mode == 'pdf':
             # Initialize printer
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
-            sourceRect = self.scene().itemsBoundingRect()
             # Choose appropriate format
             printer.setOutputFormat(printer.PdfFormat)
             printer.setOutputFileName(saveFile)
-            pageSize = QtGui.QPageSize(sourceRect.size().toSize(), matchPolicy=QtGui.QPageSize.ExactMatch)
+            pageSize = QtGui.QPageSize(QtCore.QSize(width, height), matchPolicy=QtGui.QPageSize.ExactMatch)
             printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
             self.scene().render(painter, source=sourceRect)
         elif mode == 'svg':
             svgGenerator = QtSvg.QSvgGenerator()
             svgGenerator.setFileName(saveFile)
-            sourceRect = self.scene().itemsBoundingRect()
-            width, height = sourceRect.width(), sourceRect.height()
             svgGenerator.setSize(QtCore.QSize(width, height))
             svgGenerator.setResolution(96)
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
         elif mode == 'image':
-            # Create a rect that's 1.5 times the boundingrect of all items
-            sourceRect = self.scene().itemsBoundingRect()
-            scale = 1.1
-            sourceRect.setWidth(int(scale * sourceRect.width()))
-            sourceRect.setHeight(int(scale * sourceRect.height()))
-            width, height = sourceRect.width(), sourceRect.height()
-            if not scale < 1:
-                sourceRect.translate(-width * (scale - 1) / 2.,
-                                     -height * (scale - 1) / 2.)
             # Create an image object
             img = QtGui.QImage(
-                QtCore.QSize(2 * width, 2 * height), QtGui.QImage.Format_RGB32)
+                QtCore.QSize(scale * width, scale * height), QtGui.QImage.Format_RGB32)
             # Set background to white
             img.fill(QtGui.QColor('white'))
             painter = QtGui.QPainter(img)

@@ -61,12 +61,14 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing')))
 
         # Save/export settings
-        self.ui.checkBox_showSchematicPreview.setChecked(self.settings.value('SaveExport/Schematic/Show schematic preview', type=bool))
-        self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default schematic save folder'))
-        self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show symbol preview', type=bool))
-        self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default symbol save folder'))
-        self.ui.comboBox_defaultExportFormat.setCurrentText(str(self.settings.value('SaveExport/Export/Default export format')))
-        self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default export folder'))
+        self.ui.checkBox_showSchematicPreview.setChecked(self.settings.value('SaveExport/Schematic/Show preview', type=bool))
+        self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default save folder'))
+        self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show preview', type=bool))
+        self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default save folder'))
+        self.ui.comboBox_defaultExportFormat.setCurrentText(str(self.settings.value('SaveExport/Export/Default format')))
+        self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default folder'))
+        self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(self.settings.value('SaveExport/Export/Whitespace padding', type=float))
+        self.ui.doubleSpinBox_exportImageScaleFactor.setValue(self.settings.value('SaveExport/Export/Image scale factor', type=float))
 
     def writeValues(self):
         # Painting pen settings
@@ -90,12 +92,14 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Grid/Major and minor grid points/Minor grid points spacing', int(self.ui.comboBox_gridMinorGridPointSpacing.currentText()))
 
         # Save/export settings
-        self.settings.setValue('SaveExport/Schematic/Show schematic preview', self.ui.checkBox_showSchematicPreview.isChecked())
-        self.settings.setValue('SaveExport/Schematic/Default schematic save folder', str(self.ui.lineEdit_defaultSchematicSaveFolder.text()))
-        self.settings.setValue('SaveExport/Symbol/Show symbol preview', self.ui.checkBox_showSymbolPreview.isChecked())
-        self.settings.setValue('SaveExport/Symbol/Default symbol save folder', str(self.ui.lineEdit_defaultSymbolSaveFolder.text()))
-        self.settings.setValue('SaveExport/Export/Default export format', str(self.ui.comboBox_defaultExportFormat.currentText()))
-        self.settings.setValue('SaveExport/Export/Default export folder', str(self.ui.lineEdit_defaultExportFolder.text()))
+        self.settings.setValue('SaveExport/Schematic/Show preview', self.ui.checkBox_showSchematicPreview.isChecked())
+        self.settings.setValue('SaveExport/Schematic/Default save folder', str(self.ui.lineEdit_defaultSchematicSaveFolder.text()))
+        self.settings.setValue('SaveExport/Symbol/Show preview', self.ui.checkBox_showSymbolPreview.isChecked())
+        self.settings.setValue('SaveExport/Symbol/Default save folder', str(self.ui.lineEdit_defaultSymbolSaveFolder.text()))
+        self.settings.setValue('SaveExport/Export/Default format', str(self.ui.comboBox_defaultExportFormat.currentText()))
+        self.settings.setValue('SaveExport/Export/Default folder', str(self.ui.lineEdit_defaultExportFolder.text()))
+        self.settings.setValue('SaveExport/Export/Whitespace padding', self.ui.doubleSpinBox_exportImageWhitespacePadding.text())
+        self.settings.setValue('SaveExport/Export/Image scale factor', self.ui.doubleSpinBox_exportImageScaleFactor.text())
 
         # Sync changes to disk
         self.settings.sync()
@@ -137,16 +141,18 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Save/export settings
         self.settings.beginGroup('SaveExport')
         self.settings.beginGroup('Schematic')
-        self.settings.setValue('Show schematic preview', True)
-        self.settings.setValue('Default schematic save folder', './')
+        self.settings.setValue('Show preview', True)
+        self.settings.setValue('Default save folder', './')
         self.settings.endGroup()
         self.settings.beginGroup('Symbol')
-        self.settings.setValue('Show symbol preview', True)
-        self.settings.setValue('Default symbol save folder', 'Resources/Symbols/Custom/')
+        self.settings.setValue('Show preview', True)
+        self.settings.setValue('Default save folder', 'Resources/Symbols/Custom/')
         self.settings.endGroup()
         self.settings.beginGroup('Export')
-        self.settings.setValue('Default export format', 'pdf')
-        self.settings.setValue('Default export folder', './')
+        self.settings.setValue('Default format', 'pdf')
+        self.settings.setValue('Default folder', './')
+        self.settings.setValue('Whitespace padding', 1.1)
+        self.settings.setValue('Image scale factor', 2.0)
         self.settings.endGroup()
         self.settings.endGroup()
 
