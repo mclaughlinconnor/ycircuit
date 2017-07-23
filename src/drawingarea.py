@@ -69,14 +69,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def applySettingsFromFile(self, fileName=None):
         # Load settings file
         settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
+
         # Painting settings
-        self.selectedWidth = int(settings.value('Painting/Pen/Width'))
+        self.selectedWidth = settings.value('Painting/Pen/Width', type=int)
         self.selectedPenColour = settings.value('Painting/Pen/Colour')
         penStyles = {'Solid': 1, 'Dash': 2, 'Dot': 3, 'Dash-dot': 4, 'Dash-dot-dot': 5}
         self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style')]
         self.selectedBrushColour = settings.value('Painting/Brush/Colour')
         brushStyles = {'No fill': 0, 'Solid': 1}
         self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
+        self.rotateDirection = settings.value('Painting/Rotation/Direction')
+        self.rotateAngle = settings.value('Painting/Rotation/Angle', type=float)
+        if self.rotateDirection == 'Counter-clockwise':
+            self.rotateAngle *= -1
+
         # Grid settings
         self._grid.enableGrid = settings.value('Grid/Visibility', type=bool)
         self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
@@ -89,6 +95,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
         else:
             self._grid.removeGrid()
+
         # Save/export settings
         self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
         self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
@@ -100,7 +107,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSymbolSaveFolder):
             os.mkdir(self.defaultSymbolSaveFolder)
-        self.defaultExportFormat = str(settings.value('SaveExport/Export/Default format')).lower()
+        self.defaultExportFormat = settings.value('SaveExport/Export/Default format').lower()
         self.defaultExportFolder = settings.value('SaveExport/Export/Default folder')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultExportFolder):
