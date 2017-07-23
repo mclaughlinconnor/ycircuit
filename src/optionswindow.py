@@ -137,7 +137,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.endGroup()
         self.settings.beginGroup('Symbol')
         self.settings.setValue('Show symbol preview', True)
-        self.settings.setValue('Default symbol save folder', './Resources/Symbols/Custom/')
+        self.settings.setValue('Default symbol save folder', 'Resources/Symbols/Custom/')
         self.settings.endGroup()
         self.settings.endGroup()
 
@@ -147,11 +147,13 @@ class MyOptionsWindow(QtWidgets.QDialog):
     def changeDefaultSchematicSaveFolder(self):
         fileDialog = QtWidgets.QFileDialog()
         defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default schematic save folder', './')
+        dir_ = QtCore.QDir('./')
         if defaultFolder != '':
-            self.ui.lineEdit_defaultSchematicSaveFolder.setText(defaultFolder)
+            self.ui.lineEdit_defaultSchematicSaveFolder.setText(dir_.relativeFilePath(defaultFolder))
 
     def changeDefaultSymbolSaveFolder(self):
         fileDialog = QtWidgets.QFileDialog()
-        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol save folder', './Resources/Symbols/Custom/')
+        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol save folder', 'Resources/Symbols/Custom/')
+        dir_ = QtCore.QDir('./')
         if defaultFolder != '':
-            self.ui.lineEdit_defaultSymbolSaveFolder.setText(defaultFolder)
+            self.ui.lineEdit_defaultSymbolSaveFolder.setText(dir_.relativeFilePath(defaultFolder))
