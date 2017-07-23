@@ -51,6 +51,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.reflections = 0
         self.rotations = 0
         self.rotateAngle = 45
+        self.defaultSchematicSaveFolder = './'
 
         self.settingsFileName = '.config'
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -86,6 +87,17 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
         else:
             self._grid.removeGrid()
+        # Save/export settings
+        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show schematic preview', type=bool)
+        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default schematic save folder')
+        # Create default directory if it does not exist
+        if not os.path.isdir(self.defaultSchematicSaveFolder):
+            os.mkdir(self.defaultSchematicSaveFolder)
+        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show symbol preview', type=bool)
+        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default symbol save folder')
+        # Create default directory if it does not exist
+        if not os.path.isdir(self.defaultSymbolSaveFolder):
+            os.mkdir(self.defaultSymbolSaveFolder)
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -256,9 +268,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     fileDialog = myFileDialog(
                         self,
                         'Save symbol',
-                        './Resources/Symbols/Custom/untitled.sym',
+                        self.defaultSymbolSaveFolder + '/untitled.sym',
                         filt='Symbols (*.sym)',
-                        mode='save')
+                        mode='save',
+                        showSymbolPreview = self.showSymbolPreview)
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
                 else:
@@ -267,9 +280,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 fileDialog = myFileDialog(
                     self,
                     'Save symbol as',
-                    './Resources/Symbols/Custom/untitled.sym',
+                    self.defaultSymbolSaveFolder + '/untitled.sym',
                     filt='Symbols (*.sym)',
-                    mode='save')
+                    mode='save',
+                    showSymbolPreview = self.showSymbolPreview)
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
             elif mode == 'schematic':
@@ -277,9 +291,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     fileDialog = myFileDialog(
                         self,
                         'Save schematic',
-                        './untitled.sch',
+                        self.defaultSchematicSaveFolder + '/untitled.sch',
                         filt='Schematics (*.sch)',
-                        mode='save')
+                        mode='save',
+                        showSchematicPreview = self.showSchematicPreview)
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
                 else:
@@ -288,9 +303,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 fileDialog = myFileDialog(
                     self,
                     'Save schematic as',
-                    './untitled.sch',
+                    self.defaultSchematicSaveFolder + '/untitled.sch',
                     filt='Schematics (*.sch)',
-                    mode='save')
+                    mode='save',
+                    showSchematicPreview = self.showSchematicPreview)
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
 
@@ -417,14 +433,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         'Load Symbol',
                         './Resources/Symbols/',
                         filt='Symbols (*.sym)',
-                        mode='load')
+                        mode='load',
+                        showSymbolPreview = self.showSymbolPreview)
                 elif mode == 'schematic':
                     fileDialog = myFileDialog(
                         self,
                         'Load Schematic',
-                        './',
+                        self.defaultSchematicSaveFolder,
                         filt='Schematics (*.sch)',
-                        mode='load')
+                        mode='load',
+                        showSchematicPreview = self.showSchematicPreview)
                 if (fileDialog.exec_()):
                     loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':

@@ -318,6 +318,10 @@ class myFileDialog(QtWidgets.QFileDialog):
             self.setAcceptMode(self.AcceptSave)
         if 'filt' in kwargs:
             self.setNameFilter(kwargs['filt'])
+        if 'showSchematicPreview' in kwargs:
+            self.iconProvider_.showSchematicPreview = kwargs['showSchematicPreview']
+        if 'showSymbolPreview' in kwargs:
+            self.iconProvider_.showSymbolPreview = kwargs['showSymbolPreview']
         self.setViewMode(self.List)
         screenSize = QtWidgets.QDesktopWidget().screenGeometry(QtWidgets.QDesktopWidget().screenNumber()).size()
         self.resize(screenSize*0.8)
@@ -334,9 +338,17 @@ class myIconProvider(QtWidgets.QFileIconProvider):
     def __init__(self, parent=None):
         """Create a custom icon provider for the file picker"""
         super().__init__()
+        self.showSchematicPreview = True
+        self.showSymbolPreview = True
 
     def icon(self, fileInfo):
         if type(fileInfo) == QtCore.QFileInfo:
+            if str(fileInfo.filePath())[-3:] == 'sch':
+                if self.showSchematicPreview is False:
+                    return super().icon(fileInfo)
+            if str(fileInfo.filePath())[-3:] == 'sym':
+                if self.showSymbolPreview is False:
+                    return super().icon(fileInfo)
             if str(fileInfo.filePath())[-3:] in ['sch', 'sym']:
                 with open(str(fileInfo.filePath()), 'rb') as f:
                     try:

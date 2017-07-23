@@ -25,6 +25,9 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.buttonBox.button(self.ui.buttonBox.Apply).clicked.connect(self.writeValues)
         self.ui.buttonBox.button(self.ui.buttonBox.Apply).clicked.connect(lambda: self.applied.emit())
 
+        self.ui.pushButton_defaultSchematicSaveFolder.clicked.connect(self.changeDefaultSchematicSaveFolder)
+        self.ui.pushButton_defaultSymbolSaveFolder.clicked.connect(self.changeDefaultSymbolSaveFolder)
+
     def accept(self):
         self.writeValues()
         super().accept()
@@ -56,6 +59,12 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.checkBox_gridShowMinorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool))
         self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(str(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing')))
 
+        # Save/export settings
+        self.ui.checkBox_showSchematicPreview.setChecked(self.settings.value('SaveExport/Schematic/Show schematic preview', type=bool))
+        self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default schematic save folder'))
+        self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show symbol preview', type=bool))
+        self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default symbol save folder'))
+
     def writeValues(self):
         # Painting pen settings
         self.settings.setValue('Painting/Pen/Width', str(self.ui.comboBox_penWidth.currentText()))
@@ -76,6 +85,12 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Minor grid point settings
         self.settings.setValue('Grid/Major and minor grid points/Minor grid points visibility', self.ui.checkBox_gridShowMinorGridPoints.isChecked())
         self.settings.setValue('Grid/Major and minor grid points/Minor grid points spacing', int(self.ui.comboBox_gridMinorGridPointSpacing.currentText()))
+
+        # Save/export settings
+        self.settings.setValue('SaveExport/Schematic/Show schematic preview', self.ui.checkBox_showSchematicPreview.isChecked())
+        self.settings.setValue('SaveExport/Schematic/Default schematic save folder', str(self.ui.lineEdit_defaultSchematicSaveFolder.text()))
+        self.settings.setValue('SaveExport/Symbol/Show symbol preview', self.ui.checkBox_showSymbolPreview.isChecked())
+        self.settings.setValue('SaveExport/Symbol/Default symbol save folder', str(self.ui.lineEdit_defaultSymbolSaveFolder.text()))
 
         # Sync changes to disk
         self.settings.sync()
@@ -114,5 +129,29 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.endGroup()
         self.settings.endGroup()
 
+        # Save/export settings
+        self.settings.beginGroup('SaveExport')
+        self.settings.beginGroup('Schematic')
+        self.settings.setValue('Show schematic preview', True)
+        self.settings.setValue('Default schematic save folder', './')
+        self.settings.endGroup()
+        self.settings.beginGroup('Symbol')
+        self.settings.setValue('Show symbol preview', True)
+        self.settings.setValue('Default symbol save folder', './Resources/Symbols/Custom/')
+        self.settings.endGroup()
+        self.settings.endGroup()
+
         # Write data to disk
         self.settings.sync()
+
+    def changeDefaultSchematicSaveFolder(self):
+        fileDialog = QtWidgets.QFileDialog()
+        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default schematic save folder', './')
+        if defaultFolder != '':
+            self.ui.lineEdit_defaultSchematicSaveFolder.setText(defaultFolder)
+
+    def changeDefaultSymbolSaveFolder(self):
+        fileDialog = QtWidgets.QFileDialog()
+        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol save folder', './Resources/Symbols/Custom/')
+        if defaultFolder != '':
+            self.ui.lineEdit_defaultSymbolSaveFolder.setText(defaultFolder)
