@@ -8,33 +8,47 @@ from io import BytesIO
 
 class Grid(QtCore.QObject):
     """temp docstring for the Gridclass"""
-    def __init__(self, parent=None, view=None, spacing=10):
+
+    def __init__(self,
+                 parent=None,
+                 view=None,
+                 minorSpacing=20,
+                 majorSpacing=100):
         super().__init__()
         self.parent = parent
         self.view = view
-        self.spacing = spacing
-        self.displaySpacing = spacing*10
-        self.xLength = 200
-        self.yLength = 200
-        self.xPoints = numpy.arange(0, self.xLength + self.spacing, self.spacing)
-        self.yPoints = numpy.arange(0, self.yLength + self.spacing, self.spacing)
+        self.enableGrid = True
+        self.snapToGrid = True
+        self.minorSpacing = minorSpacing
+        self.majorSpacing = majorSpacing
+        self.minorSpacingVisibility = True
+        self.majorSpacingVisibility = True
+        self.snapToGridSpacing = self.minorSpacing / 2
+        # Set it to 1200 because it is the LCM of 100, 200, 300 and 400 which are
+        # the available major grid point spacings
+        self.xLength = 1200
+        self.yLength = 1200
+        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
+        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
+        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
+        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
 
-    def createGrid(self, **kwargs):
-        if 'spacing' in kwargs:
-            self.spacing = kwargs['spacing']
-        # displaySpacing has information about how far apart are the major grid points
-        self.displaySpacing = 100
-        self.xDisplayPoints = self.xPoints[::2]
-        self.yDisplayPoints = self.yPoints[::2]
+    def createGrid(self):
+        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
+        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
+        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
+        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
         self.gridPolygonRegular = QtGui.QPolygon()
-        for x in self.xDisplayPoints:
-            for y in self.yDisplayPoints:
-                self.gridPolygonRegular.append(QtCore.QPoint(x, y))
+        if self.minorSpacingVisibility is True:
+            for x in self.xMinorPoints:
+                for y in self.yMinorPoints:
+                    self.gridPolygonRegular.append(QtCore.QPoint(x, y))
         self.gridPolygonLarge = QtGui.QPolygon()
         # Larger pixels for points on the coarse grid
-        for x in self.xDisplayPoints[self.xDisplayPoints % self.displaySpacing == 0]:
-            for y in self.yDisplayPoints[self.yDisplayPoints % self.displaySpacing == 0]:
-                self.gridPolygonLarge.append(QtCore.QPoint(x, y))
+        if self.majorSpacingVisibility is True:
+            for x in self.xMajorPoints:
+                for y in self.yMajorPoints:
+                    self.gridPolygonLarge.append(QtCore.QPoint(x, y))
 
         pix = QtGui.QPixmap(QtCore.QSize(self.xLength, self.yLength))
         # Set background to white
@@ -54,13 +68,13 @@ class Grid(QtCore.QObject):
     def removeGrid(self):
         self.view.setBackgroundBrush(QtGui.QBrush())
 
-    def snapTo(self, point, spacing=None):
-        if spacing is None:
-            newX = numpy.round(point.x()/self.spacing)*self.spacing
-            newY = numpy.round(point.y()/self.spacing)*self.spacing
+    def snapTo(self, point, snapToGridSpacing=None):
+        if snapToGridSpacing is None:
+            newX = numpy.round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
+            newY = numpy.round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
         else:
-            newX = numpy.round(point.x()/spacing)*spacing
-            newY = numpy.round(point.y()/spacing)*spacing
+            newX = numpy.round(point.x()/snapToGridSpacing)*snapToGridSpacing
+            newY = numpy.round(point.y()/snapToGridSpacing)*snapToGridSpacing
         return QtCore.QPointF(newX, newY)
 
 
@@ -126,7 +140,7 @@ class TextEditor(QtWidgets.QDialog):
         else:
             self.textBox.setHtml(self.ui.textEdit.toHtml())
             self.textBox.latexImageHtml = None
-            self.textBox.latexExpression= None
+            self.textBox.latexExpression = None
         super().accept()
 
     def modifyPushButtons(self):
@@ -177,7 +191,7 @@ class TextEditor(QtWidgets.QDialog):
             if plainText[-1] != '$':
                 plainText.append('$')
                 self.ui.textEdit.setPlainText(plainText)
-                cursor.setPosition(len(plainText)-1)
+                cursor.setPosition(len(plainText) - 1)
             if len(plainText) < 2:
                 self.ui.textEdit.setPlainText('$$')
                 cursor.setPosition(1)
@@ -321,7 +335,11 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                         return super().icon(fileInfo)
                 scene = QtWidgets.QGraphicsScene()
                 # Load the file
-                loadItem.__init__(None, QtCore.QPointF(0, 0), loadItem.listOfItems, mode='symbol')
+                loadItem.__init__(
+                    None,
+                    QtCore.QPointF(0, 0),
+                    loadItem.listOfItems,
+                    mode='symbol')
                 scene.addItem(loadItem)
                 rect = loadItem.boundingRect()
                 # Set the maximum icon dimension
@@ -337,7 +355,7 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                 actualSize = rect.size()
                 actualSize.scale(maxSize, QtCore.Qt.KeepAspectRatio)
                 width, height = actualSize.width(), actualSize.height()
-                startX, startY = (maxDim - width)/2, (maxDim - height)/2
+                startX, startY = (maxDim - width) / 2, (maxDim - height) / 2
 
                 painter = QtGui.QPainter(pix)
                 pen = QtGui.QPen()
@@ -363,10 +381,11 @@ class myStyledItemDelegate(QtWidgets.QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         option.decorationPosition = option.Top
-        option.decorationSize = QtCore.QSize(self.iconWidth*0.9, self.iconHeight*0.9)
+        option.decorationSize = QtCore.QSize(self.iconWidth * 0.9,
+                                             self.iconHeight * 0.9)
         option.decorationAlignment = QtCore.Qt.AlignCenter
         option.displayAlignment = QtCore.Qt.AlignCenter
         super().paint(painter, option, index)
 
     def sizeHint(self, option, index):
-        return QtCore.QSize(self.iconWidth, self.iconHeight+30)
+        return QtCore.QSize(self.iconWidth, self.iconHeight + 30)
