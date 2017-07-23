@@ -27,6 +27,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         self.ui.pushButton_defaultSchematicSaveFolder.clicked.connect(self.changeDefaultSchematicSaveFolder)
         self.ui.pushButton_defaultSymbolSaveFolder.clicked.connect(self.changeDefaultSymbolSaveFolder)
+        self.ui.pushButton_defaultExportFolder.clicked.connect(self.changeDefaultExportFolder)
 
     def accept(self):
         self.writeValues()
@@ -64,6 +65,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default schematic save folder'))
         self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show symbol preview', type=bool))
         self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default symbol save folder'))
+        self.ui.comboBox_defaultExportFormat.setCurrentText(str(self.settings.value('SaveExport/Export/Default export format')))
+        self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default export folder'))
 
     def writeValues(self):
         # Painting pen settings
@@ -91,6 +94,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('SaveExport/Schematic/Default schematic save folder', str(self.ui.lineEdit_defaultSchematicSaveFolder.text()))
         self.settings.setValue('SaveExport/Symbol/Show symbol preview', self.ui.checkBox_showSymbolPreview.isChecked())
         self.settings.setValue('SaveExport/Symbol/Default symbol save folder', str(self.ui.lineEdit_defaultSymbolSaveFolder.text()))
+        self.settings.setValue('SaveExport/Export/Default export format', str(self.ui.comboBox_defaultExportFormat.currentText()))
+        self.settings.setValue('SaveExport/Export/Default export folder', str(self.ui.lineEdit_defaultExportFolder.text()))
 
         # Sync changes to disk
         self.settings.sync()
@@ -139,6 +144,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Show symbol preview', True)
         self.settings.setValue('Default symbol save folder', 'Resources/Symbols/Custom/')
         self.settings.endGroup()
+        self.settings.beginGroup('Export')
+        self.settings.setValue('Default export format', 'pdf')
+        self.settings.setValue('Default export folder', './')
+        self.settings.endGroup()
         self.settings.endGroup()
 
         # Write data to disk
@@ -146,14 +155,24 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
     def changeDefaultSchematicSaveFolder(self):
         fileDialog = QtWidgets.QFileDialog()
-        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default schematic save folder', './')
+        defaultFolder = str(self.ui.lineEdit_defaultSchematicSaveFolder.text())
+        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default schematic save folder', defaultFolder)
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
             self.ui.lineEdit_defaultSchematicSaveFolder.setText(dir_.relativeFilePath(defaultFolder))
 
     def changeDefaultSymbolSaveFolder(self):
         fileDialog = QtWidgets.QFileDialog()
-        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol save folder', 'Resources/Symbols/Custom/')
+        defaultFolder = str(self.ui.lineEdit_defaultSymbolSaveFolder.text())
+        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol save folder', defaultFolder)
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
             self.ui.lineEdit_defaultSymbolSaveFolder.setText(dir_.relativeFilePath(defaultFolder))
+
+    def changeDefaultExportFolder(self):
+        fileDialog = QtWidgets.QFileDialog()
+        defaultFolder = str(self.ui.lineEdit_defaultExportFolder.text())
+        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default export folder', defaultFolder)
+        dir_ = QtCore.QDir('./')
+        if defaultFolder != '':
+            self.ui.lineEdit_defaultExportFolder.setText(dir_.relativeFilePath(defaultFolder))

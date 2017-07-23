@@ -45,7 +45,7 @@ As of this point in time, the following options are available:
     * Create a new schematic (Ctrl+N)
     * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
     * Save and load schematics (.sch files) (Ctrl+S, Ctrl+L)
-    * Export symbol or schematic as a PDF, SVG, JPEG, PNG or BMP file (Ctrl+E)
+    * Export symbol or schematic as a PDF, SVG, JPG, PNG or BMP file (Ctrl+E)
         * While exporting to EPS was natively supported by PyQt4, the Qt team decided to drop this during the transition to Qt5. As a result, EPS is no longer supported by YCircuit. If you need a vector-based exporting option, use the PDF or SVG options.
   * Editing (Alt+E)
     * Undo (Ctrl+Z)

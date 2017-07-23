@@ -52,6 +52,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.rotations = 0
         self.rotateAngle = 45
         self.defaultSchematicSaveFolder = './'
+        self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
+        self.defaultExportFolder = './'
 
         self.settingsFileName = '.config'
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -98,6 +100,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSymbolSaveFolder):
             os.mkdir(self.defaultSymbolSaveFolder)
+        self.defaultExportFormat = str(settings.value('SaveExport/Export/Default export format')).lower()
+        self.defaultExportFolder = settings.value('SaveExport/Export/Default export folder')
+        # Create default directory if it does not exist
+        if not os.path.isdir(self.defaultExportFolder):
+            os.mkdir(self.defaultExportFolder)
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -274,6 +281,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         showSymbolPreview = self.showSymbolPreview)
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
+                    if not saveFile.endswith('.sym'):
+                        saveFile += '.sym'
                 else:
                     saveFile = self.symbolFileName
             elif mode == 'symbolAs':
@@ -286,6 +295,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     showSymbolPreview = self.showSymbolPreview)
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
+                if not saveFile.endswith('.sym'):
+                    saveFile += '.sym'
             elif mode == 'schematic':
                 if self.schematicFileName is None:
                     fileDialog = myFileDialog(
@@ -297,6 +308,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         showSchematicPreview = self.showSchematicPreview)
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
+                    if not saveFile.endswith('.sch'):
+                        saveFile += '.sch'
                 else:
                     saveFile = self.schematicFileName
             elif mode == 'schematicAs':
@@ -309,6 +322,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     showSchematicPreview = self.showSchematicPreview)
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
+                if not saveFile.endswith('.sch'):
+                    saveFile += '.sch'
 
             if saveFile != '':
                 with open(saveFile, 'wb') as file:
@@ -340,39 +355,52 @@ class DrawingArea(QtWidgets.QGraphicsView):
         selectedItems = self.scene().selectedItems()
         for item in selectedItems:
             item.setSelected(False)
-        saveFile = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp);;TIFF files (*.tiff)')[0])
+        saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            'Export File',
+            self.defaultExportFolder + '/untitled.' + self.defaultExportFormat,
+            'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff)',
+            self.defaultExportFormat.upper() + ' files (*.' + self.defaultExportFormat + ')'
+        )
+        if '*.pdf' in saveFilter:
+            saveFilter = 'pdf'
+        elif '*.svg' in saveFilter:
+            saveFilter = 'svg'
+        elif '*.png' in saveFilter:
+            saveFilter = 'png'
+        elif '*.jpg' in saveFilter:
+            saveFilter = 'jpg'
+        elif '*.bmp' in saveFilter:
+            saveFilter = 'bmp'
+        elif '*.tiff' in saveFilter:
+            saveFilter = 'tiff'
+        if not saveFile.endswith('.' + saveFilter):
+            saveFile = str(saveFile) + '.' + saveFilter
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
             self._grid.createGrid()
             return
-        if saveFile[-3:] in ['pdf']:
+        if saveFilter == 'pdf':
             mode = 'pdf'
-        elif saveFile[-3:] == 'svg':
+        elif saveFilter == 'svg':
             mode = 'svg'
-        elif saveFile[-3:] in ['jpg', 'png', 'bmp']:
+        elif saveFilter in ['jpg', 'png', 'bmp', 'tiff']:
             mode = 'image'
-            extension = saveFile[-3:]
-            if extension == 'jpg':
+            if saveFilter == 'jpg':
                 quality = 90
-            elif extension == 'png':
+            elif saveFilter == 'png':
                 quality = 50
-            elif extension == 'bmp':
+            elif saveFilter == 'bmp':
                 quality = 1
-        elif saveFile[-4:] in ['jpeg', 'tiff']:
-            mode = 'image'
-            extension = saveFile[-4:]
-            if extension == 'jpeg':
-                quality = 90
-            elif extension == 'tiff':
+            elif saveFilter == 'tiff':
                 quality = 1
         if mode == 'pdf':
             # Initialize printer
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
             sourceRect = self.scene().itemsBoundingRect()
             # Choose appropriate format
-            if saveFile[-3:] == 'pdf':
-                printer.setOutputFormat(printer.PdfFormat)
+            printer.setOutputFormat(printer.PdfFormat)
             printer.setOutputFileName(saveFile)
             pageSize = QtGui.QPageSize(sourceRect.size().toSize(), matchPolicy=QtGui.QPageSize.ExactMatch)
             printer.setPageSize(pageSize)
@@ -409,7 +437,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             painter.setRenderHint(painter.TextAntialiasing, True)
             targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
-            img.save(saveFile, extension, quality=quality)
+            img.save(saveFile, saveFilter, quality=quality)
 
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
