@@ -40,10 +40,18 @@ includes = [
 # Need to include imageformats as per
 # https://stackoverflow.com/a/5722333
 include_files = [
-    'Resources',
-    sys.prefix + '/Library/plugins/imageformats',
-    sys.prefix + '/Library/plugins/platforms'
-]
+    'Resources/Examples',
+    'Resources/icons',
+    'Resources/icon.jpg',
+    'Resources/icons',
+    'Resources/Symbols']
+
+if sys.platform == 'win32':
+    include_files.append(sys.prefix + '/Library/plugins/imageformats')
+    include_files.append(sys.prefix + '/Library/plugins/platforms')
+if sys.platform == 'linux':
+    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/imageformats')
+    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/platforms')
 
 excludes = [
     'concurrent',
