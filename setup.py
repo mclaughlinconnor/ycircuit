@@ -40,11 +40,8 @@ includes = [
 # Need to include imageformats as per
 # https://stackoverflow.com/a/5722333
 include_files = [
-    'Resources/Examples',
-    'Resources/icons',
-    'Resources/icon.jpg',
-    'Resources/icons',
-    'Resources/Symbols']
+    'Resources'
+]
 
 if sys.platform == 'win32':
     include_files.append(sys.prefix + '/Library/plugins/imageformats')
