@@ -26,7 +26,6 @@ YCircuit currently has the following dependencies:
   * Python - tested on 3.5.2 (**Note**: This version is incompatible with Python 2.x)
   * PyQt5 - for rendering the GUI
   * SymPy - for handling LaTeX inputs
-  * NumPy - for handling some of the math
 
 The easiest way to satisfy all dependencies is to use [Anaconda](https://www.continuum.io/downloads). This is what I use also, and so we can be sure that the environments are (more or less) similar.
 

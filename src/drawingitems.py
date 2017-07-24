@@ -1,6 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from src.gui.textEditor_gui import Ui_Dialog
-import numpy
 import pickle
 import sympy
 from io import BytesIO
@@ -29,16 +28,16 @@ class Grid(QtCore.QObject):
         # the available major grid point spacings
         self.xLength = 1200
         self.yLength = 1200
-        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
-        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
-        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
-        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
+        self.xMinorPoints = list(range(0, self.xLength + self.minorSpacing, self.minorSpacing))
+        self.yMinorPoints = list(range(0, self.yLength + self.minorSpacing, self.minorSpacing))
+        self.xMajorPoints = list(range(0, self.xLength + self.majorSpacing, self.majorSpacing))
+        self.yMajorPoints = list(range(0, self.yLength + self.majorSpacing, self.majorSpacing))
 
     def createGrid(self):
-        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
-        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
-        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
-        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
+        self.xMinorPoints = list(range(0, self.xLength + self.minorSpacing, self.minorSpacing))
+        self.yMinorPoints = list(range(0, self.yLength + self.minorSpacing, self.minorSpacing))
+        self.xMajorPoints = list(range(0, self.xLength + self.majorSpacing, self.majorSpacing))
+        self.yMajorPoints = list(range(0, self.yLength + self.majorSpacing, self.majorSpacing))
         self.gridPolygonRegular = QtGui.QPolygon()
         if self.minorSpacingVisibility is True:
             for x in self.xMinorPoints:
@@ -71,11 +70,11 @@ class Grid(QtCore.QObject):
 
     def snapTo(self, point, snapToGridSpacing=None):
         if snapToGridSpacing is None:
-            newX = numpy.round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
-            newY = numpy.round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
+            newX = round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
+            newY = round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
         else:
-            newX = numpy.round(point.x()/snapToGridSpacing)*snapToGridSpacing
-            newY = numpy.round(point.y()/snapToGridSpacing)*snapToGridSpacing
+            newX = round(point.x()/snapToGridSpacing)*snapToGridSpacing
+            newY = round(point.y()/snapToGridSpacing)*snapToGridSpacing
         return QtCore.QPointF(newX, newY)
 
 

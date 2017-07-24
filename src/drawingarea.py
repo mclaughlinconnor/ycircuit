@@ -5,7 +5,6 @@ from src.drawingitems import *
 from .optionswindow import MyOptionsWindow
 import pickle
 import os
-from numpy import ceil, floor
 
 # from src import components
 # import sys

@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import numpy
+import math
 import pickle
 from src.drawingitems import TextEditor
 
@@ -144,7 +144,7 @@ class drawingElement(object):
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
-        rotation_ = 180 / numpy.pi * numpy.arctan2(-transform_.m21(),
+        rotation_ = 180 / math.pi * math.atan2(-transform_.m21(),
                                                    transform_.m11())
         transform_.rotate(-rotation_)
         transform_.scale(-1, 1)
@@ -1113,9 +1113,9 @@ class Circle(Ellipse):
             else:
                 theta = 0
         else:
-            theta = 180 / numpy.pi * numpy.arctan2(distanceLine.y(),
+            theta = 180 / math.pi * math.atan2(distanceLine.y(),
                                                    distanceLine.x())
-        sideLength = numpy.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
+        sideLength = math.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
         square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength / 2),
                                QtCore.QSizeF(sideLength, sideLength))
         self.setRect(square)
