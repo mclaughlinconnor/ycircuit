@@ -115,7 +115,7 @@ class TextEditor(QtWidgets.QDialog):
                 self.textBox.setHtml(htmlString)
 
         self.ui.textEdit.cursorPositionChanged.connect(self.modifyPushButtons)
-        self.ui.textEdit.textChanged.connect(self.latexDollarDecorators)
+        self.ui.textEdit.cursorPositionChanged.connect(self.latexDollarDecorators)
 
         QtWidgets.QShortcut('Ctrl+Return', self).activated.connect(self.accept)
 
@@ -190,16 +190,20 @@ class TextEditor(QtWidgets.QDialog):
             plainText = self.ui.textEdit.toPlainText()
             cursor = self.ui.textEdit.textCursor()
             if plainText[0] != '$':
-                plainText.insert(0, '$')
+                plainText = '$' + plainText
                 self.ui.textEdit.setPlainText(plainText)
                 cursor.setPosition(1)
             if plainText[-1] != '$':
-                plainText.append('$')
+                plainText += '$'
                 self.ui.textEdit.setPlainText(plainText)
                 cursor.setPosition(len(plainText) - 1)
             if len(plainText) < 2:
                 self.ui.textEdit.setPlainText('$$')
                 cursor.setPosition(1)
+            if cursor.position() == 0:
+                cursor.setPosition(1)
+            elif cursor.position() == len(plainText):
+                cursor.setPosition(len(plainText) - 1)
             self.ui.textEdit.setTextCursor(cursor)
 
     def modifyText(self):
