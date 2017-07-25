@@ -237,6 +237,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         .sch (schematic) file. If the save option is a schematic, the items are then
         unparented.
         """
+        # Cancel all other modes before saving
+        self.escapeRoutine()
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs']
         # Return if no items are present
         if len(self.scene().items()) == 0:
