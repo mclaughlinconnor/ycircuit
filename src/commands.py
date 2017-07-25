@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
-from .components import myGraphicsItemGroup
+from .components import myGraphicsItemGroup, TextBox
 import copy
 
 
@@ -303,10 +303,27 @@ class ChangePenColour(QtWidgets.QUndoCommand):
             self.newLocalPenColour = kwargs['penColour']
 
     def redo(self):
+        if hasattr(self, 'newLatexImageBinary'):
+            self.oldLatexImageBinary, self.item.latexImageBinary = self.item.latexImageBinary, self.newLatexImageBinary
+            self.oldLatexImageHtml, self.item.latexImageHtml = self.item.latexImageHtml, self.newLatexImageHtml
+            self.oldLatexExpression, self.item.latexExpression = self.item.latexExpression, self.newLatexExpression
+            self.item.update()
+            return
+        if isinstance(self.item, TextBox):
+            self.oldLatexImageBinary = self.item.latexImageBinary
+            self.oldLatexImageHtml = self.item.latexImageHtml
+            self.oldLatexExpression = self.item.latexExpression
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penColour=self.newLocalPenColour)
 
     def undo(self):
+        if isinstance(self.item, TextBox):
+            if self.item.latexImageBinary is not None:
+                self.item.latexImageBinary, self.newLatexImageBinary = self.oldLatexImageBinary, self.item.latexImageBinary
+                self.item.latexImageHtml, self.newLatexImageHtml = self.oldLatexImageHtml, self.item.latexImageHtml
+                self.item.latexExpression, self.newLatexExpression = self.oldLatexExpression, self.item.latexExpression
+                self.item.update()
+                return
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penColour=self.oldLocalPenColour)
 

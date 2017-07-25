@@ -1170,13 +1170,13 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.setPos(self.origin)
         # Set the fixed vertex to (0, 0) in local coordinates
         # drawingElement.__init__(self, parent, start=point, **kwargs)
-        self.setLocalPenOptions(**kwargs)
-        self.setLocalBrushOptions(**kwargs)
-        self.setTextWidth(-1)
         if not hasattr(self, 'latexImageBinary'):
             self.latexImageHtml = None
             self.latexExpression = None
             self.latexImageBinary = None
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
+        self.setTextWidth(-1)
         # Sets the desired DPI for the image being generated
         self.latexImageDpi = 300
         # Scale the DPI in order to avoid pixelation
@@ -1260,14 +1260,19 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         self.changeTextColour(self.localPenColour)
 
     def changeTextColour(self, colour='gray'):
-        # Create a textedit to conveniently change the text color
-        textEdit = QtWidgets.QTextEdit()
-        textEdit.setHtml(self.toHtml())
-        textEdit.selectAll()
-        textEdit.setTextColor(QtGui.QColor(colour))
-        self.setHtml(textEdit.toHtml())
-        self.setDefaultTextColor(QtGui.QColor(colour))
-        self.update()
+        if self.latexImageBinary is None:
+            # Create a textedit to conveniently change the text color
+            textEdit = QtWidgets.QTextEdit()
+            textEdit.setHtml(self.toHtml())
+            textEdit.selectAll()
+            textEdit.setTextColor(QtGui.QColor(colour))
+            self.setHtml(textEdit.toHtml())
+            # self.setDefaultTextColor(QtGui.QColor(colour))
+        else:
+            self.latexImageBinary, self.data64 = self.textEditor.mathTexToQImage(
+                '$' + self.latexExpression + '$',
+                self.localPenWidth,
+                self.localPenColour)
 
     def changeTextSize(self, weight=4):
         # Create a textedit to conveniently change the text size
@@ -1276,14 +1281,15 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         textEdit.selectAll()
         textEdit.setFontPointSize(weight * 10)
         self.setHtml(textEdit.toHtml())
-        self.update()
         self.localPenWidth = weight
 
     def changeColourToGray(self, gray=False):
-        if gray is True:
-            self.changeTextColour('gray')
-        else:
-            self.changeTextColour(self.localPenColour)
+        # Only process this if text is not latex
+        if self.latexImageBinary is None:
+            if gray is True:
+                self.changeTextColour('gray')
+            else:
+                self.changeTextColour(self.localPenColour)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
