@@ -65,10 +65,13 @@ excludes = [
     'nose',
     'numpy',
     'PIL',
+    'py',
+    'pydoc_data',
     'scipy',
-    'tkinter',
+    'tkinter'
     'urllib',
-    'xml']
+    'xml'
+]
 
 options = {
     'build_exe': {
@@ -79,10 +82,15 @@ options = {
     }
 }
 
+targetName = 'YCircuit'
+if sys.platform == 'win32':
+    targetName += '.exe'
+
 executables = [
     Executable('top.py',
                base=base,
-               targetName='YCircuit')
+               targetName=targetName
+    )
 ]
 
 # Remove build directory if it exists
