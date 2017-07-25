@@ -305,6 +305,16 @@ class myMainWindow(QtWidgets.QMainWindow):
             brushColourList.append(item.localBrushColour)
             brushStyleList.append(item.localBrushStyle)
 
+        # This will fail if the datatypes are unhashable (QColor, for example)
+        try:
+            set(widthList)
+            set(penColourList)
+            set(penStyleList)
+            set(brushColourList)
+            set(brushStyleList)
+        except:
+            return
+
         if len(set(widthList)) == 1:
             self.action_setWidth_triggered(widthList[0], temporary=True)
         elif len(set(widthList)) > 1:
