@@ -25,9 +25,6 @@ includes = [
     'ctypes',
     'distutils',
     'io',
-    # 'numpy',
-    # 'numpy.core._methods',
-    # 'numpy.lib.format',
     'os',
     'pickle',
     'platform',
@@ -49,6 +46,7 @@ if sys.platform == 'win32':
 if sys.platform == 'linux':
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/imageformats')
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/platforms')
+    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/libQt5Svg.so.5')
 
 excludes = [
     'concurrent',
@@ -60,13 +58,17 @@ excludes = [
     'json'
     'jupyter',
     'lib2to3',
+    'lxml',
     'matplotlib',
+    'mpl_toolkits',
     'multiprocessing',
     'nose',
     'numpy',
     'PIL',
     'scipy',
-    'tkinter']
+    'tkinter',
+    'urllib',
+    'xml']
 
 options = {
     'build_exe': {
@@ -79,7 +81,8 @@ options = {
 
 executables = [
     Executable('top.py',
-               base=base)
+               base=base,
+               targetName='YCircuit')
 ]
 
 # Remove build directory if it exists
