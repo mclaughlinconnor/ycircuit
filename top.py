@@ -367,7 +367,11 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setPenColourCyan.setChecked(False)
         self.ui.action_setPenColourMagenta.setChecked(False)
         self.ui.action_setPenColourYellow.setChecked(False)
-        penColour = penColour.lower()
+        # This will fail if the colour is not a string (hex colours, for example)
+        try:
+            penColour = penColour.lower()
+        except:
+            return
         if penColour == 'black':
             self.ui.action_setPenColourBlack.setChecked(True)
         if penColour == 'red':
@@ -412,7 +416,11 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setBrushColourCyan.setChecked(False)
         self.ui.action_setBrushColourMagenta.setChecked(False)
         self.ui.action_setBrushColourYellow.setChecked(False)
-        brushColour = brushColour.lower()
+        # This will fail if the colour is not a string (hex colours, for example)
+        try:
+            brushColour = brushColour.lower()
+        except:
+            return
         if brushColour == 'black':
             self.ui.action_setBrushColourBlack.setChecked(True)
         if brushColour == 'red':
