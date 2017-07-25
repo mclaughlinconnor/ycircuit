@@ -139,6 +139,20 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.toggleGridRoutine)
         self.ui.action_snapToGrid.triggered.connect(
             self.ui.drawingArea.toggleSnapToGridRoutine)
+        self.ui.action_snapToGridSpacing1.triggered.connect(
+            lambda x: self.action_snapToGridSpacing(1))
+        self.ui.action_snapToGridSpacing2.triggered.connect(
+            lambda x: self.action_snapToGridSpacing(2))
+        self.ui.action_snapToGridSpacing5.triggered.connect(
+            lambda x: self.action_snapToGridSpacing(5))
+        self.ui.action_snapToGridSpacing10.triggered.connect(
+            lambda x: self.action_snapToGridSpacing(10))
+        self.ui.action_snapToGridSpacing20.triggered.connect(
+            lambda x: self.action_snapToGridSpacing(20))
+        self.ui.action_snapToGridSpacing30.triggered.connect(
+            lambda x: self.action_snapToGridSpacing(30))
+        self.ui.action_snapToGridSpacing40.triggered.connect(
+            lambda x: self.action_snapToGridSpacing(40))
         self.ui.action_showMajorGridPoints.triggered.connect(
             self.ui.drawingArea.toggleMajorGridPointsRoutine)
         self.ui.action_majorGridPointSpacing100.triggered.connect(
@@ -436,11 +450,39 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_showMinorGridPoints.setChecked(
             self.ui.drawingArea._grid.minorSpacingVisibility)
 
+        # Set the snap to grid spacing check appropriately
+        snapToGridSpacing = self.ui.drawingArea._grid.snapToGridSpacing
+        self.action_snapToGridSpacing(snapToGridSpacing)
         # Set the major and minor grid point checks appropriately
         majorSpacing = self.ui.drawingArea._grid.majorSpacing
         minorSpacing = self.ui.drawingArea._grid.minorSpacing
         self.action_majorGridPointSpacing(majorSpacing)
         self.action_minorGridPointSpacing(minorSpacing)
+
+    def action_snapToGridSpacing(self, spacing, temporary=False):
+        self.ui.action_snapToGridSpacing1.setChecked(False)
+        self.ui.action_snapToGridSpacing2.setChecked(False)
+        self.ui.action_snapToGridSpacing5.setChecked(False)
+        self.ui.action_snapToGridSpacing10.setChecked(False)
+        self.ui.action_snapToGridSpacing20.setChecked(False)
+        self.ui.action_snapToGridSpacing30.setChecked(False)
+        self.ui.action_snapToGridSpacing40.setChecked(False)
+        if spacing == 1:
+            self.ui.action_snapToGridSpacing1.setChecked(True)
+        if spacing == 2:
+            self.ui.action_snapToGridSpacing2.setChecked(True)
+        if spacing == 5:
+            self.ui.action_snapToGridSpacing5.setChecked(True)
+        if spacing == 10:
+            self.ui.action_snapToGridSpacing10.setChecked(True)
+        if spacing == 20:
+            self.ui.action_snapToGridSpacing20.setChecked(True)
+        if spacing == 30:
+            self.ui.action_snapToGridSpacing30.setChecked(True)
+        if spacing == 40:
+            self.ui.action_snapToGridSpacing40.setChecked(True)
+        if temporary is False:
+            self.ui.drawingArea.changeSnapToGridSpacing(spacing)
 
     def action_majorGridPointSpacing(self, spacing, temporary=False):
         self.ui.action_majorGridPointSpacing100.setChecked(False)

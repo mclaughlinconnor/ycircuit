@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-
-# A simple setup script to create an executable using PyQt4. This also
-# demonstrates the method for creating a Windows executable that does not have
-# an associated console.
-#
-# PyQt4app.py is a very simple type of PyQt4 application
 #
 # Run the build process by running the command 'python setup.py build'
 #

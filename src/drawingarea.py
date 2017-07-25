@@ -662,6 +662,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Toggles drawings snapping to grid"""
         self._grid.snapToGrid = state
 
+    def changeSnapToGridSpacing(self, spacing):
+        self._grid.snapToGridSpacing = spacing
+
     def toggleMajorGridPointsRoutine(self, state):
         """Toggles major grid points on and off"""
         self._grid.majorSpacingVisibility = state
