@@ -284,6 +284,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Cancel all other modes unless autosaving
         if mode != 'autobackup':
             self.escapeRoutine()
+        else:
+            selectedItems = self.scene().selectedItems()
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
         # Create list of items
         listOfItems = self.listOfItemsToSave(mode)
@@ -406,6 +408,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Always reparent items
             saveObject.reparentItems()
             self.scene().removeItem(saveObject)
+            if mode == 'autobackup':
+                for item in selectedItems:
+                    item.setSelected(True)
 
     def exportRoutine(self):
         """
