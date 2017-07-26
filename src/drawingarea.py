@@ -273,7 +273,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
         # Create list of items
         listOfItems = self.scene().items()
-        listOfItems = [item for item in listOfItems if item.parentItem() is None and item not in self.moveItems]
+        if self._keys['m'] is True:
+            listOfItems = [item for item in listOfItems if item.parentItem() is None and item not in self.moveItems]
+        else:
+            listOfItems = [item for item in listOfItems if item.parentItem() is None]
         # Return if no items are present
         if len(listOfItems) == 0:
             return
@@ -686,6 +689,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.setCursor(cursor)
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
+        # Reset all move items
+        self.moveItems = []
         # Clear the statusbar
         self.statusbarMessage.emit("", 0)
 
@@ -906,6 +911,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.resetToolbarButtons.emit()
                 for item in self.moveItems:
                     item.setSelected(False)
+                self.updateMoveItems()
         if self._keys['add'] is True:
             if (event.button() == QtCore.Qt.LeftButton):
                 # add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)

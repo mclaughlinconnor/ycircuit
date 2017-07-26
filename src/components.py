@@ -1231,7 +1231,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def showEditor(self):
         self.textEditor = TextEditor(self)
-        self.textEditor.show()
+        self.textEditor.exec_()
 
     def setLocalPenOptions(self, **kwargs):
         """Reimplemented from drawingElement. QGraphicsTextItem objects do not
