@@ -1311,13 +1311,25 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         brush.setStyle(self.localBrushStyle)
         if self.latexImageHtml is not None:
             newItem = self.__class__(
-                parent, _start, text=self.toHtml(), pen=pen, brush=brush)
+                parent,
+                _start,
+                text=self.toHtml(),
+                pen=pen,
+                brush=brush,
+                penColour = self.localPenColour,
+                brushColour = self.localBrushColour)
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
             newItem.data64 = self.data64
         else:
             newItem = self.__class__(
-                parent, _start, text=self.toHtml(), pen=pen, brush=brush)
+                parent,
+                _start,
+                text=self.toHtml(),
+                pen=pen,
+                brush=brush,
+                penColour = self.localPenColour,
+                brushColour = self.localBrushColour)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
