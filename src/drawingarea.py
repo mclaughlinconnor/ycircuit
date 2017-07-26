@@ -5,6 +5,7 @@ from src.drawingitems import *
 from .optionswindow import MyOptionsWindow
 import pickle
 import os
+import glob
 
 # from src import components
 # import sys
@@ -53,6 +54,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.defaultSchematicSaveFolder = './'
         self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
         self.defaultExportFolder = './'
+
+        # Set up autosaving
+        self.autosaveFile = QtCore.QTemporaryFile('untitled.sch')
+        self.autosaveFile.open()
+        self.autosaveFile.setAutoRemove(False)
+        self.autosaveTimer = QtCore.QTimer()
+        self.autosaveTimer.setInterval(10000)
+        self.autosaveTimer.timeout.connect(self.autosaveRoutine)
+        self.autosaveTimer.start()
 
         self.settingsFileName = '.config'
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -230,6 +240,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         elif kind == 'CCCS':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
 
+    def autosaveRoutine(self):
+        self.saveRoutine(mode='autosave')
+        print(self.autosaveFile.flush())
+
     def saveRoutine(self, mode='schematicAs'):
         """Handles saving of both symbols and schematics. For symbols and
         schematics, items are first parented to a myGraphicsItemGroup.
@@ -237,15 +251,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
         .sch (schematic) file. If the save option is a schematic, the items are then
         unparented.
         """
-        # Cancel all other modes before saving
-        self.escapeRoutine()
-        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs']
+        # Cancel all other modes unless autosaving
+        if mode != 'autosave':
+            self.escapeRoutine()
+        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autosave']
         # Return if no items are present
         if len(self.scene().items()) == 0:
             return
         if mode in possibleModes:
             listOfItems = self.scene().items()
-            listOfItems = [item for item in listOfItems if item.parentItem() is None]
+            listOfItems = [item for item in listOfItems if item.parentItem() is None and item not in self.moveItems]
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
@@ -334,20 +349,33 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     saveFile = str(fileDialog.selectedFiles()[0])
                 if not saveFile.endswith('.sch'):
                     saveFile += '.sch'
+            elif mode == 'autosave':
+                saveFile = self.autosaveFile.fileName()
 
             if saveFile != '':
                 with open(saveFile, 'wb') as file:
                     pickle.dump(saveObject, file, -1)
+                # Delete old autosave file
+                if mode != 'autosave':
+                    self.autosaveFile.close()
+                    self.autosaveFile.remove()
                 if mode == 'symbol' or mode == 'symbolAs':
                     self.symbolFileName = saveFile
                     self.schematicFileName = None
+                    self.autosaveFile = QtCore.QTemporaryFile(self.symbolFileName)
                 if mode == 'schematic' or mode == 'schematicAs':
                     self.schematicFileName = saveFile
                     self.symbolFileName = None
-                self.undoStack.setClean()
-            if mode == 'schematic' or mode == 'schematicAs':
-                saveObject.reparentItems()
-                self.scene().removeItem(saveObject)
+                    self.autosaveFile = QtCore.QTemporaryFile(self.schematicFileName)
+                if mode != 'autosave':
+                    self.autosaveFile.open()
+                    self.autosaveFile.setAutoRemove(False)
+                    with open(self.autosaveFile.fileName(), 'wb') as file:
+                        pickle.dump(saveObject, file, -1)
+                    self.undoStack.setClean()
+            # Always reparent items
+            saveObject.reparentItems()
+            self.scene().removeItem(saveObject)
 
     def exportRoutine(self):
         """
@@ -455,6 +483,21 @@ class DrawingArea(QtWidgets.QGraphicsView):
         for item in selectedItems:
             item.setSelected(True)
 
+    def loadAutosaveRoutine(self, loadFile=None):
+        # Ask if you would like to recover the autosave
+        msgBox = QtWidgets.QMessageBox(self)
+        msgBox.setWindowTitle("Recover file")
+        msgBox.setText("An autosave file was detected.")
+        msgBox.setInformativeText("Do you wish to recover from the autosave file?")
+        msgBox.setStandardButtons(msgBox.Yes | msgBox.No)
+        msgBox.setDefaultButton(msgBox.Yes)
+        msgBox.setIcon(msgBox.Information)
+        ret = msgBox.exec_()
+        if ret == msgBox.Yes:
+            return glob.glob(loadFile + '.*')[0]
+        elif ret == msgBox.No:
+            return loadFile
+
     def loadRoutine(self, mode='symbol', loadFile=None):
         """This is the counterpart of the save routine. Used to load both schematics
         and symbols.
@@ -467,10 +510,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     fileDialog = myFileDialog(
                         self,
                         'Load Symbol',
-                        './Resources/Symbols/',
+                        self.defaultSymbolSaveFolder,
                         filt='Symbols (*.sym)',
                         mode='load',
-                        showSymbolPreview = self.showSymbolPreview)
+                        showSymbolPreview=self.showSymbolPreview)
                 elif mode == 'schematic':
                     fileDialog = myFileDialog(
                         self,
@@ -478,25 +521,38 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         self.defaultSchematicSaveFolder,
                         filt='Schematics (*.sch)',
                         mode='load',
-                        showSchematicPreview = self.showSchematicPreview)
+                        showSchematicPreview=self.showSchematicPreview)
                 if (fileDialog.exec_()):
                     loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':
+                # Check to see if an autosave file exists
+                if glob.glob(loadFile + '.*') != []:
+                    loadFile = self.loadAutosaveRoutine(loadFile)
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)
+                # Remove trailing characters from autosave file .XXXXXX
+                if not loadFile.endswith(('.sch', '.sym')):
+                    # Remove the old autosave file
+                    os.remove(loadFile)
+                    loadFile = loadFile[:-7]
             else:
                 return False
             if mode == 'schematic' or mode == 'symbolModify':
-                # Remove grid from scene, clear the scene and readd the grid
                 self.schematicFileName = None
                 self.symbolFileName = None
+                # Remove old autosave file
+                self.autosaveFile.close()
+                self.autosaveFile.remove()
                 if mode == 'schematic':
                     self.schematicFileName = loadFile
+                    self.autosaveFile = QtCore.QTemporaryFile(self.schematicFileName)
                 elif mode == 'symbolModify':
                     self.symbolFileName = loadFile
-                    self._grid.removeGrid()
+                    self.autosaveFile = QtCore.QTemporaryFile(self.symbolFileName)
+                self.autosaveFile.open()
+                self.autosaveFile.setAutoRemove(False)
+                # Clear the scene
                 self.scene().clear()
-                self._grid.createGrid()
                 loadItem.__init__(
                     None,
                     QtCore.QPointF(0, 0),
@@ -519,6 +575,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().removeItem(loadItem)
                 self.fitToViewRoutine()
                 self.undoStack.clear()
+                # Run an autosave once items are loaded completely
+                self.autosaveRoutine()
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
                 # loadItem.setPos(self.mapToGrid(self.currentPos))

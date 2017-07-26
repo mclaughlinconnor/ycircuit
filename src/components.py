@@ -240,11 +240,11 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
             self.start = start
             self.setPos(start)
         # The pen and brush options are just place holders
-        # self.localPenWidth = 2
-        # self.localPenColour = 'black'
-        # self.localPenStyle = 1
-        # self.localBrushColour = 'black'
-        # self.localBrushStyle = 0
+        self.localPenWidth = 2
+        self.localPenColour = 'black'
+        self.localPenStyle = 1
+        self.localBrushColour = 'black'
+        self.localBrushStyle = 0
         self.setAcceptHoverEvents(True)
 
     def paint(self, painter, *args):

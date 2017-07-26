@@ -250,42 +250,39 @@ class myMainWindow(QtWidgets.QMainWindow):
                 self.setWindowTitle(self.windowTitle() + '*')
 
     def closeEvent(self, event):
+        modified = ''
         if self.ui.drawingArea.undoStack.isClean():
+            self.ui.drawingArea.autosaveFile.close()
+            self.ui.drawingArea.autosaveFile.remove()
             event.accept()
-        elif self.ui.drawingArea.schematicFileName is None:
-            msgBox = QtWidgets.QMessageBox(self)
-            msgBox.setWindowTitle("Confirm exit")
-            msgBox.setText("The schematic has been modified")
-            msgBox.setInformativeText("Do you wish to save your changes?")
-            msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
-            msgBox.setDefaultButton(msgBox.Save)
-            msgBox.setIcon(msgBox.Information)
-            ret = msgBox.exec_()
-            if ret == msgBox.Save:
-                self.ui.drawingArea.saveRoutine('schematic')
-                event.accept()
-            elif ret == msgBox.Discard:
-                event.accept()
-            else:
-                event.ignore()
-        elif self.ui.drawingArea.symbolFileName is None:
-            msgBox = QtWidgets.QMessageBox(self)
-            msgBox.setWindowTitle("Confirm exit")
-            msgBox.setText("The symbol has been modified")
-            msgBox.setInformativeText("Do you wish to save your changes?")
-            msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
-            msgBox.setDefaultButton(msgBox.Save)
-            msgBox.setIcon(msgBox.Information)
-            ret = msgBox.exec_()
-            if ret == msgBox.Save:
-                self.ui.drawingArea.saveRoutine('symbol')
-                event.accept()
-            elif ret == msgBox.Discard:
-                event.accept()
-            else:
-                event.ignore()
+        elif self.ui.drawingArea.schematicFileName is not None:
+            modified = 'schematic'
+        elif self.ui.drawingArea.symbolFileName is not None:
+            modified = 'symbol'
         else:
+            self.ui.drawingArea.autosaveFile.close()
+            self.ui.drawingArea.autosaveFile.remove()
             event.accept()
+        if modified != '':
+            msgBox = QtWidgets.QMessageBox(self)
+            msgBox.setWindowTitle("Confirm exit")
+            msgBox.setText("The " + modified + " has been modified")
+            msgBox.setInformativeText("Do you wish to save your changes?")
+            msgBox.setStandardButtons(msgBox.Save | msgBox.Discard | msgBox.Cancel)
+            msgBox.setDefaultButton(msgBox.Save)
+            msgBox.setIcon(msgBox.Information)
+            ret = msgBox.exec_()
+            if ret == msgBox.Save:
+                self.ui.drawingArea.saveRoutine(modified)
+                self.ui.drawingArea.autosaveFile.close()
+                self.ui.drawingArea.autosaveFile.remove()
+                event.accept()
+            elif ret == msgBox.Discard:
+                self.ui.drawingArea.autosaveFile.close()
+                self.ui.drawingArea.autosaveFile.remove()
+                event.accept()
+            else:
+                event.ignore()
 
     def action_newSchematic_triggered(self):
         self.form = myMainWindow()
