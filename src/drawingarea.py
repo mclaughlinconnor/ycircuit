@@ -260,6 +260,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.saveRoutine(mode='autobackup')
             self.autobackupFile.flush()
 
+    def listOfItemsToSave(self, mode='schematicAs'):
+        listOfItems = [item for item in self.scene().items() if item.parentItem() is None]
+        removeItems = []
+        if self._keys['m'] is True or self._keys['add'] is True:
+            removeItems = self.moveItems
+        if self._keys['w'] is True:
+            removeItems = [self.currentWire]
+        if self._keys['arc'] is True:
+            removeItems = [self.currentArc]
+        for item in removeItems:
+            if item in listOfItems:
+                listOfItems.remove(item)
+        return listOfItems
+
     def saveRoutine(self, mode='schematicAs'):
         """Handles saving of both symbols and schematics. For symbols and
         schematics, items are first parented to a myGraphicsItemGroup.
@@ -272,11 +286,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.escapeRoutine()
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
         # Create list of items
-        listOfItems = self.scene().items()
-        if self._keys['m'] is True:
-            listOfItems = [item for item in listOfItems if item.parentItem() is None and item not in self.moveItems]
-        else:
-            listOfItems = [item for item in listOfItems if item.parentItem() is None]
+        listOfItems = self.listOfItemsToSave(mode)
         # Return if no items are present
         if len(listOfItems) == 0:
             return
@@ -545,17 +555,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if (fileDialog.exec_()):
                     loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':
-                # Check to see if an autobackup file exists
-                if glob.glob(loadFile + '.*') != []:
-                    loadFile = self.loadAutobackupRoutine(loadFile)
+                # Check to see if an autobackup file exists if the mode is
+                # schematic or symbolModify
+                if mode == 'schematic' or mode == 'symbolModify':
+                    if glob.glob(loadFile + '.*') != []:
+                        loadFile = self.loadAutobackupRoutine(loadFile)
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)
-                # Remove trailing characters from autobackup file .XXXXXX
-                if not loadFile.endswith(('.sch', '.sym')):
-                    loadFile = loadFile[:-7]
-                if glob.glob(loadFile + '.*') != []:
-                    # Remove the old autobackup file
-                    os.remove(glob.glob(loadFile + '.*')[0])
+                if mode == 'schematic' or mode == 'symbolModify':
+                    # Remove trailing characters from autobackup file .XXXXXX
+                    if not loadFile.endswith(('.sch', '.sym')):
+                        loadFile = loadFile[:-7]
+                    if glob.glob(loadFile + '.*') != []:
+                        # Remove the old autobackup file
+                        os.remove(glob.glob(loadFile + '.*')[0])
             else:
                 return False
             if mode == 'schematic' or mode == 'symbolModify':
