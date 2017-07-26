@@ -64,6 +64,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing'))
 
         # Save/export settings
+        self.ui.checkBox_autosaveEnable.setChecked(self.settings.value('SaveExport/Autosave/Enable', type=bool))
+        self.ui.spinBox_autosaveTimerInterval.setValue(self.settings.value('SaveExport/Autosave/Timer interval', type=int))
         self.ui.checkBox_showSchematicPreview.setChecked(self.settings.value('SaveExport/Schematic/Show preview', type=bool))
         self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default save folder'))
         self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show preview', type=bool))
@@ -98,6 +100,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Grid/Major and minor grid points/Minor grid points spacing', self.ui.comboBox_gridMinorGridPointSpacing.currentText())
 
         # Save/export settings
+        self.settings.setValue('SaveExport/Autosave/Enable', self.ui.checkBox_autosaveEnable.isChecked())
+        self.settings.setValue('SaveExport/Autosave/Timer interval', self.ui.spinBox_autosaveTimerInterval.value())
         self.settings.setValue('SaveExport/Schematic/Show preview', self.ui.checkBox_showSchematicPreview.isChecked())
         self.settings.setValue('SaveExport/Schematic/Default save folder', self.ui.lineEdit_defaultSchematicSaveFolder.text())
         self.settings.setValue('SaveExport/Symbol/Show preview', self.ui.checkBox_showSymbolPreview.isChecked())
@@ -150,6 +154,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         # Save/export settings
         self.settings.beginGroup('SaveExport')
+        self.settings.beginGroup('Autosave')
+        self.settings.setValue('Enable', True)
+        self.settings.setValue('Timer interval', '10')
+        self.settings.endGroup()
         self.settings.beginGroup('Schematic')
         self.settings.setValue('Show preview', True)
         self.settings.setValue('Default save folder', './')

@@ -25,7 +25,7 @@
   <property name="windowTitle">
    <string>Options</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_9">
+  <layout class="QVBoxLayout" name="verticalLayout_10">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -795,6 +795,101 @@
        <string>Save/Export</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QGroupBox" name="groupBox_9">
+         <property name="title">
+          <string>Autosave</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_9">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_17">
+            <item>
+             <widget class="QLabel" name="label_24">
+              <property name="text">
+               <string>Enable</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_24">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBox_autosaveEnable">
+              <property name="toolTip">
+               <string>Enables autosave. Highly recommended especially until the program becomes stable. Disable if you are handling large schematics and are seeing noticeable slowdown during interactions.</string>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_16">
+            <item>
+             <widget class="QLabel" name="label_25">
+              <property name="text">
+               <string>Timer interval (sec)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_25">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinBox_autosaveTimerInterval">
+              <property name="toolTip">
+               <string>Sets the time interval between autosaves in seconds. Set to a low value if you're frequently experiencing crashes and to a high value if you're working with large schematics that take a long time to save.</string>
+              </property>
+              <property name="suffix">
+               <string/>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>6000</number>
+              </property>
+              <property name="singleStep">
+               <number>10</number>
+              </property>
+              <property name="value">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">

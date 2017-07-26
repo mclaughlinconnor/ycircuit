@@ -55,14 +55,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
         self.defaultExportFolder = './'
 
-        # Set up autosaving
-        self.autosaveFile = QtCore.QTemporaryFile('untitled.sch')
-        self.autosaveFile.open()
-        self.autosaveFile.setAutoRemove(False)
+        # Set up the autosave timer
         self.autosaveTimer = QtCore.QTimer()
         self.autosaveTimer.setInterval(10000)
         self.autosaveTimer.timeout.connect(self.autosaveRoutine)
-        self.autosaveTimer.start()
 
         self.settingsFileName = '.config'
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -74,6 +70,21 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.symbolFileName = None
         self.selectOrigin = False
         self.currentPos = QtCore.QPoint(0, 0)
+
+        # Check to see if a default autosave file already exists
+        autosaveFileNameTemplate = 'autosave.sch'
+        loadFile = autosaveFileNameTemplate
+        if glob.glob(autosaveFileNameTemplate +'*') != []:
+            loadFile = self.loadAutosaveRoutine(autosaveFileNameTemplate)
+        if loadFile != autosaveFileNameTemplate:
+            self.loadRoutine(mode='schematic', loadFile=loadFile)
+            self.schematicFileName = None
+        else:
+            # Must setup the file only after checking if one already exists
+            self.autosaveFile = QtCore.QTemporaryFile(autosaveFileNameTemplate)
+            self.autosaveFile.open()
+            self.autosaveFile.setAutoRemove(False)
+        self.autosaveTimer.start()
 
     def applySettingsFromFile(self, fileName=None):
         # Load settings file
@@ -106,6 +117,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.removeGrid()
 
         # Save/export settings
+        self.autosaveEnable = settings.value('SaveExport/Autosave/Enable', type=bool)
+        # Set autosave timer interval in ms
+        self.autosaveTimerInterval = settings.value('SaveExport/Autosave/Timer interval', type=int)*1000
+        self.autosaveTimer.setInterval(self.autosaveTimerInterval)
         self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
         self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
         # Create default directory if it does not exist
@@ -241,8 +256,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
 
     def autosaveRoutine(self):
-        self.saveRoutine(mode='autosave')
-        print(self.autosaveFile.flush())
+        if self.autosaveEnable is True:
+            self.saveRoutine(mode='autosave')
+            self.autosaveFile.flush()
 
     def saveRoutine(self, mode='schematicAs'):
         """Handles saving of both symbols and schematics. For symbols and
@@ -255,12 +271,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if mode != 'autosave':
             self.escapeRoutine()
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autosave']
+        # Create list of items
+        listOfItems = self.scene().items()
+        listOfItems = [item for item in listOfItems if item.parentItem() is None and item not in self.moveItems]
         # Return if no items are present
-        if len(self.scene().items()) == 0:
+        if len(listOfItems) == 0:
             return
         if mode in possibleModes:
-            listOfItems = self.scene().items()
-            listOfItems = [item for item in listOfItems if item.parentItem() is None and item not in self.moveItems]
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
@@ -532,17 +549,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     loadItem = pickle.load(file)
                 # Remove trailing characters from autosave file .XXXXXX
                 if not loadFile.endswith(('.sch', '.sym')):
-                    # Remove the old autosave file
-                    os.remove(loadFile)
                     loadFile = loadFile[:-7]
+                if glob.glob(loadFile + '.*') != []:
+                    # Remove the old autosave file
+                    os.remove(glob.glob(loadFile + '.*')[0])
             else:
                 return False
             if mode == 'schematic' or mode == 'symbolModify':
                 self.schematicFileName = None
                 self.symbolFileName = None
-                # Remove old autosave file
-                self.autosaveFile.close()
-                self.autosaveFile.remove()
+                # Remove old autosave file if it exists
+                # This will not exist when recovering from unsaved crash
+                if hasattr(self, 'autosaveFile'):
+                    self.autosaveFile.close()
+                    self.autosaveFile.remove()
                 if mode == 'schematic':
                     self.schematicFileName = loadFile
                     self.autosaveFile = QtCore.QTemporaryFile(self.schematicFileName)
