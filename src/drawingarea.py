@@ -1109,7 +1109,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.endMacro()
                     self.currentNet = None
             if event.button() == QtCore.Qt.RightButton:
-                self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
+                if self.currentNet is not None:
+                    self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
