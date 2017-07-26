@@ -260,9 +260,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         elif self.ui.drawingArea.symbolFileName is not None:
             modified = 'symbol'
         else:
-            self.ui.drawingArea.autosaveFile.close()
-            self.ui.drawingArea.autosaveFile.remove()
-            event.accept()
+            modified = 'schematic'
         if modified != '':
             msgBox = QtWidgets.QMessageBox(self)
             msgBox.setWindowTitle("Confirm exit")
