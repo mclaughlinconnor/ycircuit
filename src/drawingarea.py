@@ -55,10 +55,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
         self.defaultExportFolder = './'
 
-        # Set up the autosave timer
-        self.autosaveTimer = QtCore.QTimer()
-        self.autosaveTimer.setInterval(10000)
-        self.autosaveTimer.timeout.connect(self.autosaveRoutine)
+        # Set up the autobackup timer
+        self.autobackupTimer = QtCore.QTimer()
+        self.autobackupTimer.setInterval(10000)
+        self.autobackupTimer.timeout.connect(self.autobackupRoutine)
 
         self.settingsFileName = '.config'
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -71,20 +71,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectOrigin = False
         self.currentPos = QtCore.QPoint(0, 0)
 
-        # Check to see if a default autosave file already exists
-        autosaveFileNameTemplate = 'autosave.sch'
-        loadFile = autosaveFileNameTemplate
-        if glob.glob(autosaveFileNameTemplate +'*') != []:
-            loadFile = self.loadAutosaveRoutine(autosaveFileNameTemplate)
-        if loadFile != autosaveFileNameTemplate:
+        # Check to see if a default autobackup file already exists
+        autobackupFileNameTemplate = 'autobackup.sch'
+        loadFile = autobackupFileNameTemplate
+        if glob.glob(autobackupFileNameTemplate +'*') != []:
+            loadFile = self.loadAutobackupRoutine(autobackupFileNameTemplate)
+        if loadFile != autobackupFileNameTemplate:
             self.loadRoutine(mode='schematic', loadFile=loadFile)
             self.schematicFileName = None
         else:
             # Must setup the file only after checking if one already exists
-            self.autosaveFile = QtCore.QTemporaryFile(autosaveFileNameTemplate)
-            self.autosaveFile.open()
-            self.autosaveFile.setAutoRemove(False)
-        self.autosaveTimer.start()
+            self.autobackupFile = QtCore.QTemporaryFile(autobackupFileNameTemplate)
+            self.autobackupFile.open()
+            self.autobackupFile.setAutoRemove(False)
+        self.autobackupTimer.start()
 
     def applySettingsFromFile(self, fileName=None):
         # Load settings file
@@ -117,10 +117,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.removeGrid()
 
         # Save/export settings
-        self.autosaveEnable = settings.value('SaveExport/Autosave/Enable', type=bool)
-        # Set autosave timer interval in ms
-        self.autosaveTimerInterval = settings.value('SaveExport/Autosave/Timer interval', type=int)*1000
-        self.autosaveTimer.setInterval(self.autosaveTimerInterval)
+        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', type=bool)
+        # Set autobackup timer interval in ms
+        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', type=int)*1000
+        self.autobackupTimer.setInterval(self.autobackupTimerInterval)
         self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
         self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
         # Create default directory if it does not exist
@@ -255,10 +255,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         elif kind == 'CCCS':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
 
-    def autosaveRoutine(self):
-        if self.autosaveEnable is True:
-            self.saveRoutine(mode='autosave')
-            self.autosaveFile.flush()
+    def autobackupRoutine(self):
+        if self.autobackupEnable is True:
+            self.saveRoutine(mode='autobackup')
+            self.autobackupFile.flush()
 
     def saveRoutine(self, mode='schematicAs'):
         """Handles saving of both symbols and schematics. For symbols and
@@ -268,9 +268,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         unparented.
         """
         # Cancel all other modes unless autosaving
-        if mode != 'autosave':
+        if mode != 'autobackup':
             self.escapeRoutine()
-        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autosave']
+        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
         # Create list of items
         listOfItems = self.scene().items()
         listOfItems = [item for item in listOfItems if item.parentItem() is None and item not in self.moveItems]
@@ -366,28 +366,28 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     saveFile = str(fileDialog.selectedFiles()[0])
                 if not saveFile.endswith('.sch'):
                     saveFile += '.sch'
-            elif mode == 'autosave':
-                saveFile = self.autosaveFile.fileName()
+            elif mode == 'autobackup':
+                saveFile = self.autobackupFile.fileName()
 
             if saveFile != '':
                 with open(saveFile, 'wb') as file:
                     pickle.dump(saveObject, file, -1)
-                # Delete old autosave file
-                if mode != 'autosave':
-                    self.autosaveFile.close()
-                    self.autosaveFile.remove()
+                # Delete old autobackup file
+                if mode != 'autobackup':
+                    self.autobackupFile.close()
+                    self.autobackupFile.remove()
                 if mode == 'symbol' or mode == 'symbolAs':
                     self.symbolFileName = saveFile
                     self.schematicFileName = None
-                    self.autosaveFile = QtCore.QTemporaryFile(self.symbolFileName)
+                    self.autobackupFile = QtCore.QTemporaryFile(self.symbolFileName)
                 if mode == 'schematic' or mode == 'schematicAs':
                     self.schematicFileName = saveFile
                     self.symbolFileName = None
-                    self.autosaveFile = QtCore.QTemporaryFile(self.schematicFileName)
-                if mode != 'autosave':
-                    self.autosaveFile.open()
-                    self.autosaveFile.setAutoRemove(False)
-                    with open(self.autosaveFile.fileName(), 'wb') as file:
+                    self.autobackupFile = QtCore.QTemporaryFile(self.schematicFileName)
+                if mode != 'autobackup':
+                    self.autobackupFile.open()
+                    self.autobackupFile.setAutoRemove(False)
+                    with open(self.autobackupFile.fileName(), 'wb') as file:
                         pickle.dump(saveObject, file, -1)
                     self.undoStack.setClean()
             # Always reparent items
@@ -500,12 +500,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         for item in selectedItems:
             item.setSelected(True)
 
-    def loadAutosaveRoutine(self, loadFile=None):
-        # Ask if you would like to recover the autosave
+    def loadAutobackupRoutine(self, loadFile=None):
+        # Ask if you would like to recover the autobackup
         msgBox = QtWidgets.QMessageBox(self)
         msgBox.setWindowTitle("Recover file")
-        msgBox.setText("An autosave file was detected.")
-        msgBox.setInformativeText("Do you wish to recover from the autosave file?")
+        msgBox.setText("An autobackup file was detected.")
+        msgBox.setInformativeText("Do you wish to recover from the autobackup file?")
         msgBox.setStandardButtons(msgBox.Yes | msgBox.No)
         msgBox.setDefaultButton(msgBox.Yes)
         msgBox.setIcon(msgBox.Information)
@@ -542,35 +542,35 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if (fileDialog.exec_()):
                     loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':
-                # Check to see if an autosave file exists
+                # Check to see if an autobackup file exists
                 if glob.glob(loadFile + '.*') != []:
-                    loadFile = self.loadAutosaveRoutine(loadFile)
+                    loadFile = self.loadAutobackupRoutine(loadFile)
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)
-                # Remove trailing characters from autosave file .XXXXXX
+                # Remove trailing characters from autobackup file .XXXXXX
                 if not loadFile.endswith(('.sch', '.sym')):
                     loadFile = loadFile[:-7]
                 if glob.glob(loadFile + '.*') != []:
-                    # Remove the old autosave file
+                    # Remove the old autobackup file
                     os.remove(glob.glob(loadFile + '.*')[0])
             else:
                 return False
             if mode == 'schematic' or mode == 'symbolModify':
                 self.schematicFileName = None
                 self.symbolFileName = None
-                # Remove old autosave file if it exists
+                # Remove old autobackup file if it exists
                 # This will not exist when recovering from unsaved crash
-                if hasattr(self, 'autosaveFile'):
-                    self.autosaveFile.close()
-                    self.autosaveFile.remove()
+                if hasattr(self, 'autobackupFile'):
+                    self.autobackupFile.close()
+                    self.autobackupFile.remove()
                 if mode == 'schematic':
                     self.schematicFileName = loadFile
-                    self.autosaveFile = QtCore.QTemporaryFile(self.schematicFileName)
+                    self.autobackupFile = QtCore.QTemporaryFile(self.schematicFileName)
                 elif mode == 'symbolModify':
                     self.symbolFileName = loadFile
-                    self.autosaveFile = QtCore.QTemporaryFile(self.symbolFileName)
-                self.autosaveFile.open()
-                self.autosaveFile.setAutoRemove(False)
+                    self.autobackupFile = QtCore.QTemporaryFile(self.symbolFileName)
+                self.autobackupFile.open()
+                self.autobackupFile.setAutoRemove(False)
                 # Clear the scene
                 self.scene().clear()
                 loadItem.__init__(
@@ -595,8 +595,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().removeItem(loadItem)
                 self.fitToViewRoutine()
                 self.undoStack.clear()
-                # Run an autosave once items are loaded completely
-                self.autosaveRoutine()
+                # Run an autobackup once items are loaded completely
+                self.autobackupRoutine()
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
                 # loadItem.setPos(self.mapToGrid(self.currentPos))

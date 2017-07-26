@@ -56,6 +56,7 @@ As of this point in time, the following options are available:
     * Mirror (Shift+R)
     * Change pen colour, style and width (Alt+E->C,P,W)
     * Change fill colour and style
+    * Options (Ctrl+P)
   * Shapes (Alt+A)
     * Line (Alt+A->L)
     * Rectangle (Alt+A->R)

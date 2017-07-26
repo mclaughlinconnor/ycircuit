@@ -798,7 +798,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_9">
          <property name="title">
-          <string>Autosave</string>
+          <string>Autobackup</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_9">
           <item>
@@ -824,9 +824,9 @@
              </spacer>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkBox_autosaveEnable">
+             <widget class="QCheckBox" name="checkBox_autobackupEnable">
               <property name="toolTip">
-               <string>Enables autosave. Highly recommended especially until the program becomes stable. Disable if you are handling large schematics and are seeing noticeable slowdown during interactions.</string>
+               <string>Enables autobackup. Highly recommended especially until the program becomes stable. Disable if you are handling large schematics and are seeing noticeable slowdown during interactions.</string>
               </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
@@ -864,9 +864,9 @@
              </spacer>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox_autosaveTimerInterval">
+             <widget class="QSpinBox" name="spinBox_autobackupTimerInterval">
               <property name="toolTip">
-               <string>Sets the time interval between autosaves in seconds. Set to a low value if you're frequently experiencing crashes and to a high value if you're working with large schematics that take a long time to save.</string>
+               <string>Sets the time interval between autobackups in seconds. Set to a low value if you're frequently experiencing crashes and to a high value if you're working with large schematics that take a long time to save/backup.</string>
               </property>
               <property name="suffix">
                <string/>

@@ -252,8 +252,8 @@ class myMainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         modified = ''
         if self.ui.drawingArea.undoStack.isClean():
-            self.ui.drawingArea.autosaveFile.close()
-            self.ui.drawingArea.autosaveFile.remove()
+            self.ui.drawingArea.autobackupFile.close()
+            self.ui.drawingArea.autobackupFile.remove()
             event.accept()
         elif self.ui.drawingArea.schematicFileName is not None:
             modified = 'schematic'
@@ -272,12 +272,12 @@ class myMainWindow(QtWidgets.QMainWindow):
             ret = msgBox.exec_()
             if ret == msgBox.Save:
                 self.ui.drawingArea.saveRoutine(modified)
-                self.ui.drawingArea.autosaveFile.close()
-                self.ui.drawingArea.autosaveFile.remove()
+                self.ui.drawingArea.autobackupFile.close()
+                self.ui.drawingArea.autobackupFile.remove()
                 event.accept()
             elif ret == msgBox.Discard:
-                self.ui.drawingArea.autosaveFile.close()
-                self.ui.drawingArea.autosaveFile.remove()
+                self.ui.drawingArea.autobackupFile.close()
+                self.ui.drawingArea.autobackupFile.remove()
                 event.accept()
             else:
                 event.ignore()
