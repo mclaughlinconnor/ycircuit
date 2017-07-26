@@ -24,10 +24,13 @@ class drawingElement(object):
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
         localDict = self.__dict__
-        localDict.pop('localPen', None)
-        localDict.pop('localBrush', None)
+        # Create copy of localDict and return that so that autosave does not
+        # remove important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy.pop('localPen', None)
+        localDictCopy.pop('localBrush', None)
         localDict['transformData'] = self.transform()
-        return localDict
+        return localDictCopy
 
     def __setstate__(self, state):
         """Since pen and brush objects were removed, we need to add them back"""
@@ -407,9 +410,12 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         for poly in polyPathList:
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
         localDict['polyPathPointList'] = polyPathPointList
-        localDict.pop('oldPath', None)
-        localDict['undoPathList'] = []
-        return localDict
+        # Create copy and return that so that autosave does not remove
+        # important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy.pop('oldPath', None)
+        localDictCopy['undoPathList'] = []
+        return localDictCopy
 
     def __setstate__(self, state):
         state['localPen'] = QtGui.QPen()
@@ -1192,10 +1198,13 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def __getstate__(self):
         localDict = super().__getstate__()
-        localDict.pop('textEditor', None)
+        # Create copy of localDict and return that so that autosave does not
+        # remove important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy.pop('textEditor', None)
         # Add htmlText to the dict
-        localDict['htmlText'] = self.toHtml()
-        return localDict
+        localDictCopy['htmlText'] = self.toHtml()
+        return localDictCopy
 
     def boundingRect(self):
         if self.latexImageBinary is None:
@@ -1352,8 +1361,11 @@ class Arc(Wire):
 
     def __getstate__(self):
         localDict = super().__getstate__()
-        localDict['undoPointsList'] = []
-        return localDict
+        # Create copy of localDict and return that so that autosave does not
+        # remove important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy['undoPointsList'] = []
+        return localDictCopy
 
     def createCopy(self, parent=None):
         newArc = super().createCopy(parent)

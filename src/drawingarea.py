@@ -262,6 +262,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def listOfItemsToSave(self, mode='schematicAs'):
         listOfItems = [item for item in self.scene().items() if item.parentItem() is None]
+        if mode != 'autobackup':
+            return listOfItems
         removeItems = []
         if self._keys['m'] is True or self._keys['add'] is True:
             removeItems = self.moveItems
