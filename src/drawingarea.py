@@ -477,7 +477,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         sourceRect.setWidth(int(padding * sourceRect.width()))
         sourceRect.setHeight(int(padding * sourceRect.height()))
         width, height = sourceRect.width(), sourceRect.height()
-        if not padding < 1:
+        if padding > 1:
             sourceRect.translate(-width * (padding - 1) / (padding * 2.),
                                  -height * (padding - 1) / (padding * 2.))
         if mode == 'pdf':
@@ -486,6 +486,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Choose appropriate format
             printer.setOutputFormat(printer.PdfFormat)
             printer.setOutputFileName(saveFile)
+            printer.setFullPage(True)
             pageSize = QtGui.QPageSize(QtCore.QSize(width, height), matchPolicy=QtGui.QPageSize.ExactMatch)
             printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
