@@ -74,12 +74,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Check to see if a default autobackup file already exists
         autobackupFileNameTemplate = 'autobackup.sch'
         loadFile = autobackupFileNameTemplate
-        if glob.glob(autobackupFileNameTemplate +'*') != []:
+        if glob.glob(autobackupFileNameTemplate + '*') != []:
             loadFile = self.loadAutobackupRoutine(autobackupFileNameTemplate)
         if loadFile != autobackupFileNameTemplate:
             self.loadRoutine(mode='schematic', loadFile=loadFile)
             self.schematicFileName = None
         else:
+            # If backup existed, delete it
+            if glob.glob(autobackupFileNameTemplate + '*') != []:
+                os.remove(glob.glob(autobackupFileNameTemplate + '*')[0])
             # Must setup the file only after checking if one already exists
             self.autobackupFile = QtCore.QTemporaryFile(autobackupFileNameTemplate)
             self.autobackupFile.open()
