@@ -324,6 +324,33 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 item.localBrush = QtGui.QBrush()
                 item.setLocalBrushOptions()
 
+    def getLocalPenParameters(self, parameter='colour'):
+        widthList = []
+        penColourList = []
+        penStyleList = []
+        for item in self.listOfItems:
+            if item.localPen.width() not in widthList:
+                widthList.append(item.localPen.width())
+            if item.localPen.color() not in penColourList:
+                penColourList.append(item.localPen.color())
+            if item.localPen.style() not in penStyleList:
+                penStyleList.append(item.localPen.style())
+        if parameter == 'width':
+            if len(widthList) > 1:
+                return None
+            else:
+                return widthList[0]
+        if parameter == 'colour':
+            if len(penColourList) > 1:
+                return None
+            else:
+                return penColourList[0]
+        if parameter == 'style':
+            if len(penStyleList) > 1:
+                return None
+            else:
+                return penStyleList[0]
+
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
         self.prepareGeometryChange()
@@ -332,6 +359,25 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 if not hasattr(item, 'localPen'):
                     item.localPen = QtGui.QPen()
                 item.setLocalPenOptions(**kwargs)
+
+    def getLocalBrushParameters(self, parameter='colour'):
+        brushColourList = []
+        brushStyleList = []
+        for item in self.listOfItems:
+            if item.localBrush.color() not in brushColourList:
+                brushColourList.append(item.localBrush.color())
+            if item.localBrush.style() not in brushStyleList:
+                brushStyleList.append(item.localBrush.style())
+        if parameter == 'colour':
+            if len(brushColourList) > 1:
+                return None
+            else:
+                return brushColourList[0]
+        if parameter == 'style':
+            if len(brushStyleList) > 1:
+                return None
+            else:
+                return brushStyleList[0]
 
     def setLocalBrushOptions(self, **kwargs):
         """Set brush individually for each child item"""

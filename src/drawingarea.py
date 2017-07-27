@@ -794,64 +794,114 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
 
     def changeWidthRoutine(self, selectedWidth):
-        if selectedWidth != self.selectedWidth:
-            self.selectedWidth = selectedWidth
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            sameWidth = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedWidth != item.getLocalPenParameters('width'):
+                        sameWidth = False
+                        break
+                elif selectedWidth != item.localPen.width():
+                    sameWidth = False
+                    break
+            if sameWidth is False:
                 changePen = ChangePen(
                     None,
                     self.scene().selectedItems(),
-                    width=self.selectedWidth)
+                    width=selectedWidth)
                 self.undoStack.push(changePen)
+        else:
+            self.selectedWidth = selectedWidth
         self.statusbarMessage.emit("Changed pen width to %d" %
-                                   (self.selectedWidth), 1000)
+                                   (selectedWidth), 1000)
 
     def changePenColourRoutine(self, selectedPenColour):
-        if selectedPenColour != self.selectedPenColour:
-            self.selectedPenColour = selectedPenColour
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            sameColour = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if QtGui.QColor(selectedPenColour) != item.getLocalPenParameters('colour'):
+                        sameColour = False
+                        break
+                elif QtGui.QColor(selectedPenColour) != item.localPen.color():
+                    sameColour = False
+                    break
+            if sameColour is False:
                 changePen = ChangePen(
                     None,
                     self.scene().selectedItems(),
-                    penColour=self.selectedPenColour)
+                    penColour=selectedPenColour)
                 self.undoStack.push(changePen)
+        else:
+            self.selectedPenColour = selectedPenColour
         self.statusbarMessage.emit("Changed pen colour to %s" %
-                                   (self.selectedPenColour), 1000)
+                                   (selectedPenColour), 1000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
-        if selectedPenStyle != self.selectedPenStyle:
-            self.selectedPenStyle = selectedPenStyle
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            samePenStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedPenStyle != item.getLocalPenParameters('style'):
+                        samePenStyle = False
+                        break
+                elif selectedPenStyle != item.localPen.style():
+                    samePenStyle = False
+                    break
+            if samePenStyle is False:
                 changePen = ChangePen(
                     None,
                     self.scene().selectedItems(),
-                    penStyle=self.selectedPenStyle)
+                    penStyle=selectedPenStyle)
                 self.undoStack.push(changePen)
+        else:
+            self.selectedPenStyle = selectedPenStyle
         self.statusbarMessage.emit("Changed pen style to %s" %
-                                   (self.selectedPenStyle), 1000)
+                                   (selectedPenStyle), 1000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
-        if selectedBrushColour != self.selectedBrushColour:
-            self.selectedBrushColour = selectedBrushColour
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            sameBrushColour = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedBrushColour != item.getLocalBrushParameters('style'):
+                        sameBrushColour = False
+                        break
+                elif QtGui.QColor(selectedBrushColour) != item.localBrush.color():
+                    sameBrushColour = False
+                    break
+            if sameBrushColour is False:
                 changeBrush = ChangeBrush(
                     None,
                     self.scene().selectedItems(),
-                    brushColour=self.selectedBrushColour)
+                    brushColour=selectedBrushColour)
                 self.undoStack.push(changeBrush)
+        else:
+            self.selectedBrushColour = selectedBrushColour
         self.statusbarMessage.emit("Changed brush colour to %s" %
-                                   (self.selectedBrushColour), 1000)
+                                   (selectedBrushColour), 1000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
-        if selectedBrushStyle != self.selectedBrushStyle:
-            self.selectedBrushStyle = selectedBrushStyle
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            sameBrushStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedBrushStyle != item.getLocalBrushParameters('style'):
+                        sameBrushStyle = False
+                        break
+                elif selectedBrushStyle != item.localBrush.style():
+                    sameBrushStyle = False
+                    break
+            if sameBrushStyle is False:
                 changeBrush = ChangeBrush(
                     None,
                     self.scene().selectedItems(),
-                    brushStyle=self.selectedBrushStyle)
+                    brushStyle=selectedBrushStyle)
                 self.undoStack.push(changeBrush)
+        else:
+            self.selectedBrushStyle = selectedBrushStyle
         self.statusbarMessage.emit("Changed brush style to %s" %
-                                   (self.selectedBrushStyle), 1000)
+                                   (selectedBrushStyle), 1000)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
