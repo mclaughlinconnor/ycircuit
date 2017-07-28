@@ -18,6 +18,9 @@ class myMainWindow(QtWidgets.QMainWindow):
         icon.addPixmap(QtGui.QPixmap('./Resources/icon.jpg'))
         self.setWindowIcon(icon)
 
+        self.ui.drawingArea.mousePosLabel = QtWidgets.QLabel()
+        self.ui.statusbar.addPermanentWidget(self.ui.drawingArea.mousePosLabel)
+
         # Connect actions to relevant slots
         # File menu
         self.ui.action_newSchematic.triggered.connect(

@@ -1288,6 +1288,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         self.currentPos = event.pos()
+        self.updateMousePosLabel(self.currentPos)
         if (self._mouse['1'] is True):
             self.oldX = self.currentX
             self.oldY = self.currentY
@@ -1406,3 +1407,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.optionswindow.applied.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.finished.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.exec_()
+
+    def updateMousePosLabel(self, pos=None):
+        if pos is None:
+            return
+        pos = self.mapToGrid(pos)
+        text = "Current position: "
+        text += str('(') + str(pos.x()) + ', ' + str(pos.y()) + str(')')
+        self.mousePosLabel.setText(text)
