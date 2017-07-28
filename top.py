@@ -127,6 +127,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.action_setBrushColour_triggered('magenta'))
         self.ui.action_setBrushColourYellow.triggered.connect(
             lambda x: self.action_setBrushColour_triggered('yellow'))
+        self.ui.action_setBrushColourCustom.triggered.connect(
+            lambda x: self.action_setBrushColour_triggered('custom'))
 
         self.ui.action_setBrushStyleNone.triggered.connect(
             lambda x: self.action_setBrushStyle_triggered(0))
@@ -428,6 +430,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setBrushColourCyan.setChecked(False)
         self.ui.action_setBrushColourMagenta.setChecked(False)
         self.ui.action_setBrushColourYellow.setChecked(False)
+        self.ui.action_setBrushColourCustom.setChecked(False)
         # This will fail if the colour is not a string (hex colours, for example)
         try:
             brushColour = brushColour.lower()
@@ -435,20 +438,24 @@ class myMainWindow(QtWidgets.QMainWindow):
             return
         if brushColour == 'black':
             self.ui.action_setBrushColourBlack.setChecked(True)
-        if brushColour == 'red':
+        elif brushColour == 'red':
             self.ui.action_setBrushColourRed.setChecked(True)
-        if brushColour == 'green':
+        elif brushColour == 'green':
             self.ui.action_setBrushColourGreen.setChecked(True)
-        if brushColour == 'blue':
+        elif brushColour == 'blue':
             self.ui.action_setBrushColourBlue.setChecked(True)
-        if brushColour == 'cyan':
+        elif brushColour == 'cyan':
             self.ui.action_setBrushColourCyan.setChecked(True)
-        if brushColour == 'magenta':
+        elif brushColour == 'magenta':
             self.ui.action_setBrushColourMagenta.setChecked(True)
-        if brushColour == 'yellow':
+        elif brushColour == 'yellow':
             self.ui.action_setBrushColourYellow.setChecked(True)
+        elif brushColour == 'custom':
+            brushColour = QtWidgets.QColorDialog().getColor()
+            self.ui.action_setBrushColourCustom.setChecked(True)
         if temporary is False:
-            self.ui.drawingArea.changeBrushColourRoutine(brushColour)
+            if QtGui.QColor(brushColour).isValid():
+                self.ui.drawingArea.changeBrushColourRoutine(brushColour)
 
     def action_setBrushStyle_triggered(self, brushStyle, temporary=False):
         self.ui.action_setBrushStyleNone.setChecked(False)

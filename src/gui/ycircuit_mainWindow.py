@@ -365,6 +365,8 @@ class Ui_MainWindow(object):
         self.action_snapToGridSpacing40.setObjectName("action_snapToGridSpacing40")
         self.action_setPenColourCustom = QtWidgets.QAction(MainWindow)
         self.action_setPenColourCustom.setObjectName("action_setPenColourCustom")
+        self.action_setBrushColourCustom = QtWidgets.QAction(MainWindow)
+        self.action_setBrushColourCustom.setObjectName("action_setBrushColourCustom")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -405,6 +407,8 @@ class Ui_MainWindow(object):
         self.menu_setFillColour.addAction(self.action_setBrushColourCyan)
         self.menu_setFillColour.addAction(self.action_setBrushColourMagenta)
         self.menu_setFillColour.addAction(self.action_setBrushColourYellow)
+        self.menu_setFillColour.addSeparator()
+        self.menu_setFillColour.addAction(self.action_setBrushColourCustom)
         self.menu_setFillStyle.addAction(self.action_setBrushStyleNone)
         self.menu_setFillStyle.addAction(self.action_setBrushStyleSolid)
         self.menu_Edit.addAction(self.action_undo)
@@ -686,6 +690,7 @@ class Ui_MainWindow(object):
         self.action_snapToGridSpacing30.setText(_translate("MainWindow", "30"))
         self.action_snapToGridSpacing40.setText(_translate("MainWindow", "40"))
         self.action_setPenColourCustom.setText(_translate("MainWindow", "Cu&stom"))
+        self.action_setBrushColourCustom.setText(_translate("MainWindow", "Cu&stom"))
 
 from src.drawingarea import DrawingArea
 import icon_rc

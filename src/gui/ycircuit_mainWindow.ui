@@ -129,6 +129,8 @@
      <addaction name="action_setBrushColourCyan"/>
      <addaction name="action_setBrushColourMagenta"/>
      <addaction name="action_setBrushColourYellow"/>
+     <addaction name="separator"/>
+     <addaction name="action_setBrushColourCustom"/>
     </widget>
     <widget class="QMenu" name="menu_setFillStyle">
      <property name="title">
@@ -1223,6 +1225,11 @@
    </property>
   </action>
   <action name="action_setPenColourCustom">
+   <property name="text">
+    <string>Cu&amp;stom</string>
+   </property>
+  </action>
+  <action name="action_setBrushColourCustom">
    <property name="text">
     <string>Cu&amp;stom</string>
    </property>

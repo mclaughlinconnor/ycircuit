@@ -819,14 +819,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                    (selectedWidth), 1000)
 
     def changePenColourRoutine(self, selectedPenColour):
+        selectedPenColour = QtGui.QColor(selectedPenColour)
         if self.scene().selectedItems() != []:
             sameColour = True
             for item in self.scene().selectedItems():
                 if isinstance(item, myGraphicsItemGroup):
-                    if QtGui.QColor(selectedPenColour) != item.getLocalPenParameters('colour'):
+                    if selectedPenColour != item.getLocalPenParameters('colour'):
                         sameColour = False
                         break
-                elif QtGui.QColor(selectedPenColour) != item.localPen.color():
+                elif selectedPenColour != item.localPen.color():
                     sameColour = False
                     break
             if sameColour is False:
@@ -838,7 +839,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         else:
             self.selectedPenColour = selectedPenColour
         self.statusbarMessage.emit("Changed pen colour to %s" %
-                                   (selectedPenColour), 1000)
+                                   (selectedPenColour.name()), 1000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
         if self.scene().selectedItems() != []:
@@ -863,14 +864,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                    (selectedPenStyle), 1000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
+        selectedBrushColour = QtGui.QColor(selectedBrushColour)
         if self.scene().selectedItems() != []:
             sameBrushColour = True
             for item in self.scene().selectedItems():
                 if isinstance(item, myGraphicsItemGroup):
-                    if selectedBrushColour != item.getLocalBrushParameters('style'):
+                    if selectedBrushColour != item.getLocalBrushParameters('colour'):
                         sameBrushColour = False
                         break
-                elif QtGui.QColor(selectedBrushColour) != item.localBrush.color():
+                elif selectedBrushColour != item.localBrush.color():
                     sameBrushColour = False
                     break
             if sameBrushColour is False:
@@ -882,7 +884,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         else:
             self.selectedBrushColour = selectedBrushColour
         self.statusbarMessage.emit("Changed brush colour to %s" %
-                                   (selectedBrushColour), 1000)
+                                   (selectedBrushColour.name()), 1000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
         if self.scene().selectedItems() != []:
