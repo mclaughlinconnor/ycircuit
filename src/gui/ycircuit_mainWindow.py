@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.drawingArea)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 38))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 21))
         self.menubar.setObjectName("menubar")
         self.menu_File = QtWidgets.QMenu(self.menubar)
         self.menu_File.setObjectName("menu_File")
@@ -363,6 +363,8 @@ class Ui_MainWindow(object):
         self.action_snapToGridSpacing40 = QtWidgets.QAction(MainWindow)
         self.action_snapToGridSpacing40.setCheckable(True)
         self.action_snapToGridSpacing40.setObjectName("action_snapToGridSpacing40")
+        self.action_setPenColourCustom = QtWidgets.QAction(MainWindow)
+        self.action_setPenColourCustom.setObjectName("action_setPenColourCustom")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -389,6 +391,8 @@ class Ui_MainWindow(object):
         self.menu_setPenColour.addAction(self.action_setPenColourCyan)
         self.menu_setPenColour.addAction(self.action_setPenColourMagenta)
         self.menu_setPenColour.addAction(self.action_setPenColourYellow)
+        self.menu_setPenColour.addSeparator()
+        self.menu_setPenColour.addAction(self.action_setPenColourCustom)
         self.menu_setPenStyle.addAction(self.action_setPenStyleSolid)
         self.menu_setPenStyle.addAction(self.action_setPenStyleDash)
         self.menu_setPenStyle.addAction(self.action_setPenStyleDot)
@@ -681,6 +685,7 @@ class Ui_MainWindow(object):
         self.action_snapToGridSpacing20.setText(_translate("MainWindow", "20"))
         self.action_snapToGridSpacing30.setText(_translate("MainWindow", "30"))
         self.action_snapToGridSpacing40.setText(_translate("MainWindow", "40"))
+        self.action_setPenColourCustom.setText(_translate("MainWindow", "Cu&stom"))
 
 from src.drawingarea import DrawingArea
 import icon_rc

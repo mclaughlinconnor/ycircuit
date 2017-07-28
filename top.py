@@ -99,6 +99,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.action_setPenColour_triggered('magenta'))
         self.ui.action_setPenColourYellow.triggered.connect(
             lambda x: self.action_setPenColour_triggered('yellow'))
+        self.ui.action_setPenColourCustom.triggered.connect(
+            lambda x: self.action_setPenColour_triggered('custom'))
 
         self.ui.action_setPenStyleSolid.triggered.connect(
             lambda x: self.action_setPenStyle_triggered(1))
@@ -372,6 +374,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setPenColourCyan.setChecked(False)
         self.ui.action_setPenColourMagenta.setChecked(False)
         self.ui.action_setPenColourYellow.setChecked(False)
+        self.ui.action_setPenColourCustom.setChecked(False)
         # This will fail if the colour is not a string (hex colours, for example)
         try:
             penColour = penColour.lower()
@@ -379,20 +382,24 @@ class myMainWindow(QtWidgets.QMainWindow):
             return
         if penColour == 'black':
             self.ui.action_setPenColourBlack.setChecked(True)
-        if penColour == 'red':
+        elif penColour == 'red':
             self.ui.action_setPenColourRed.setChecked(True)
-        if penColour == 'green':
+        elif penColour == 'green':
             self.ui.action_setPenColourGreen.setChecked(True)
-        if penColour == 'blue':
+        elif penColour == 'blue':
             self.ui.action_setPenColourBlue.setChecked(True)
-        if penColour == 'cyan':
+        elif penColour == 'cyan':
             self.ui.action_setPenColourCyan.setChecked(True)
-        if penColour == 'magenta':
+        elif penColour == 'magenta':
             self.ui.action_setPenColourMagenta.setChecked(True)
-        if penColour == 'yellow':
+        elif penColour == 'yellow':
             self.ui.action_setPenColourYellow.setChecked(True)
+        elif penColour == 'custom':
+            penColour = QtWidgets.QColorDialog().getColor()
+            self.ui.action_setPenColourCustom.setChecked(True)
         if temporary is False:
-            self.ui.drawingArea.changePenColourRoutine(penColour)
+            if QtGui.QColor(penColour).isValid():
+                self.ui.drawingArea.changePenColourRoutine(penColour)
 
     def action_setPenStyle_triggered(self, penStyle, temporary=False):
         self.ui.action_setPenStyleSolid.setChecked(False)

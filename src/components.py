@@ -1226,6 +1226,9 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.latexImageHtml = None
             self.latexExpression = None
             self.latexImageBinary = None
+        # For backwards compatibility
+        if not hasattr(self, 'latexImageColour'):
+            self.latexImageColour = QtGui.QColor('black')
         self.setLocalPenOptions(**kwargs)
         self.setLocalBrushOptions(**kwargs)
         self.setTextWidth(-1)
@@ -1250,6 +1253,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         localDictCopy.pop('textEditor', None)
         # Add htmlText to the dict
         localDictCopy['htmlText'] = self.toHtml()
+        if hasattr(self, 'latexImageBinary'):
+            localDictCopy['latexImageColour'] = QtGui.QColor(self.localPenColour)
         return localDictCopy
 
     def boundingRect(self):
@@ -1324,9 +1329,17 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.setHtml(textEdit.toHtml())
             # self.setDefaultTextColor(QtGui.QColor(colour))
         else:
+            # Do not regenerate the latex image if the colour is the same.
+            # Speeds up loading times by using the saved binary image instead
+            # of generating the image again
+            if hasattr(self, 'latexImageColour'):
+                if self.latexImageColour == QtGui.QColor(colour):
+                    return
+            # When loading from file, textEditor will not be present
+            # In that case, first create the textEditor
             if not hasattr(self, 'textEditor'):
                 self.textEditor = TextEditor(self)
-            self.latexImageBinary, self.data64 = self.textEditor.mathTexToQImage(
+            self.latexImageBinary = self.textEditor.mathTexToQImage(
                 '$' + self.latexExpression + '$',
                 self.localPenWidth,
                 self.localPenColour)
@@ -1366,7 +1379,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         brush = QtGui.QBrush()
         brush.setColor(QtGui.QColor(self.localBrushColour))
         brush.setStyle(self.localBrushStyle)
-        if self.latexImageHtml is not None:
+        if self.latexImageBinary is not None:
             newItem = self.__class__(
                 parent,
                 _start,
@@ -1377,7 +1390,6 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 brushColour = self.localBrushColour)
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
-            newItem.data64 = self.data64
         else:
             newItem = self.__class__(
                 parent,

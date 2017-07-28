@@ -100,16 +100,10 @@ class TextEditor(QtWidgets.QDialog):
                 cursor.setPosition(1)
                 self.ui.textEdit.setTextCursor(cursor)
                 if hasattr(self.textBox, 'latexImageBinary'):
-                    if not hasattr(self.textBox, 'data64'):
-                        img = QtGui.QImage()
-                        img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
-                        data = QtCore.QByteArray()
-                        buf = QtCore.QBuffer(data)
-                        img.save(buf, format='png')
-                        self.textBox.data64 = str(data.toBase64())
+                    img = QtGui.QImage()
+                    img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
                 else:
-                    self.textBox.latexImageBinary, self.base64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-                # htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
+                    self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pixelSize(), self.textBox.localPenColour)
                 htmlString = ''
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.setHtml(htmlString)
@@ -133,7 +127,7 @@ class TextEditor(QtWidgets.QDialog):
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
         if self.ui.pushButton_latex.isChecked():
-            self.textBox.latexImageBinary, self.textBox.data64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
+            self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
             # This will not be None if latex is installed
             if self.textBox.latexImageBinary is not None:
                 htmlString = ''
@@ -146,6 +140,7 @@ class TextEditor(QtWidgets.QDialog):
             self.textBox.setHtml(self.ui.textEdit.toHtml())
             self.textBox.latexImageHtml = None
             self.textBox.latexExpression = None
+            self.textBox.latexImageBinary = None
         super().accept()
 
     def modifyPushButtons(self):
@@ -290,13 +285,9 @@ class TextEditor(QtWidgets.QDialog):
 
         img = QtGui.QImage()
         img.loadFromData(obj.getvalue(), format='png')
+        self.textBox.latexImageColour = fc
 
-        data = QtCore.QByteArray()
-        buf = QtCore.QBuffer(data)
-        img.save(buf, format='png')
-        data64 = str(data.toBase64())
-
-        return obj, data64
+        return obj
 
 
 class myFileDialog(QtWidgets.QFileDialog):
