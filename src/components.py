@@ -1324,6 +1324,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.setHtml(textEdit.toHtml())
             # self.setDefaultTextColor(QtGui.QColor(colour))
         else:
+            if not hasattr(self, 'textEditor'):
+                self.textEditor = TextEditor(self)
             self.latexImageBinary, self.data64 = self.textEditor.mathTexToQImage(
                 '$' + self.latexExpression + '$',
                 self.localPenWidth,
