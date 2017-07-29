@@ -245,6 +245,35 @@ class Mirror(QtWidgets.QUndoCommand):
             item.reflect(self.moving, self.listOfPoints[str(item)])
 
 
+class ChangeFont(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, listOfItems=None, **kwargs):
+        super().__init__(parent)
+        if isinstance(listOfItems, list):
+            self.listOfItems = listOfItems
+            for item in self.listOfItems:
+                changeFont = ChangeFont(
+                    self,
+                    item,
+                    **kwargs)
+        else:
+            self.item = listOfItems
+            self.oldFont = self.item.font()
+            if 'font' in kwargs:
+                self.newFont = kwargs['font']
+
+    def redo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.changeFont(self.newFont)
+        else:
+            super().redo()
+
+    def undo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.changeFont(self.oldFont)
+        else:
+            super().undo()
+
+
 class ChangePen(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super().__init__(parent)

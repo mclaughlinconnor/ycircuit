@@ -148,6 +148,8 @@
     <addaction name="action_rotate"/>
     <addaction name="action_mirror"/>
     <addaction name="separator"/>
+    <addaction name="action_pickFont"/>
+    <addaction name="separator"/>
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
     <addaction name="menu_setPenStyle"/>
@@ -288,7 +290,17 @@
    <addaction name="menuSh_ape"/>
    <addaction name="menu_AddSymbol"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
+   </property>
+   <property name="sizeGripEnabled">
+    <bool>true</bool>
+   </property>
+  </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
     <string>toolBar</string>
@@ -1232,6 +1244,11 @@
   <action name="action_setBrushColourCustom">
    <property name="text">
     <string>Cu&amp;stom</string>
+   </property>
+  </action>
+  <action name="action_pickFont">
+   <property name="text">
+    <string>&amp;Font</string>
    </property>
   </action>
  </widget>

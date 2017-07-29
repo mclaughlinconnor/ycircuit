@@ -88,6 +88,7 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.textEdit.setFocus(True)
         if self.textBox is not None:
             font = self.textBox.font()
+            font.setPointSize(font.pointSize() * self.textBox.textScale)
             self.ui.textEdit.setFont(font)
             self.ui.textEdit.setTextColor(QtGui.QColor(self.textBox.localPenColour))
             if self.textBox.latexExpression is None:

@@ -1205,7 +1205,6 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
     LaTeX images are displayed in place of the text.
     TODO: Fix size issues with rendered LaTeX images
     TODO: Grey out LaTeX images on mouse hover
-    TODO: Delete corresponding LaTeX image files when textbox is deleted
     """
 
     def __init__(self, parent=None, start=None, text='', **kwargs):
@@ -1228,9 +1227,17 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         # For backwards compatibility
         if not hasattr(self, 'latexImageColour'):
             self.latexImageColour = QtGui.QColor('black')
+        if not hasattr(self, 'textScale'):
+            self.textScale = 4
         self.setLocalPenOptions(**kwargs)
         self.setLocalBrushOptions(**kwargs)
         self.setTextWidth(-1)
+        if hasattr(self, 'font_'):
+            self.changeFont(self.font_)
+        else:
+            # Default font
+            self.font_ = QtGui.QFont('Arial', 10)
+            self.changeFont(self.font_)
         # Sets the desired DPI for the image being generated
         self.latexImageDpi = 300
         # Scale the DPI in order to avoid pixelation
@@ -1252,9 +1259,18 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         localDictCopy.pop('textEditor', None)
         # Add htmlText to the dict
         localDictCopy['htmlText'] = self.toHtml()
+        # Change the font to a string for pickling
+        localDictCopy['font_'] = self.font().toString()
         if hasattr(self, 'latexImageBinary'):
             localDictCopy['latexImageColour'] = QtGui.QColor(self.localPenColour)
         return localDictCopy
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        if 'font_' in state:
+            font = QtGui.QFont()
+            font.fromString(state.pop('font_'))
+            self.font_ = font
 
     def boundingRect(self):
         if self.latexImageBinary is None:
@@ -1301,21 +1317,12 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         self.prepareGeometryChange()
         if 'pen' in kwargs:
             self.localPen = kwargs['pen']
-            self.localPenWidth = self.localPen.width()
             self.localPenColour = str(self.localPen.color().name())
             self.localPenStyle = self.localPen.style()
-        if 'width' in kwargs:
-            self.localPenWidth = kwargs['width']
         if 'penColour' in kwargs:
             self.localPenColour = kwargs['penColour']
         if 'penStyle' in kwargs:
             self.localPenStyle = kwargs['penStyle']
-        if hasattr(self, 'setFont'):
-            font = self.font()
-            font.setPointSize(self.localPenWidth * 10)
-            font.setFamily('Arial')
-            self.setFont(font)
-        self.changeTextSize(self.localPenWidth)
         self.changeTextColour(self.localPenColour)
 
     def changeTextColour(self, colour='gray'):
@@ -1343,14 +1350,17 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 self.localPenWidth,
                 self.localPenColour)
 
-    def changeTextSize(self, weight=4):
-        # Create a textedit to conveniently change the text size
+    def changeFont(self, font):
+        # Create a textedit to conveniently change the font
         textEdit = QtWidgets.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setFontPointSize(weight * 10)
+        textEdit.setCurrentFont(font)
+        self.localPenWidth = font.pointSize() * self.textScale
+        textEdit.setFontPointSize(self.localPenWidth)
         self.setHtml(textEdit.toHtml())
-        self.localPenWidth = weight
+        self.font_ = font
+        self.setFont(self.font_)
 
     def changeColourToGray(self, gray=False):
         # Only process this if text is not latex
@@ -1398,6 +1408,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 brush=brush,
                 penColour = self.localPenColour,
                 brushColour = self.localBrushColour)
+            newItem.changeFont(self.font())
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)

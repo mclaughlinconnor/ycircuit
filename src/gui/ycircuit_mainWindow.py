@@ -77,6 +77,8 @@ class Ui_MainWindow(object):
         self.menu_Arc.setObjectName("menu_Arc")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.statusbar.setSizeGripEnabled(True)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.toolBar = QtWidgets.QToolBar(MainWindow)
@@ -367,6 +369,8 @@ class Ui_MainWindow(object):
         self.action_setPenColourCustom.setObjectName("action_setPenColourCustom")
         self.action_setBrushColourCustom = QtWidgets.QAction(MainWindow)
         self.action_setBrushColourCustom.setObjectName("action_setBrushColourCustom")
+        self.action_pickFont = QtWidgets.QAction(MainWindow)
+        self.action_pickFont.setObjectName("action_pickFont")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -419,6 +423,8 @@ class Ui_MainWindow(object):
         self.menu_Edit.addAction(self.action_copy)
         self.menu_Edit.addAction(self.action_rotate)
         self.menu_Edit.addAction(self.action_mirror)
+        self.menu_Edit.addSeparator()
+        self.menu_Edit.addAction(self.action_pickFont)
         self.menu_Edit.addSeparator()
         self.menu_Edit.addAction(self.menu_setPenWidth.menuAction())
         self.menu_Edit.addAction(self.menu_setPenColour.menuAction())
@@ -691,6 +697,7 @@ class Ui_MainWindow(object):
         self.action_snapToGridSpacing40.setText(_translate("MainWindow", "40"))
         self.action_setPenColourCustom.setText(_translate("MainWindow", "Cu&stom"))
         self.action_setBrushColourCustom.setText(_translate("MainWindow", "Cu&stom"))
+        self.action_pickFont.setText(_translate("MainWindow", "&Font"))
 
 from src.drawingarea import DrawingArea
 import icon_rc

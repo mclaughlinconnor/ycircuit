@@ -1,6 +1,7 @@
 import sys
 sys.path.append('./Resources/icons/')
 from src.drawingarea import DrawingArea
+from src.components import TextBox
 from PyQt5 import QtCore, QtGui, QtWidgets
 from src.gui.ycircuit_mainWindow import Ui_MainWindow
 import platform
@@ -73,6 +74,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda: self.ui.action_copy.setChecked(False))
         self.ui.drawingArea.resetToolbarButtons.connect(
             lambda: self.ui.action_delete.setChecked(False))
+        self.ui.action_pickFont.triggered.connect(
+            self.action_pickFont_triggered)
         self.ui.action_options.triggered.connect(
             self.ui.drawingArea.optionsRoutine)
 
@@ -294,6 +297,25 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.form.showMaximized()
         self.form.ui.drawingArea.fitToViewRoutine()
 
+    def action_pickFont_triggered(self):
+        fontList = []
+        for item in self.ui.drawingArea.scene().selectedItems():
+            if not isinstance(item, TextBox):
+                fontList = []
+                break
+            else:
+                fontList.append(item.font().toString())
+        if fontList != [] and len(set(fontList)) == 1:
+            initialFont = QtGui.QFont()
+            initialFont.fromString(fontList[0])
+        elif hasattr(self.ui.drawingArea, 'selectedFont'):
+            initialFont = self.ui.drawingArea.selectedFont
+        else:
+            initialFont = QtGui.QFont('Arial', 10)
+        (font, accept) = QtWidgets.QFontDialog.getFont(initialFont, parent=self)
+        if accept is True:
+            self.ui.drawingArea.changeFontRoutine(font)
+
     def menu_Edit_hovered(self):
         widthList = []
         penColourList = []
@@ -301,7 +323,8 @@ class myMainWindow(QtWidgets.QMainWindow):
         brushColourList = []
         brushStyleList = []
         for item in self.ui.drawingArea.scene().selectedItems():
-            widthList.append(item.localPenWidth)
+            if not isinstance(item, TextBox):
+                widthList.append(item.localPenWidth)
             penColourList.append(item.localPenColour)
             penStyleList.append(item.localPenStyle)
             brushColourList.append(item.localBrushColour)
@@ -400,7 +423,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         elif penColour == 'yellow':
             self.ui.action_setPenColourYellow.setChecked(True)
         elif penColour == 'custom':
-            penColour = QtWidgets.QColorDialog().getColor()
+            penColour = QtWidgets.QColorDialog().getColor(parent=self)
             self.ui.action_setPenColourCustom.setChecked(True)
         if temporary is False:
             if QtGui.QColor(penColour).isValid():
@@ -454,7 +477,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         elif brushColour == 'yellow':
             self.ui.action_setBrushColourYellow.setChecked(True)
         elif brushColour == 'custom':
-            brushColour = QtWidgets.QColorDialog().getColor()
+            brushColour = QtWidgets.QColorDialog().getColor(parent=self)
             self.ui.action_setBrushColourCustom.setChecked(True)
         if temporary is False:
             if QtGui.QColor(brushColour).isValid():

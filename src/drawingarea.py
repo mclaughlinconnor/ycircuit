@@ -796,6 +796,26 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
+    def changeFontRoutine(self, selectedFont):
+        if self.scene().selectedItems() != []:
+            sameFont = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, TextBox):
+                    if selectedFont.toString() != item.font().toString():
+                        sameFont = False
+                        break
+            if sameFont is False:
+                changeFont = ChangeFont(
+                    None,
+                    self.scene().selectedItems(),
+                    font=selectedFont)
+                self.undoStack.push(changeFont)
+        else:
+            self.selectedFont = selectedFont
+        self.statusbarMessage.emit("Changed font to %s %s" %
+                                   (selectedFont.family(), selectedFont.pointSize()),
+                                   1000)
+
     def changeWidthRoutine(self, selectedWidth):
         if self.scene().selectedItems() != []:
             sameWidth = True
@@ -804,6 +824,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     if selectedWidth != item.getLocalPenParameters('width'):
                         sameWidth = False
                         break
+                elif isinstance(item, TextBox):
+                    pass
                 elif selectedWidth != item.localPen.width():
                     sameWidth = False
                     break

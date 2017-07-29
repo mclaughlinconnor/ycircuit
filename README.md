@@ -7,7 +7,7 @@ Just to be clear, this tool is intended to be used only for drawing circuit sche
 
 YCircuit is written in [Python 3](https://www.python.org) and uses [PyQt5](https://www.riverbankcomputing.com/software/pyqt/download) as the GUI framework. The move from PyQt4 to PyQt5 makes this a little more future-proof but it comes with some tradeoffs, the worst of which is the inability to export to EPS.
 
-Please check out the [YCircuit website](https://siddharthshekar.bitbucket.io/YCircuit) for further details and some tutorials!
+Please check out the [YCircuit website](https://siddharthshekar.bitbucket.io/YCircuit) for further details, binary files and some tutorials!
 
 ## Installation ##
 -------------------------------------------------------------------------------
@@ -54,6 +54,7 @@ As of this point in time, the following options are available:
     * Copy (C)
     * Rotate (R)
     * Mirror (Shift+R)
+    * Change font (Alt+E->F)
     * Change pen colour, style and width (Alt+E->C,P,W)
     * Change fill colour and style
     * Options (Ctrl+P)
