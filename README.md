@@ -68,7 +68,7 @@ As of this point in time, the following options are available:
         * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed. Check [here](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.png) or [here for an SVG version](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.svg) in order to get an idea of what the LaTeX output looks like.
         * An option for a more coherent look would be to use the symbols button in the text editor.
   * Symbols (Alt+S)
-    * Wire (Right click to change the angle of the wire!) (Alt+S->W)
+    * Wire (Right click to change the angle of the wire!) (W)
     * [Resistor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/resistor.png) (Alt+S->R)
     * [Capacitor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/capacitor.png) (Alt+S->C)
     * [Ground](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/ground.png) (Alt+S->G)

@@ -389,10 +389,13 @@
   </action>
   <action name="action_addWire">
    <property name="text">
-    <string>&amp;Wire</string>
+    <string>Wire</string>
    </property>
    <property name="toolTip">
     <string>Draws a wire</string>
+   </property>
+   <property name="shortcut">
+    <string>W</string>
    </property>
   </action>
   <action name="action_addResistor">
