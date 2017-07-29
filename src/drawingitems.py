@@ -89,7 +89,8 @@ class TextEditor(QtWidgets.QDialog):
         if self.textBox is not None:
             font = self.textBox.font()
             font.setPointSize(font.pointSize() * self.textBox.textScale)
-            self.ui.textEdit.setFont(font)
+            self.ui.textEdit.setCurrentFont(font)
+            self.font_ = font
             self.ui.textEdit.setTextColor(QtGui.QColor(self.textBox.localPenColour))
             if self.textBox.latexExpression is None:
                 self.ui.textEdit.setHtml(self.textBox.toHtml())
@@ -104,7 +105,7 @@ class TextEditor(QtWidgets.QDialog):
                     img = QtGui.QImage()
                     img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
                 else:
-                    self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pixelSize(), self.textBox.localPenColour)
+                    self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
                 htmlString = ''
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.setHtml(htmlString)
@@ -145,6 +146,10 @@ class TextEditor(QtWidgets.QDialog):
         super().accept()
 
     def modifyPushButtons(self):
+        # Forcibly set the right font family and point size
+        if self.ui.textEdit.fontFamily() != 'Symbol':
+            self.ui.textEdit.setFontFamily(self.font_.family())
+        self.ui.textEdit.setFontPointSize(self.font_.pointSize())
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
         bold, italic, underline, overline = True, True, True, True

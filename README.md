@@ -101,12 +101,13 @@ An example output image would look something like this ([High res image](https:/
 
 Currently, the files have the following uses:
 
-  * top.py: Contains mappings from UI callbacks to actual functions. Used for launching the GUI.
+  * top.py: Used for launching the GUI.
   * src/
     * gui/
         * ycircuit_mainWindow.*: The UI file contains the output of Qt Designer while the py file is the exported version of the same.
     * drawingitems.py: Contains the Grid class for creating the background grid in the GUI and the TextEditor class for handling editing of TextBox objects.
     * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
+    * mainwindow.py: Contains mappings from UI callbacks to actual functions in the drawing area.
     * components.py: Defines item classes for creating and manipulating shapes.
     * commands.py: Defines command actions including how to handle undoing and redoing.
   * Resources/Symbols/

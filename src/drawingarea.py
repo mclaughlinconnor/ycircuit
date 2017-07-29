@@ -389,7 +389,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             elif mode == 'autobackup':
                 saveFile = self.autobackupFile.fileName()
 
-            if saveFile != '':
+            if saveFile[:-4] != '':
                 with open(saveFile, 'wb') as file:
                     pickle.dump(saveObject, file, -1)
                 # Delete old autobackup file
