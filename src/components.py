@@ -18,7 +18,6 @@ class drawingElement(object):
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         self.setAcceptHoverEvents(True)
-        self.reflections = 0
         self.setToolTip(str(self))
 
     def __getstate__(self):
