@@ -1234,9 +1234,9 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         self.setTextWidth(-1)
         if hasattr(self, 'font_'):
             self.changeFont(self.font_)
-        else:
+        elif 'font' in kwargs:
             # Default font
-            self.font_ = QtGui.QFont('Arial', 10)
+            self.font_ = kwargs['font']
             self.changeFont(self.font_)
         # Sets the desired DPI for the image being generated
         self.latexImageDpi = 300

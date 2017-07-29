@@ -93,6 +93,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Load settings file
         settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
 
+        # Font settings
+        fontFamily = settings.value('Painting/Font/Family')
+        fontPointSize = settings.value('Painting/Font/Point size', type=int)
+        self.selectedFont = QtGui.QFont()
+        self.selectedFont.setFamily(fontFamily)
+        self.selectedFont.setPointSize(fontPointSize)
         # Painting settings
         self.selectedWidth = settings.value('Painting/Pen/Width', type=int)
         self.selectedPenColour = settings.value('Painting/Pen/Colour')
@@ -1289,7 +1295,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
                         brushColour=self.selectedBrushColour,
-                        brushStyle=self.selectedBrushStyle)
+                        brushStyle=self.selectedBrushStyle,
+                        font=self.selectedFont)
                     add = Add(None, self.scene(), self.currentTextBox)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)

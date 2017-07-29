@@ -40,6 +40,9 @@ class MyOptionsWindow(QtWidgets.QDialog):
         if not os.path.isfile(self.fileName):
             self.createSettingsFile()
         # Read from the newly created settings file
+        # Font settings
+        self.ui.fontComboBox_fontFamily.setCurrentText(self.settings.value('Painting/Font/Family'))
+        self.ui.comboBox_fontPointSize.setCurrentText(self.settings.value('Painting/Font/Point size'))
         # Painting pen settings
         self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width'))
         self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour'))
@@ -76,6 +79,9 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.doubleSpinBox_exportImageScaleFactor.setValue(self.settings.value('SaveExport/Export/Image scale factor', type=float))
 
     def writeValues(self):
+        # Font settings
+        self.settings.setValue('Painting/Font/Family', self.ui.fontComboBox_fontFamily.currentText())
+        self.settings.setValue('Painting/Font/Point size', self.ui.comboBox_fontPointSize.currentText())
         # Painting pen settings
         self.settings.setValue('Painting/Pen/Width', self.ui.comboBox_penWidth.currentText())
         self.settings.setValue('Painting/Pen/Colour', self.ui.comboBox_penColour.currentText())
@@ -117,6 +123,11 @@ class MyOptionsWindow(QtWidgets.QDialog):
     def createSettingsFile(self):
         # Painting settings
         self.settings.beginGroup('Painting')
+        # Font settings
+        self.settings.beginGroup('Font')
+        self.settings.setValue('Family', 'Arial')
+        self.settings.setValue('Point size', '10')
+        self.settings.endGroup()
         # Painting pen settings
         self.settings.beginGroup('Pen')
         self.settings.setValue('Width', '4')
