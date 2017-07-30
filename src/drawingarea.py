@@ -1144,17 +1144,24 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # If wire or arc mode are on
         if self._keys['w'] is True or self._keys['arc'] is True:
             # Keep drawing new wire segments
-            if (event.button() == QtCore.Qt.LeftButton):
+            if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = True
-            if (self._mouse['1'] is True):
+            if self._mouse['1'] is True:
                 self.oldPos = self.currentPos
                 self.currentPos = event.pos()
                 self.currentX = self.currentPos.x()
                 self.currentY = self.currentPos.y()
                 start = self.mapToGrid(self.currentPos)
                 if self._keys['w'] is True:
+                    # If it is a right click, cancel this wire
+                    # and wait for another LMB
+                    if event.button() == QtCore.Qt.RightButton:
+                        if self.currentWire is not None:
+                            self._mouse['1'] = False
+                            self.currentWire.cancelSegment()
+                            self.currentWire = None
                     # Create new wire if none exists
-                    if self.currentWire is None:
+                    elif self.currentWire is None:
                         self.currentWire = Wire(
                             None,
                             start,

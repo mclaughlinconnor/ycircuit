@@ -65,6 +65,10 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(
             self.ui.drawingArea.copyRoutine)
+        # Add Delete key to shortcuts for deleting
+        del_ = [QtGui.QKeySequence('Del')]
+        del_.append(self.ui.action_delete.shortcut())
+        self.ui.action_delete.setShortcuts(del_)
         self.ui.action_delete.triggered.connect(
             self.ui.drawingArea.deleteRoutine)
         self.ui.drawingArea.resetToolbarButtons.connect(
