@@ -19,6 +19,10 @@ class drawingElement(object):
         self.setFlag(self.ItemIsFocusable, True)
         self.setAcceptHoverEvents(True)
         self.setToolTip(str(self))
+        if hasattr(self, 'height'):
+            self.setZValue(self.height)
+        else:
+            self.setZValue(0)
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
@@ -28,7 +32,8 @@ class drawingElement(object):
         localDictCopy = localDict.copy()
         localDictCopy.pop('localPen', None)
         localDictCopy.pop('localBrush', None)
-        localDict['transformData'] = self.transform()
+        localDictCopy['transformData'] = self.transform()
+        localDictCopy['height'] = self.zValue()
         return localDictCopy
 
     def __setstate__(self, state):
@@ -249,6 +254,12 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         self.localBrushStyle = 0
         self.setAcceptHoverEvents(True)
 
+    def __setstate__(self, state):
+        """Reimplemented from drawingElement because group does not have
+        pen and brush of its own.
+        """
+        self.__dict__ = state
+
     def paint(self, painter, *args):
         """Call child paint methods individually"""
         if not isinstance(self.parentItem(), myGraphicsItemGroup):
@@ -261,34 +272,23 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def boundingRect(self):
         return self.childrenBoundingRect()
 
-    def __setstate__(self, state):
-        """Reimplemented from drawingElement because group does not have
-        pen and brush of its own.
-        """
-        self.__dict__ = state
-
     def createCopy(self, parent=None):
         """Call child copy methods individually after creating new parent"""
         self.setSelected(False)
         _start = self.pos()
-        # If parent exists, will get added to parent's scene
-        if parent is None:
-            newItem = self.__class__(parent, _start, [])
+        newItem = self.__class__(parent, _start, [])
+        newItem.origin = self.origin
+        newItem.setTransform(self.transform())
+        if newItem.parentItem() is None:
+            self.scene().addItem(newItem)
+            newItem.moveTo(self.scenePos(), 'start')
         else:
-            newItem = self.__class__(parent, _start, [])
-        newItem.listOfItems = []
+            newItem.setPos(newItem.origin)
         for item in self.listOfItems:
             itemCopy = item.createCopy(newItem)
             newItem.listOfItems.append(itemCopy)
         newItem.setItems(newItem.listOfItems)
-        newItem.setTransform(self.transform())
-        newItem.origin = self.origin
         newItem.setSelected(True)
-        self.scene().addItem(newItem)
-        if newItem.parentItem() is None:
-            newItem.moveTo(self.scenePos(), 'start')
-        else:
-            newItem.setPos(newItem.origin)
         return newItem
 
     def setItems(self, listOfItems):
@@ -463,9 +463,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         return localDictCopy
 
     def __setstate__(self, state):
-        state['localPen'] = QtGui.QPen()
-        state['localBrush'] = QtGui.QBrush()
-        self.__dict__ = state
+        super().__setstate__(state)
         # Add a polygon corresponding to the list of saved points
         a = QtGui.QPolygonF(state['polyPathPointList'][0])
         self.oldPath2 = QtGui.QPainterPath()
@@ -610,9 +608,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         return localDict
 
     def __setstate__(self, state):
-        state['localPen'] = QtGui.QPen()
-        state['localBrush'] = QtGui.QBrush()
-        self.__dict__ = state
+        super().__setstate__(state)
         self.oldLine = state['oldLine']
 
     def boundingRect(self):

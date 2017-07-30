@@ -334,7 +334,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
-                # print item, item.origin
             saveObject.setItems(listOfItems)
 
             saveFile = ''
@@ -821,6 +820,32 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.statusbarMessage.emit("Changed font to %s %s" %
                                    (selectedFont.family(), selectedFont.pointSize()),
                                    1000)
+
+    def changeHeightRoutine(self, mode='reset'):
+        if self.scene().selectedItems == []:
+            return
+        else:
+            changeHeight = ChangeHeight(
+                None,
+                self.scene().selectedItems(),
+                mode=mode)
+            self.undoStack.push(changeHeight)
+        # If only 1 item is selected, report its height
+        info = ''
+        if len(self.scene().selectedItems()) == 1:
+            info = ' to ' + str(self.scene().selectedItems()[0].zValue())
+        if mode == 'forward':
+            self.statusbarMessage.emit(
+                "Brought selected item(s) forward" + info,
+                1000)
+        elif mode == 'back':
+            self.statusbarMessage.emit(
+                "Sent selected item(s) back" + info,
+                1000)
+        elif mode == 'reset':
+            self.statusbarMessage.emit(
+                "Reset the height(s) of the selected item(s)",
+                1000)
 
     def changeWidthRoutine(self, selectedWidth):
         if self.scene().selectedItems() != []:

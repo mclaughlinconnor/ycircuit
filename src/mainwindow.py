@@ -59,9 +59,12 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_undo.setEnabled)
         self.ui.action_rotate.triggered.connect(
             self.ui.drawingArea.rotateRoutine)
-        self.ui.action_mirror.triggered.connect(lambda x:self.ui.drawingArea.rotateRoutine(modifier=QtCore.Qt.ShiftModifier))
-        self.ui.action_move.triggered.connect(self.ui.drawingArea.moveRoutine)
-        self.ui.action_copy.triggered.connect(self.ui.drawingArea.copyRoutine)
+        self.ui.action_mirror.triggered.connect(
+            lambda x:self.ui.drawingArea.rotateRoutine(modifier=QtCore.Qt.ShiftModifier))
+        self.ui.action_move.triggered.connect(
+            self.ui.drawingArea.moveRoutine)
+        self.ui.action_copy.triggered.connect(
+            self.ui.drawingArea.copyRoutine)
         self.ui.action_delete.triggered.connect(
             self.ui.drawingArea.deleteRoutine)
         self.ui.drawingArea.resetToolbarButtons.connect(
@@ -74,6 +77,13 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.action_pickFont_triggered)
         self.ui.action_options.triggered.connect(
             self.ui.drawingArea.optionsRoutine)
+
+        self.ui.action_heightBringForward.triggered.connect(
+            lambda x: self.ui.drawingArea.changeHeightRoutine('forward'))
+        self.ui.action_heightSendBack.triggered.connect(
+            lambda x: self.ui.drawingArea.changeHeightRoutine('back'))
+        self.ui.action_heightReset.triggered.connect(
+            lambda x: self.ui.drawingArea.changeHeightRoutine('reset'))
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(

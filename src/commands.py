@@ -274,6 +274,45 @@ class ChangeFont(QtWidgets.QUndoCommand):
             super().undo()
 
 
+class ChangeHeight(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, listOfItems=None, **kwargs):
+        super().__init__(parent)
+        if isinstance(listOfItems, list):
+            self.listOfItems = listOfItems
+            for item in self.listOfItems:
+                changeHeight = ChangeHeight(
+                    self,
+                    item,
+                    **kwargs)
+        else:
+            self.item = listOfItems
+            self.oldHeight = self.item.zValue()
+            if 'mode' in kwargs:
+                self.mode = kwargs['mode']
+
+    def redo(self):
+        if not hasattr(self, 'listOfItems'):
+            if self.mode == 'forward':
+                self.item.setZValue(self.item.zValue() + 1)
+            elif self.mode == 'back':
+                self.item.setZValue(self.item.zValue() - 1)
+            elif self.mode == 'reset':
+                self.item.setZValue(0)
+        else:
+            super().redo()
+
+    def undo(self):
+        if not hasattr(self, 'listOfItems'):
+            if self.mode == 'forward':
+                self.item.setZValue(self.item.zValue() - 1)
+            elif self.mode == 'back':
+                self.item.setZValue(self.item.zValue() + 1)
+            elif self.mode == 'reset':
+                self.item.setZValue(self.oldHeight)
+        else:
+            super().undo()
+
+
 class ChangePen(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super().__init__(parent)

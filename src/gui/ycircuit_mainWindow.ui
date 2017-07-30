@@ -139,6 +139,15 @@
      <addaction name="action_setBrushStyleNone"/>
      <addaction name="action_setBrushStyleSolid"/>
     </widget>
+    <widget class="QMenu" name="menuHeight">
+     <property name="title">
+      <string>Height</string>
+     </property>
+     <addaction name="action_heightBringForward"/>
+     <addaction name="action_heightSendBack"/>
+     <addaction name="separator"/>
+     <addaction name="action_heightReset"/>
+    </widget>
     <addaction name="action_undo"/>
     <addaction name="action_redo"/>
     <addaction name="separator"/>
@@ -149,6 +158,8 @@
     <addaction name="action_mirror"/>
     <addaction name="separator"/>
     <addaction name="action_pickFont"/>
+    <addaction name="separator"/>
+    <addaction name="menuHeight"/>
     <addaction name="separator"/>
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
@@ -1252,6 +1263,30 @@
   <action name="action_pickFont">
    <property name="text">
     <string>&amp;Font</string>
+   </property>
+  </action>
+  <action name="action_heightBringForward">
+   <property name="text">
+    <string>Bring forward</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+=</string>
+   </property>
+  </action>
+  <action name="action_heightSendBack">
+   <property name="text">
+    <string>Send back</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="action_heightReset">
+   <property name="text">
+    <string>Reset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+0</string>
    </property>
   </action>
  </widget>
