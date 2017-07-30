@@ -66,6 +66,9 @@
             </item>
             <item>
              <widget class="QFontComboBox" name="fontComboBox_fontFamily">
+              <property name="toolTip">
+               <string>Set the default font family</string>
+              </property>
               <property name="currentFont">
                <font>
                 <family>Arial</family>
@@ -100,6 +103,9 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_fontPointSize">
+              <property name="toolTip">
+               <string>Set the default font size</string>
+              </property>
               <property name="currentText">
                <string>10</string>
               </property>
@@ -200,7 +206,6 @@
          </layout>
          <zorder></zorder>
          <zorder></zorder>
-         <zorder></zorder>
         </widget>
        </item>
        <item>
@@ -233,6 +238,9 @@
             </item>
             <item row="0" column="2">
              <widget class="QComboBox" name="comboBox_penWidth">
+              <property name="toolTip">
+               <string>Set the default width of the pen for drawing items</string>
+              </property>
               <property name="currentIndex">
                <number>1</number>
               </property>
@@ -272,6 +280,9 @@
             </item>
             <item row="2" column="2">
              <widget class="QComboBox" name="comboBox_penStyle">
+              <property name="toolTip">
+               <string>Set the default style of the pen for drawing items</string>
+              </property>
               <property name="currentIndex">
                <number>0</number>
               </property>
@@ -304,6 +315,9 @@
             </item>
             <item row="1" column="2">
              <widget class="QComboBox" name="comboBox_penColour">
+              <property name="toolTip">
+               <string>Set the default colour of the pen for drawing items</string>
+              </property>
               <property name="currentIndex">
                <number>0</number>
               </property>
@@ -418,6 +432,9 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Set the default colour of the brush for drawing items</string>
+              </property>
               <property name="currentIndex">
                <number>0</number>
               </property>
@@ -486,6 +503,9 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Set the default style of the brush for drawing items</string>
+              </property>
               <property name="currentIndex">
                <number>0</number>
               </property>
@@ -537,6 +557,9 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_rotationDirection">
+              <property name="toolTip">
+               <string>Set the default rotation direction to clockwise or counter-clockwise</string>
+              </property>
               <item>
                <property name="text">
                 <string>Clockwise</string>
@@ -575,6 +598,9 @@
             </item>
             <item>
              <widget class="QSpinBox" name="spinBox_rotationAngle">
+              <property name="toolTip">
+               <string>Set the default angle by which to rotate items</string>
+              </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
@@ -644,6 +670,9 @@
          </item>
          <item>
           <widget class="QCheckBox" name="checkBox_gridVisibility">
+           <property name="toolTip">
+            <string>Toggle default grid visibility</string>
+           </property>
            <property name="layoutDirection">
             <enum>Qt::RightToLeft</enum>
            </property>
@@ -684,6 +713,9 @@
             </item>
             <item row="0" column="2">
              <widget class="QCheckBox" name="checkBox_gridSnapToGrid">
+              <property name="toolTip">
+               <string>Toggle default snapping to grid</string>
+              </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
               </property>
@@ -714,6 +746,9 @@
             </item>
             <item row="1" column="2">
              <widget class="QComboBox" name="comboBox_gridSnapToGridSpacing">
+              <property name="toolTip">
+               <string>Set the default grid size to use for snapping</string>
+              </property>
               <property name="currentIndex">
                <number>3</number>
               </property>
@@ -789,6 +824,9 @@
             </item>
             <item row="0" column="2">
              <widget class="QCheckBox" name="checkBox_gridShowMajorGridPoints">
+              <property name="toolTip">
+               <string>Toggle default visibility of the major grid points</string>
+              </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
               </property>
@@ -819,6 +857,9 @@
             </item>
             <item row="1" column="2">
              <widget class="QComboBox" name="comboBox_gridMajorGridPointSpacing">
+              <property name="toolTip">
+               <string>Toggle default spacing of the major grid points</string>
+              </property>
               <item>
                <property name="text">
                 <string>100</string>
@@ -863,6 +904,9 @@
             </item>
             <item row="2" column="2">
              <widget class="QCheckBox" name="checkBox_gridShowMinorGridPoints">
+              <property name="toolTip">
+               <string>Toggle default visibility of the minor grid points</string>
+              </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
               </property>
@@ -893,6 +937,9 @@
             </item>
             <item row="3" column="2">
              <widget class="QComboBox" name="comboBox_gridMinorGridPointSpacing">
+              <property name="toolTip">
+               <string>Toggle default spacing of the minor grid points</string>
+              </property>
               <property name="currentIndex">
                <number>4</number>
               </property>
@@ -1127,6 +1174,9 @@
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_defaultSchematicSaveFolder">
+              <property name="toolTip">
+               <string>Pick a default folder for saving schematics to</string>
+              </property>
               <property name="text">
                <string>./</string>
               </property>
@@ -1145,6 +1195,9 @@
                 <width>30</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Pick a default folder for saving schematics to</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -1226,6 +1279,9 @@
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_defaultSymbolSaveFolder">
+              <property name="toolTip">
+               <string>Pick a default folder for saving symbols to</string>
+              </property>
               <property name="text">
                <string>Resources/Symbols/Custom</string>
               </property>
@@ -1244,6 +1300,9 @@
                 <width>30</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Pick a default folder for saving symbols to</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -1285,6 +1344,9 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_defaultExportFormat">
+              <property name="toolTip">
+               <string>Pick a default format for exporting to</string>
+              </property>
               <item>
                <property name="text">
                 <string>PDF</string>
@@ -1343,6 +1405,9 @@
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_defaultExportFolder">
+              <property name="toolTip">
+               <string>Pick a default folder for exporting to</string>
+              </property>
               <property name="text">
                <string>./</string>
               </property>
@@ -1361,6 +1426,9 @@
                 <width>30</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Pick a default folder for exporting to</string>
               </property>
               <property name="text">
                <string>...</string>
