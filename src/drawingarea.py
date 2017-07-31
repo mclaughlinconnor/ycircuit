@@ -554,8 +554,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """
         # It is possible that loadFile may be a folder, when clicked through
         # the symbol preview on the left. If so, return
-        if os.path.isdir(loadFile):
-            return
+        if loadFile is not None:
+            if os.path.isdir(loadFile):
+                return
         possibleModes = ['schematic', 'symbol', 'symbolModify']
         if mode in possibleModes:
             if loadFile is None:

@@ -177,6 +177,9 @@ class drawingElement(object):
             brushColour=self.localBrushColour)
         # Apply any transforms (rotations, reflections etc.)
         newItem.setTransform(self.transform())
+        # Copy reflection info if it exists
+        if hasattr(self, 'reflections'):
+            newItem.reflections = self.reflections
         if parent is None:
             # Add new item to scene if no parent exists
             self.scene().addItem(newItem)
@@ -279,6 +282,9 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         newItem = self.__class__(parent, _start, [])
         newItem.origin = self.origin
         newItem.setTransform(self.transform())
+        # Copy reflection info if it exists
+        if hasattr(self, 'reflections'):
+            newItem.reflections = self.reflections
         if newItem.parentItem() is None:
             self.scene().addItem(newItem)
             newItem.moveTo(self.scenePos(), 'start')
