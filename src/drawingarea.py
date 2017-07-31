@@ -137,6 +137,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
             os.mkdir(self.defaultSchematicSaveFolder)
         self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', type=bool)
         self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder')
+        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder')
+        # When the program is starting, myMainWindow will not have fileSystemModel
+        if hasattr(self.window(), 'fileSystemModel'):
+            self.window().pickSymbolViewerDirectory(self.defaultSymbolPreviewFolder)
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSymbolSaveFolder):
             os.mkdir(self.defaultSymbolSaveFolder)
@@ -205,25 +209,25 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Load the standard resistor"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/resistor.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Resistor.sym')
 
     def addCapacitor(self):
         """Load the standard capacitor"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/capacitor.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Capacitor.sym')
 
     def addGround(self):
         """Load the standard ground symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/ground.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Ground.sym')
 
     def addDot(self):
         """Load the standard dot symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/dot.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Dot.sym')
 
     def addTransistor(self, kind='MOS', polarity='N', arrow=False):
         """Load the standard transistor symbol based on its kind and polarity"""
@@ -232,37 +236,37 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if kind == 'MOS':
             if polarity == 'N':
                 if arrow is True:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/nfetArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/NFET_arrow.sym')
                 else:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/nfetNoArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/NFET_noArrow.sym')
             else:
                 if arrow is True:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/pfetArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/PFET_arrow.sym')
                 else:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/pfetNoArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/PFET_noArrow.sym')
         elif kind == 'BJT':
             if polarity == 'N':
-                self.loadRoutine('symbol', './Resources/Symbols/Standard/npnbjt.sym')
+                self.loadRoutine('symbol', './Resources/Symbols/Standard/BJT_NPN.sym')
             if polarity == 'P':
-                self.loadRoutine('symbol', './Resources/Symbols/Standard/pnpbjt.sym')
+                self.loadRoutine('symbol', './Resources/Symbols/Standard/BJT_PNP.sym')
 
     def addSource(self, kind='DCV'):
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 'DCV':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcVoltageSource.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_DCV.sym')
         elif kind == 'DCI':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcCurrentSource.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_DCI.sym')
         elif kind == 'AC':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/acSource.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_AC.sym')
         elif kind == 'VCVS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/vcvs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_VCVS.sym')
         elif kind == 'VCCS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/vccs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_VCCS.sym')
         elif kind == 'CCVS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/ccvs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCVS.sym')
         elif kind == 'CCCS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCCS.sym')
 
     def autobackupRoutine(self):
         if self.autobackupEnable is True:
@@ -643,6 +647,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.updateMoveItems()
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
+        # Capture focus
+        self.setFocus(True)
 
     def escapeRoutine(self):
         """Resets all variables to the default state"""

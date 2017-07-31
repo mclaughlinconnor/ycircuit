@@ -304,6 +304,9 @@ class myFileDialog(QtWidgets.QFileDialog):
         listViews = self.findChildren(QtWidgets.QListView)
         listView = listViews[0]
         listView.setFlow(listView.LeftToRight)
+        listView.setViewMode(listView.IconMode)
+        listView.setUniformItemSizes(True)
+        listView.setSpacing(10)
         self.iconProvider_ = myIconProvider()
         self.setIconProvider(self.iconProvider_)
         if 'mode' in kwargs:
@@ -318,20 +321,16 @@ class myFileDialog(QtWidgets.QFileDialog):
             self.setAcceptMode(self.AcceptSave)
         if 'filt' in kwargs:
             self.setNameFilter(kwargs['filt'])
+            if '*.sym' in kwargs['filt']:
+                listView.setIconSize(QtCore.QSize(100, 100))
+            elif '*.sch' in kwargs['filt']:
+                listView.setIconSize(QtCore.QSize(150, 150))
         if 'showSchematicPreview' in kwargs:
             self.iconProvider_.showSchematicPreview = kwargs['showSchematicPreview']
         if 'showSymbolPreview' in kwargs:
             self.iconProvider_.showSymbolPreview = kwargs['showSymbolPreview']
-        self.setViewMode(self.List)
         screenSize = QtWidgets.QDesktopWidget().screenGeometry(QtWidgets.QDesktopWidget().screenNumber()).size()
         self.resize(screenSize*0.8)
-
-    def setViewMode(self, viewMode):
-        if viewMode == self.Detail:
-            self.setItemDelegate(QtWidgets.QStyledItemDelegate())
-        else:
-            self.setItemDelegate(myStyledItemDelegate())
-        super().setViewMode(viewMode)
 
 
 class myIconProvider(QtWidgets.QFileIconProvider):
@@ -394,20 +393,3 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                 return super().icon(fileInfo)
         else:
             return super().icon(fileInfo)
-
-
-class myStyledItemDelegate(QtWidgets.QStyledItemDelegate):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.iconWidth, self.iconHeight = 200, 200
-
-    def paint(self, painter, option, index):
-        option.decorationPosition = option.Top
-        option.decorationSize = QtCore.QSize(self.iconWidth * 0.9,
-                                             self.iconHeight * 0.9)
-        option.decorationAlignment = QtCore.Qt.AlignCenter
-        option.displayAlignment = QtCore.Qt.AlignCenter
-        super().paint(painter, option, index)
-
-    def sizeHint(self, option, index):
-        return QtCore.QSize(self.iconWidth, self.iconHeight + 30)

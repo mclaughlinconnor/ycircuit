@@ -15,10 +15,89 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../../Resources/icon.jpg</normaloff>../../Resources/icon.jpg</iconset>
+    <normaloff>../../../../../Resources/icon.jpg</normaloff>../../../../../Resources/icon.jpg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
+      <item>
+       <widget class="QPushButton" name="pushButton_symbolPreviewDirectory">
+        <property name="text">
+         <string>Symbol directory</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListView" name="listView_symbolPreview">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>110</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="autoScroll">
+         <bool>true</bool>
+        </property>
+        <property name="verticalScrollMode">
+         <enum>QAbstractItemView::ScrollPerItem</enum>
+        </property>
+        <property name="flow">
+         <enum>QListView::TopToBottom</enum>
+        </property>
+        <property name="isWrapping" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <property name="viewMode">
+         <enum>QListView::IconMode</enum>
+        </property>
+        <property name="uniformItemSizes">
+         <bool>true</bool>
+        </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit_symbolPreviewFilter">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="placeholderText">
+         <string>Filter (Ctrl+F)...</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item>
      <widget class="DrawingArea" name="drawingArea">
       <property name="verticalScrollBarPolicy">
@@ -439,8 +518,8 @@
    <addaction name="action_undo"/>
    <addaction name="action_redo"/>
    <addaction name="separator"/>
-   <addaction name="action_move"/>
    <addaction name="action_delete"/>
+   <addaction name="action_move"/>
    <addaction name="action_copy"/>
    <addaction name="action_rotate"/>
    <addaction name="action_mirror"/>

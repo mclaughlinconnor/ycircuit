@@ -2,6 +2,7 @@ import sys
 sys.path.append('./Resources/icons/')
 from .drawingarea import DrawingArea
 from .components import TextBox
+from .drawingitems import myIconProvider
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .gui.ycircuit_mainWindow import Ui_MainWindow
 
@@ -256,6 +257,9 @@ class myMainWindow(QtWidgets.QMainWindow):
         # Miscellaneous signal and slot connections
         self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)
         self.ui.drawingArea.statusbarMessage.connect(self.ui.statusbar.showMessage)
+
+        # Initialize the symbol viewer
+        self.initialiseSymbolViewer()
 
     def changeWindowTitle(self, clean=True):
         if self.ui.drawingArea.schematicFileName is not None:
@@ -587,3 +591,49 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_minorGridPointSpacing40.setChecked(True)
         if temporary is False:
             self.ui.drawingArea.changeMinorGridPointSpacing(spacing)
+
+    def initialiseSymbolViewer(self):
+        # Create a new file picker when the symbol directory pushbutton
+        # is triggered
+        self.ui.pushButton_symbolPreviewDirectory.clicked.connect(
+            self.pickSymbolViewerDirectory)
+        # Connecting the symbol viewer to the appropriate model
+        self.fileSystemModel = QtWidgets.QFileSystemModel()
+        if hasattr(self.ui.drawingArea, 'defaultSymbolPreviewFolder'):
+            index = self.fileSystemModel.setRootPath(self.ui.drawingArea.defaultSymbolPreviewFolder)
+        else:
+            index = self.fileSystemModel.setRootPath('./Resources/Symbols/Standard/')
+        self.fileSystemModel.setIconProvider(myIconProvider())
+        self.fileSystemModel.setNameFilterDisables(False)
+        self.fileSystemModel.setNameFilters(['*.sym'])
+        self.ui.listView_symbolPreview.setModel(self.fileSystemModel)
+        self.ui.listView_symbolPreview.setRootIndex(index)
+        self.ui.listView_symbolPreview.setIconSize(QtCore.QSize(100, 100))
+        # Set double click behaviour in the list view
+        self.ui.listView_symbolPreview.doubleClicked.connect(
+            self.ui.drawingArea.escapeRoutine)
+        self.ui.listView_symbolPreview.doubleClicked.connect(
+            self.ui.drawingArea.setFocus)
+        self.ui.listView_symbolPreview.doubleClicked.connect(
+            lambda x: self.ui.drawingArea.loadRoutine(
+                mode='symbol',
+                loadFile=self.fileSystemModel.filePath(x)))
+        # Set shortcut for the search filter
+        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence('Ctrl+F'), self)
+        shortcut.activated.connect(self.ui.lineEdit_symbolPreviewFilter.selectAll)
+        shortcut.activated.connect(self.ui.lineEdit_symbolPreviewFilter.setFocus)
+        self.ui.lineEdit_symbolPreviewFilter.textChanged.connect(
+            lambda: self.fileSystemModel.setNameFilters(
+                ['*' + self.ui.lineEdit_symbolPreviewFilter.text() + '*.sym']
+            )
+        )
+
+    def pickSymbolViewerDirectory(self, dir_=None):
+        if dir_ is None:
+            dir_ = QtWidgets.QFileDialog().getExistingDirectory(
+                self,
+                'Pick directory for symbol preview',
+                self.fileSystemModel.rootPath())
+        if dir_ != '':
+            index = self.fileSystemModel.setRootPath(dir_)
+            self.ui.listView_symbolPreview.setRootIndex(index)

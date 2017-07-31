@@ -27,6 +27,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         self.ui.pushButton_defaultSchematicSaveFolder.clicked.connect(self.changeDefaultSchematicSaveFolder)
         self.ui.pushButton_defaultSymbolSaveFolder.clicked.connect(self.changeDefaultSymbolSaveFolder)
+        self.ui.pushButton_defaultSymbolPreviewFolder.clicked.connect(self.changeDefaultSymbolPreviewFolder)
         self.ui.pushButton_defaultExportFolder.clicked.connect(self.changeDefaultExportFolder)
 
     def accept(self):
@@ -73,6 +74,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default save folder'))
         self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show preview', type=bool))
         self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default save folder'))
+        self.ui.lineEdit_defaultSymbolPreviewFolder.setText(self.settings.value('SaveExport/Symbol/Default preview folder'))
         self.ui.comboBox_defaultExportFormat.setCurrentText(self.settings.value('SaveExport/Export/Default format'))
         self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default folder'))
         self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(self.settings.value('SaveExport/Export/Whitespace padding', type=float))
@@ -112,6 +114,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('SaveExport/Schematic/Default save folder', self.ui.lineEdit_defaultSchematicSaveFolder.text())
         self.settings.setValue('SaveExport/Symbol/Show preview', self.ui.checkBox_showSymbolPreview.isChecked())
         self.settings.setValue('SaveExport/Symbol/Default save folder', self.ui.lineEdit_defaultSymbolSaveFolder.text())
+        self.settings.setValue('SaveExport/Symbol/Default preview folder', self.ui.lineEdit_defaultSymbolPreviewFolder.text())
         self.settings.setValue('SaveExport/Export/Default format', self.ui.comboBox_defaultExportFormat.currentText())
         self.settings.setValue('SaveExport/Export/Default folder', self.ui.lineEdit_defaultExportFolder.text())
         self.settings.setValue('SaveExport/Export/Whitespace padding', self.ui.doubleSpinBox_exportImageWhitespacePadding.text())
@@ -176,6 +179,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.beginGroup('Symbol')
         self.settings.setValue('Show preview', True)
         self.settings.setValue('Default save folder', 'Resources/Symbols/Custom/')
+        self.settings.setValue('Default preview folder', 'Resources/Symbols/Standard/')
         self.settings.endGroup()
         self.settings.beginGroup('Export')
         self.settings.setValue('Default format', 'pdf')
@@ -203,6 +207,14 @@ class MyOptionsWindow(QtWidgets.QDialog):
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
             self.ui.lineEdit_defaultSymbolSaveFolder.setText(dir_.relativeFilePath(defaultFolder))
+
+    def changeDefaultSymbolPreviewFolder(self):
+        fileDialog = QtWidgets.QFileDialog()
+        defaultFolder = self.ui.lineEdit_defaultSymbolPreviewFolder.text()
+        defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol preview folder', defaultFolder)
+        dir_ = QtCore.QDir('./')
+        if defaultFolder != '':
+            self.ui.lineEdit_defaultSymbolPreviewFolder.setText(dir_.relativeFilePath(defaultFolder))
 
     def changeDefaultExportFolder(self):
         fileDialog = QtWidgets.QFileDialog()
