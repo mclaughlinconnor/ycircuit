@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import numpy
+import math
 import pickle
 from src.drawingitems import TextEditor
 
@@ -18,16 +18,23 @@ class drawingElement(object):
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         self.setAcceptHoverEvents(True)
-        self.reflections = 0
         self.setToolTip(str(self))
+        if hasattr(self, 'height'):
+            self.setZValue(self.height)
+        else:
+            self.setZValue(0)
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
         localDict = self.__dict__
-        localDict.pop('localPen', None)
-        localDict.pop('localBrush', None)
-        localDict['transformData'] = self.transform()
-        return localDict
+        # Create copy of localDict and return that so that autosave does not
+        # remove important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy.pop('localPen', None)
+        localDictCopy.pop('localBrush', None)
+        localDictCopy['transformData'] = self.transform()
+        localDictCopy['height'] = self.zValue()
+        return localDictCopy
 
     def __setstate__(self, state):
         """Since pen and brush objects were removed, we need to add them back"""
@@ -144,7 +151,7 @@ class drawingElement(object):
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
-        rotation_ = 180 / numpy.pi * numpy.arctan2(-transform_.m21(),
+        rotation_ = 180 / math.pi * math.atan2(-transform_.m21(),
                                                    transform_.m11())
         transform_.rotate(-rotation_)
         transform_.scale(-1, 1)
@@ -240,12 +247,18 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
             self.start = start
             self.setPos(start)
         # The pen and brush options are just place holders
-        # self.localPenWidth = 2
-        # self.localPenColour = 'black'
-        # self.localPenStyle = 1
-        # self.localBrushColour = 'black'
-        # self.localBrushStyle = 0
+        self.localPenWidth = 2
+        self.localPenColour = 'black'
+        self.localPenStyle = 1
+        self.localBrushColour = 'black'
+        self.localBrushStyle = 0
         self.setAcceptHoverEvents(True)
+
+    def __setstate__(self, state):
+        """Reimplemented from drawingElement because group does not have
+        pen and brush of its own.
+        """
+        self.__dict__ = state
 
     def paint(self, painter, *args):
         """Call child paint methods individually"""
@@ -259,34 +272,23 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def boundingRect(self):
         return self.childrenBoundingRect()
 
-    def __setstate__(self, state):
-        """Reimplemented from drawingElement because group does not have
-        pen and brush of its own.
-        """
-        self.__dict__ = state
-
     def createCopy(self, parent=None):
         """Call child copy methods individually after creating new parent"""
         self.setSelected(False)
         _start = self.pos()
-        # If parent exists, will get added to parent's scene
-        if parent is None:
-            newItem = self.__class__(parent, _start, [])
+        newItem = self.__class__(parent, _start, [])
+        newItem.origin = self.origin
+        newItem.setTransform(self.transform())
+        if newItem.parentItem() is None:
+            self.scene().addItem(newItem)
+            newItem.moveTo(self.scenePos(), 'start')
         else:
-            newItem = self.__class__(parent, _start, [])
-        newItem.listOfItems = []
+            newItem.setPos(newItem.origin)
         for item in self.listOfItems:
             itemCopy = item.createCopy(newItem)
             newItem.listOfItems.append(itemCopy)
         newItem.setItems(newItem.listOfItems)
-        newItem.setTransform(self.transform())
-        newItem.origin = self.origin
         newItem.setSelected(True)
-        self.scene().addItem(newItem)
-        if newItem.parentItem() is None:
-            newItem.moveTo(self.scenePos(), 'start')
-        else:
-            newItem.setPos(newItem.origin)
         return newItem
 
     def setItems(self, listOfItems):
@@ -321,6 +323,33 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 item.localBrush = QtGui.QBrush()
                 item.setLocalBrushOptions()
 
+    def getLocalPenParameters(self, parameter='colour'):
+        widthList = []
+        penColourList = []
+        penStyleList = []
+        for item in self.listOfItems:
+            if item.localPen.width() not in widthList:
+                widthList.append(item.localPen.width())
+            if item.localPen.color() not in penColourList:
+                penColourList.append(item.localPen.color())
+            if item.localPen.style() not in penStyleList:
+                penStyleList.append(item.localPen.style())
+        if parameter == 'width':
+            if len(widthList) > 1:
+                return None
+            else:
+                return widthList[0]
+        if parameter == 'colour':
+            if len(penColourList) > 1:
+                return None
+            else:
+                return penColourList[0]
+        if parameter == 'style':
+            if len(penStyleList) > 1:
+                return None
+            else:
+                return penStyleList[0]
+
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
         self.prepareGeometryChange()
@@ -329,6 +358,25 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 if not hasattr(item, 'localPen'):
                     item.localPen = QtGui.QPen()
                 item.setLocalPenOptions(**kwargs)
+
+    def getLocalBrushParameters(self, parameter='colour'):
+        brushColourList = []
+        brushStyleList = []
+        for item in self.listOfItems:
+            if item.localBrush.color() not in brushColourList:
+                brushColourList.append(item.localBrush.color())
+            if item.localBrush.style() not in brushStyleList:
+                brushStyleList.append(item.localBrush.style())
+        if parameter == 'colour':
+            if len(brushColourList) > 1:
+                return None
+            else:
+                return brushColourList[0]
+        if parameter == 'style':
+            if len(brushStyleList) > 1:
+                return None
+            else:
+                return brushStyleList[0]
 
     def setLocalBrushOptions(self, **kwargs):
         """Set brush individually for each child item"""
@@ -407,14 +455,15 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         for poly in polyPathList:
             polyPathPointList.append([poly.at(i) for i in range(poly.count())])
         localDict['polyPathPointList'] = polyPathPointList
-        localDict.pop('oldPath', None)
-        localDict['undoPathList'] = []
-        return localDict
+        # Create copy and return that so that autosave does not remove
+        # important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy.pop('oldPath', None)
+        localDictCopy['undoPathList'] = []
+        return localDictCopy
 
     def __setstate__(self, state):
-        state['localPen'] = QtGui.QPen()
-        state['localBrush'] = QtGui.QBrush()
-        self.__dict__ = state
+        super().__setstate__(state)
         # Add a polygon corresponding to the list of saved points
         a = QtGui.QPolygonF(state['polyPathPointList'][0])
         self.oldPath2 = QtGui.QPainterPath()
@@ -559,9 +608,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         return localDict
 
     def __setstate__(self, state):
-        state['localPen'] = QtGui.QPen()
-        state['localBrush'] = QtGui.QBrush()
-        self.__dict__ = state
+        super().__setstate__(state)
         self.oldLine = state['oldLine']
 
     def boundingRect(self):
@@ -1113,9 +1160,9 @@ class Circle(Ellipse):
             else:
                 theta = 0
         else:
-            theta = 180 / numpy.pi * numpy.arctan2(distanceLine.y(),
+            theta = 180 / math.pi * math.atan2(distanceLine.y(),
                                                    distanceLine.x())
-        sideLength = numpy.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
+        sideLength = math.sqrt(distanceLine.x()**2 + distanceLine.y()**2)
         square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength / 2),
                                QtCore.QSizeF(sideLength, sideLength))
         self.setRect(square)
@@ -1154,7 +1201,6 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
     LaTeX images are displayed in place of the text.
     TODO: Fix size issues with rendered LaTeX images
     TODO: Grey out LaTeX images on mouse hover
-    TODO: Delete corresponding LaTeX image files when textbox is deleted
     """
 
     def __init__(self, parent=None, start=None, text='', **kwargs):
@@ -1170,13 +1216,24 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             self.setPos(self.origin)
         # Set the fixed vertex to (0, 0) in local coordinates
         # drawingElement.__init__(self, parent, start=point, **kwargs)
-        self.setLocalPenOptions(**kwargs)
-        self.setLocalBrushOptions(**kwargs)
-        self.setTextWidth(-1)
         if not hasattr(self, 'latexImageBinary'):
             self.latexImageHtml = None
             self.latexExpression = None
             self.latexImageBinary = None
+        # For backwards compatibility
+        if not hasattr(self, 'latexImageColour'):
+            self.latexImageColour = QtGui.QColor('black')
+        if not hasattr(self, 'textScale'):
+            self.textScale = 4
+        self.setLocalPenOptions(**kwargs)
+        self.setLocalBrushOptions(**kwargs)
+        self.setTextWidth(-1)
+        if hasattr(self, 'font_'):
+            self.changeFont(self.font_)
+        elif 'font' in kwargs:
+            # Default font
+            self.font_ = kwargs['font']
+            self.changeFont(self.font_)
         # Sets the desired DPI for the image being generated
         self.latexImageDpi = 300
         # Scale the DPI in order to avoid pixelation
@@ -1192,10 +1249,24 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def __getstate__(self):
         localDict = super().__getstate__()
-        localDict.pop('textEditor', None)
+        # Create copy of localDict and return that so that autosave does not
+        # remove important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy.pop('textEditor', None)
         # Add htmlText to the dict
-        localDict['htmlText'] = self.toHtml()
-        return localDict
+        localDictCopy['htmlText'] = self.toHtml()
+        # Change the font to a string for pickling
+        localDictCopy['font_'] = self.font().toString()
+        if hasattr(self, 'latexImageBinary'):
+            localDictCopy['latexImageColour'] = QtGui.QColor(self.localPenColour)
+        return localDictCopy
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        if 'font_' in state:
+            font = QtGui.QFont()
+            font.fromString(state.pop('font_'))
+            self.font_ = font
 
     def boundingRect(self):
         if self.latexImageBinary is None:
@@ -1231,7 +1302,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def showEditor(self):
         self.textEditor = TextEditor(self)
-        self.textEditor.show()
+        self.textEditor.exec_()
 
     def setLocalPenOptions(self, **kwargs):
         """Reimplemented from drawingElement. QGraphicsTextItem objects do not
@@ -1242,48 +1313,58 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         self.prepareGeometryChange()
         if 'pen' in kwargs:
             self.localPen = kwargs['pen']
-            self.localPenWidth = self.localPen.width()
             self.localPenColour = str(self.localPen.color().name())
             self.localPenStyle = self.localPen.style()
-        if 'width' in kwargs:
-            self.localPenWidth = kwargs['width']
         if 'penColour' in kwargs:
             self.localPenColour = kwargs['penColour']
         if 'penStyle' in kwargs:
             self.localPenStyle = kwargs['penStyle']
-        if hasattr(self, 'setFont'):
-            font = self.font()
-            font.setPointSize(self.localPenWidth * 10)
-            font.setFamily('Arial')
-            self.setFont(font)
-        self.changeTextSize(self.localPenWidth)
         self.changeTextColour(self.localPenColour)
 
     def changeTextColour(self, colour='gray'):
-        # Create a textedit to conveniently change the text color
-        textEdit = QtWidgets.QTextEdit()
-        textEdit.setHtml(self.toHtml())
-        textEdit.selectAll()
-        textEdit.setTextColor(QtGui.QColor(colour))
-        self.setHtml(textEdit.toHtml())
-        self.setDefaultTextColor(QtGui.QColor(colour))
-        self.update()
+        if self.latexImageBinary is None:
+            # Create a textedit to conveniently change the text color
+            textEdit = QtWidgets.QTextEdit()
+            textEdit.setHtml(self.toHtml())
+            textEdit.selectAll()
+            textEdit.setTextColor(QtGui.QColor(colour))
+            self.setHtml(textEdit.toHtml())
+            # self.setDefaultTextColor(QtGui.QColor(colour))
+        else:
+            # Do not regenerate the latex image if the colour is the same.
+            # Speeds up loading times by using the saved binary image instead
+            # of generating the image again
+            if hasattr(self, 'latexImageColour'):
+                if self.latexImageColour == QtGui.QColor(colour):
+                    return
+            # When loading from file, textEditor will not be present
+            # In that case, first create the textEditor
+            if not hasattr(self, 'textEditor'):
+                self.textEditor = TextEditor(self)
+            self.latexImageBinary = self.textEditor.mathTexToQImage(
+                '$' + self.latexExpression + '$',
+                self.localPenWidth,
+                self.localPenColour)
 
-    def changeTextSize(self, weight=4):
-        # Create a textedit to conveniently change the text size
+    def changeFont(self, font):
+        # Create a textedit to conveniently change the font
         textEdit = QtWidgets.QTextEdit()
         textEdit.setHtml(self.toHtml())
         textEdit.selectAll()
-        textEdit.setFontPointSize(weight * 10)
+        textEdit.setCurrentFont(font)
+        self.localPenWidth = font.pointSize() * self.textScale
+        textEdit.setFontPointSize(self.localPenWidth)
         self.setHtml(textEdit.toHtml())
-        self.update()
-        self.localPenWidth = weight
+        self.font_ = font
+        self.setFont(self.font_)
 
     def changeColourToGray(self, gray=False):
-        if gray is True:
-            self.changeTextColour('gray')
-        else:
-            self.changeTextColour(self.localPenColour)
+        # Only process this if text is not latex
+        if self.latexImageBinary is None:
+            if gray is True:
+                self.changeTextColour('gray')
+            else:
+                self.changeTextColour(self.localPenColour)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
@@ -1303,7 +1384,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         brush = QtGui.QBrush()
         brush.setColor(QtGui.QColor(self.localBrushColour))
         brush.setStyle(self.localBrushStyle)
-        if self.latexImageHtml is not None:
+        if self.latexImageBinary is not None:
             newItem = self.__class__(
                 parent,
                 _start,
@@ -1314,7 +1395,6 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 brushColour = self.localBrushColour)
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
-            newItem.data64 = self.data64
         else:
             newItem = self.__class__(
                 parent,
@@ -1324,6 +1404,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 brush=brush,
                 penColour = self.localPenColour,
                 brushColour = self.localBrushColour)
+            newItem.changeFont(self.font())
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)
@@ -1346,8 +1427,11 @@ class Arc(Wire):
 
     def __getstate__(self):
         localDict = super().__getstate__()
-        localDict['undoPointsList'] = []
-        return localDict
+        # Create copy of localDict and return that so that autosave does not
+        # remove important required properties
+        localDictCopy = localDict.copy()
+        localDictCopy['undoPointsList'] = []
+        return localDictCopy
 
     def createCopy(self, parent=None):
         newArc = super().createCopy(parent)

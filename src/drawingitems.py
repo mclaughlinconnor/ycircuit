@@ -1,9 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from src.gui.textEditor_gui import Ui_Dialog
-import numpy
 import pickle
 import sympy
 from io import BytesIO
+from distutils.spawn import find_executable
 
 
 class Grid(QtCore.QObject):
@@ -28,16 +28,16 @@ class Grid(QtCore.QObject):
         # the available major grid point spacings
         self.xLength = 1200
         self.yLength = 1200
-        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
-        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
-        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
-        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
+        self.xMinorPoints = list(range(0, self.xLength + self.minorSpacing, self.minorSpacing))
+        self.yMinorPoints = list(range(0, self.yLength + self.minorSpacing, self.minorSpacing))
+        self.xMajorPoints = list(range(0, self.xLength + self.majorSpacing, self.majorSpacing))
+        self.yMajorPoints = list(range(0, self.yLength + self.majorSpacing, self.majorSpacing))
 
     def createGrid(self):
-        self.xMinorPoints = numpy.arange(0, self.xLength + self.minorSpacing, self.minorSpacing)
-        self.yMinorPoints = numpy.arange(0, self.yLength + self.minorSpacing, self.minorSpacing)
-        self.xMajorPoints = numpy.arange(0, self.xLength + self.majorSpacing, self.majorSpacing)
-        self.yMajorPoints = numpy.arange(0, self.yLength + self.majorSpacing, self.majorSpacing)
+        self.xMinorPoints = list(range(0, self.xLength + self.minorSpacing, self.minorSpacing))
+        self.yMinorPoints = list(range(0, self.yLength + self.minorSpacing, self.minorSpacing))
+        self.xMajorPoints = list(range(0, self.xLength + self.majorSpacing, self.majorSpacing))
+        self.yMajorPoints = list(range(0, self.yLength + self.majorSpacing, self.majorSpacing))
         self.gridPolygonRegular = QtGui.QPolygon()
         if self.minorSpacingVisibility is True:
             for x in self.xMinorPoints:
@@ -70,11 +70,11 @@ class Grid(QtCore.QObject):
 
     def snapTo(self, point, snapToGridSpacing=None):
         if snapToGridSpacing is None:
-            newX = numpy.round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
-            newY = numpy.round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
+            newX = round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
+            newY = round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
         else:
-            newX = numpy.round(point.x()/snapToGridSpacing)*snapToGridSpacing
-            newY = numpy.round(point.y()/snapToGridSpacing)*snapToGridSpacing
+            newX = round(point.x()/snapToGridSpacing)*snapToGridSpacing
+            newY = round(point.y()/snapToGridSpacing)*snapToGridSpacing
         return QtCore.QPointF(newX, newY)
 
 
@@ -88,7 +88,9 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.textEdit.setFocus(True)
         if self.textBox is not None:
             font = self.textBox.font()
-            self.ui.textEdit.setFont(font)
+            font.setPointSize(font.pointSize() * self.textBox.textScale)
+            self.ui.textEdit.setCurrentFont(font)
+            self.font_ = font
             self.ui.textEdit.setTextColor(QtGui.QColor(self.textBox.localPenColour))
             if self.textBox.latexExpression is None:
                 self.ui.textEdit.setHtml(self.textBox.toHtml())
@@ -100,22 +102,16 @@ class TextEditor(QtWidgets.QDialog):
                 cursor.setPosition(1)
                 self.ui.textEdit.setTextCursor(cursor)
                 if hasattr(self.textBox, 'latexImageBinary'):
-                    if not hasattr(self.textBox, 'data64'):
-                        img = QtGui.QImage()
-                        img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
-                        data = QtCore.QByteArray()
-                        buf = QtCore.QBuffer(data)
-                        img.save(buf, format='png')
-                        self.textBox.data64 = str(data.toBase64())
+                    img = QtGui.QImage()
+                    img.loadFromData(self.textBox.latexImageBinary.getvalue(), format='png')
                 else:
-                    self.textBox.latexImageBinary, self.base64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-                # htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
+                    self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
                 htmlString = ''
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.setHtml(htmlString)
 
         self.ui.textEdit.cursorPositionChanged.connect(self.modifyPushButtons)
-        self.ui.textEdit.textChanged.connect(self.latexDollarDecorators)
+        self.ui.textEdit.cursorPositionChanged.connect(self.latexDollarDecorators)
 
         QtWidgets.QShortcut('Ctrl+Return', self).activated.connect(self.accept)
 
@@ -126,24 +122,34 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.pushButton_subscript.clicked.connect(self.modifyText)
         self.ui.pushButton_superscript.clicked.connect(self.modifyText)
         self.ui.pushButton_symbol.clicked.connect(self.modifyText)
+        if not find_executable('latex'):
+            self.ui.pushButton_latex.setEnabled(False)
         self.ui.pushButton_latex.clicked.connect(self.modifyText)
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
         if self.ui.pushButton_latex.isChecked():
-            self.textBox.latexImageBinary, self.textBox.data64 = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
-            # htmlString = '<img src="data:image/png;base64, ' + self.textBox.data64 + '">'
-            htmlString = ''
-            self.textBox.latexImageHtml = htmlString
-            self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
-            self.textBox.setHtml(htmlString)
+            self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
+            # This will not be None if latex is installed
+            if self.textBox.latexImageBinary is not None:
+                htmlString = ''
+                self.textBox.latexImageHtml = htmlString
+                self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
+                self.textBox.setHtml(htmlString)
+            else:
+                self.textBox.setHtml(self.ui.textEdit.toHtml())
         else:
             self.textBox.setHtml(self.ui.textEdit.toHtml())
             self.textBox.latexImageHtml = None
             self.textBox.latexExpression = None
+            self.textBox.latexImageBinary = None
         super().accept()
 
     def modifyPushButtons(self):
+        # Forcibly set the right font family and point size
+        if self.ui.textEdit.fontFamily() != 'Symbol':
+            self.ui.textEdit.setFontFamily(self.font_.family())
+        self.ui.textEdit.setFontPointSize(self.font_.pointSize())
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
         bold, italic, underline, overline = True, True, True, True
@@ -185,16 +191,20 @@ class TextEditor(QtWidgets.QDialog):
             plainText = self.ui.textEdit.toPlainText()
             cursor = self.ui.textEdit.textCursor()
             if plainText[0] != '$':
-                plainText.insert(0, '$')
+                plainText = '$' + plainText
                 self.ui.textEdit.setPlainText(plainText)
                 cursor.setPosition(1)
             if plainText[-1] != '$':
-                plainText.append('$')
+                plainText += '$'
                 self.ui.textEdit.setPlainText(plainText)
                 cursor.setPosition(len(plainText) - 1)
             if len(plainText) < 2:
                 self.ui.textEdit.setPlainText('$$')
                 cursor.setPosition(1)
+            if cursor.position() == 0:
+                cursor.setPosition(1)
+            elif cursor.position() == len(plainText):
+                cursor.setPosition(len(plainText) - 1)
             self.ui.textEdit.setTextCursor(cursor)
 
     def modifyText(self):
@@ -273,17 +283,17 @@ class TextEditor(QtWidgets.QDialog):
         rgba = color.getRgbF()
         r, g, b = rgba[0], rgba[1], rgba[2]
         fg = 'rgb ' + str(r) + ' ' + str(g) + ' ' + str(b)
-        sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
+        try:
+            sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
+        except RuntimeError:
+            self.ui.pushButton_latex.setChecked(False)
+            return None, None
 
         img = QtGui.QImage()
         img.loadFromData(obj.getvalue(), format='png')
+        self.textBox.latexImageColour = fc
 
-        data = QtCore.QByteArray()
-        buf = QtCore.QBuffer(data)
-        img.save(buf, format='png')
-        data64 = str(data.toBase64())
-
-        return obj, data64
+        return obj
 
 
 class myFileDialog(QtWidgets.QFileDialog):
@@ -308,6 +318,10 @@ class myFileDialog(QtWidgets.QFileDialog):
             self.setAcceptMode(self.AcceptSave)
         if 'filt' in kwargs:
             self.setNameFilter(kwargs['filt'])
+        if 'showSchematicPreview' in kwargs:
+            self.iconProvider_.showSchematicPreview = kwargs['showSchematicPreview']
+        if 'showSymbolPreview' in kwargs:
+            self.iconProvider_.showSymbolPreview = kwargs['showSymbolPreview']
         self.setViewMode(self.List)
         screenSize = QtWidgets.QDesktopWidget().screenGeometry(QtWidgets.QDesktopWidget().screenNumber()).size()
         self.resize(screenSize*0.8)
@@ -324,9 +338,17 @@ class myIconProvider(QtWidgets.QFileIconProvider):
     def __init__(self, parent=None):
         """Create a custom icon provider for the file picker"""
         super().__init__()
+        self.showSchematicPreview = True
+        self.showSymbolPreview = True
 
     def icon(self, fileInfo):
         if type(fileInfo) == QtCore.QFileInfo:
+            if str(fileInfo.filePath())[-3:] == 'sch':
+                if self.showSchematicPreview is False:
+                    return super().icon(fileInfo)
+            if str(fileInfo.filePath())[-3:] == 'sym':
+                if self.showSymbolPreview is False:
+                    return super().icon(fileInfo)
             if str(fileInfo.filePath())[-3:] in ['sch', 'sym']:
                 with open(str(fileInfo.filePath()), 'rb') as f:
                     try:

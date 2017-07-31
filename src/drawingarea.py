@@ -5,7 +5,7 @@ from src.drawingitems import *
 from .optionswindow import MyOptionsWindow
 import pickle
 import os
-from numpy import ceil, floor
+import glob
 
 # from src import components
 # import sys
@@ -51,6 +51,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.reflections = 0
         self.rotations = 0
         self.rotateAngle = 45
+        self.defaultSchematicSaveFolder = './'
+        self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
+        self.defaultExportFolder = './'
+
+        # Set up the autobackup timer
+        self.autobackupTimer = QtCore.QTimer()
+        self.autobackupTimer.setInterval(10000)
+        self.autobackupTimer.timeout.connect(self.autobackupRoutine)
 
         self.settingsFileName = '.config'
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -63,17 +71,47 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectOrigin = False
         self.currentPos = QtCore.QPoint(0, 0)
 
+        # Check to see if a default autobackup file already exists
+        autobackupFileNameTemplate = 'autobackup.sch'
+        loadFile = autobackupFileNameTemplate
+        if glob.glob(autobackupFileNameTemplate + '*') != []:
+            loadFile = self.loadAutobackupRoutine(autobackupFileNameTemplate)
+        if loadFile != autobackupFileNameTemplate:
+            self.loadRoutine(mode='schematic', loadFile=loadFile)
+            self.schematicFileName = None
+        else:
+            # If backup existed, delete it
+            if glob.glob(autobackupFileNameTemplate + '*') != []:
+                os.remove(glob.glob(autobackupFileNameTemplate + '*')[0])
+            # Must setup the file only after checking if one already exists
+            self.autobackupFile = QtCore.QTemporaryFile(autobackupFileNameTemplate)
+            self.autobackupFile.open()
+            self.autobackupFile.setAutoRemove(False)
+        self.autobackupTimer.start()
+
     def applySettingsFromFile(self, fileName=None):
         # Load settings file
         settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
+
+        # Font settings
+        fontFamily = settings.value('Painting/Font/Family')
+        fontPointSize = settings.value('Painting/Font/Point size', type=int)
+        self.selectedFont = QtGui.QFont()
+        self.selectedFont.setFamily(fontFamily)
+        self.selectedFont.setPointSize(fontPointSize)
         # Painting settings
-        self.selectedWidth = int(settings.value('Painting/Pen/Width'))
+        self.selectedWidth = settings.value('Painting/Pen/Width', type=int)
         self.selectedPenColour = settings.value('Painting/Pen/Colour')
         penStyles = {'Solid': 1, 'Dash': 2, 'Dot': 3, 'Dash-dot': 4, 'Dash-dot-dot': 5}
         self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style')]
         self.selectedBrushColour = settings.value('Painting/Brush/Colour')
         brushStyles = {'No fill': 0, 'Solid': 1}
         self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
+        self.rotateDirection = settings.value('Painting/Rotation/Direction')
+        self.rotateAngle = settings.value('Painting/Rotation/Angle', type=float)
+        if self.rotateDirection == 'Counter-clockwise':
+            self.rotateAngle *= -1
+
         # Grid settings
         self._grid.enableGrid = settings.value('Grid/Visibility', type=bool)
         self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
@@ -86,6 +124,29 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
         else:
             self._grid.removeGrid()
+
+        # Save/export settings
+        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', type=bool)
+        # Set autobackup timer interval in ms
+        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', type=int)*1000
+        self.autobackupTimer.setInterval(self.autobackupTimerInterval)
+        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
+        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
+        # Create default directory if it does not exist
+        if not os.path.isdir(self.defaultSchematicSaveFolder):
+            os.mkdir(self.defaultSchematicSaveFolder)
+        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', type=bool)
+        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder')
+        # Create default directory if it does not exist
+        if not os.path.isdir(self.defaultSymbolSaveFolder):
+            os.mkdir(self.defaultSymbolSaveFolder)
+        self.defaultExportFormat = settings.value('SaveExport/Export/Default format').lower()
+        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder')
+        # Create default directory if it does not exist
+        if not os.path.isdir(self.defaultExportFolder):
+            os.mkdir(self.defaultExportFolder)
+        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', type=float)
+        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', type=float)
 
     def keyReleaseEvent(self, event):
         """Run escapeRoutine when the escape button is pressed"""
@@ -203,6 +264,27 @@ class DrawingArea(QtWidgets.QGraphicsView):
         elif kind == 'CCCS':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
 
+    def autobackupRoutine(self):
+        if self.autobackupEnable is True:
+            self.saveRoutine(mode='autobackup')
+            self.autobackupFile.flush()
+
+    def listOfItemsToSave(self, mode='schematicAs'):
+        listOfItems = [item for item in self.scene().items() if item.parentItem() is None]
+        if mode != 'autobackup':
+            return listOfItems
+        removeItems = []
+        if self._keys['m'] is True or self._keys['add'] is True:
+            removeItems = self.moveItems
+        if self._keys['w'] is True:
+            removeItems = [self.currentWire]
+        if self._keys['arc'] is True:
+            removeItems = [self.currentArc]
+        for item in removeItems:
+            if item in listOfItems:
+                listOfItems.remove(item)
+        return listOfItems
+
     def saveRoutine(self, mode='schematicAs'):
         """Handles saving of both symbols and schematics. For symbols and
         schematics, items are first parented to a myGraphicsItemGroup.
@@ -210,13 +292,18 @@ class DrawingArea(QtWidgets.QGraphicsView):
         .sch (schematic) file. If the save option is a schematic, the items are then
         unparented.
         """
-        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs']
+        # Cancel all other modes unless autosaving
+        if mode != 'autobackup':
+            self.escapeRoutine()
+        else:
+            selectedItems = self.scene().selectedItems()
+        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
+        # Create list of items
+        listOfItems = self.listOfItemsToSave(mode)
         # Return if no items are present
-        if len(self.scene().items()) == 0:
+        if len(listOfItems) == 0:
             return
         if mode in possibleModes:
-            listOfItems = self.scene().items()
-            listOfItems = [item for item in listOfItems if item.parentItem() is None]
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
             origin = QtCore.QPointF(x, y)
@@ -247,7 +334,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
-                # print item, item.origin
             saveObject.setItems(listOfItems)
 
             saveFile = ''
@@ -256,57 +342,85 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     fileDialog = myFileDialog(
                         self,
                         'Save symbol',
-                        './Resources/Symbols/Custom/untitled.sym',
+                        self.defaultSymbolSaveFolder + '/untitled.sym',
                         filt='Symbols (*.sym)',
-                        mode='save')
+                        mode='save',
+                        showSymbolPreview = self.showSymbolPreview)
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
+                    if not saveFile.endswith('.sym'):
+                        saveFile += '.sym'
                 else:
                     saveFile = self.symbolFileName
             elif mode == 'symbolAs':
                 fileDialog = myFileDialog(
                     self,
                     'Save symbol as',
-                    './Resources/Symbols/Custom/untitled.sym',
+                    self.defaultSymbolSaveFolder + '/untitled.sym',
                     filt='Symbols (*.sym)',
-                    mode='save')
+                    mode='save',
+                    showSymbolPreview = self.showSymbolPreview)
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
+                if not saveFile.endswith('.sym'):
+                    saveFile += '.sym'
             elif mode == 'schematic':
                 if self.schematicFileName is None:
                     fileDialog = myFileDialog(
                         self,
                         'Save schematic',
-                        './untitled.sch',
+                        self.defaultSchematicSaveFolder + '/untitled.sch',
                         filt='Schematics (*.sch)',
-                        mode='save')
+                        mode='save',
+                        showSchematicPreview = self.showSchematicPreview)
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
+                    if not saveFile.endswith('.sch'):
+                        saveFile += '.sch'
                 else:
                     saveFile = self.schematicFileName
             elif mode == 'schematicAs':
                 fileDialog = myFileDialog(
                     self,
                     'Save schematic as',
-                    './untitled.sch',
+                    self.defaultSchematicSaveFolder + '/untitled.sch',
                     filt='Schematics (*.sch)',
-                    mode='save')
+                    mode='save',
+                    showSchematicPreview = self.showSchematicPreview)
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
+                if not saveFile.endswith('.sch'):
+                    saveFile += '.sch'
+            elif mode == 'autobackup':
+                saveFile = self.autobackupFile.fileName()
 
-            if saveFile != '':
+            if saveFile[:-4] != '':
                 with open(saveFile, 'wb') as file:
                     pickle.dump(saveObject, file, -1)
+                # Delete old autobackup file
+                if mode != 'autobackup':
+                    self.autobackupFile.close()
+                    self.autobackupFile.remove()
                 if mode == 'symbol' or mode == 'symbolAs':
                     self.symbolFileName = saveFile
                     self.schematicFileName = None
+                    self.autobackupFile = QtCore.QTemporaryFile(self.symbolFileName)
                 if mode == 'schematic' or mode == 'schematicAs':
                     self.schematicFileName = saveFile
                     self.symbolFileName = None
-                self.undoStack.clear()
-            if mode == 'schematic' or mode == 'schematicAs':
-                saveObject.reparentItems()
-                self.scene().removeItem(saveObject)
+                    self.autobackupFile = QtCore.QTemporaryFile(self.schematicFileName)
+                if mode != 'autobackup':
+                    self.autobackupFile.open()
+                    self.autobackupFile.setAutoRemove(False)
+                    with open(self.autobackupFile.fileName(), 'wb') as file:
+                        pickle.dump(saveObject, file, -1)
+                    self.undoStack.setClean()
+            # Always reparent items
+            saveObject.reparentItems()
+            self.scene().removeItem(saveObject)
+            if mode == 'autobackup':
+                for item in selectedItems:
+                    item.setSelected(True)
 
     def exportRoutine(self):
         """
@@ -324,67 +438,79 @@ class DrawingArea(QtWidgets.QGraphicsView):
         selectedItems = self.scene().selectedItems()
         for item in selectedItems:
             item.setSelected(False)
-        saveFile = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Export File', './untitled.pdf', 'PDF files (*.pdf);;SVG files(*.svg);;PNG Files (*.png);;JPG files (*.jpg *.jpeg);;BMP files (*.bmp);;TIFF files (*.tiff)')[0])
+        saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            'Export File',
+            self.defaultExportFolder + '/untitled.' + self.defaultExportFormat,
+            'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff)',
+            self.defaultExportFormat.upper() + ' files (*.' + self.defaultExportFormat + ')'
+        )
+        if '*.pdf' in saveFilter:
+            saveFilter = 'pdf'
+        elif '*.svg' in saveFilter:
+            saveFilter = 'svg'
+        elif '*.png' in saveFilter:
+            saveFilter = 'png'
+        elif '*.jpg' in saveFilter:
+            saveFilter = 'jpg'
+        elif '*.bmp' in saveFilter:
+            saveFilter = 'bmp'
+        elif '*.tiff' in saveFilter:
+            saveFilter = 'tiff'
+        if not saveFile.endswith('.' + saveFilter):
+            saveFile = str(saveFile) + '.' + saveFilter
         # Check that file is valid
         if saveFile == '':
             # Add the grid back to the scene
             self._grid.createGrid()
             return
-        if saveFile[-3:] in ['pdf']:
+        if saveFilter == 'pdf':
             mode = 'pdf'
-        elif saveFile[-3:] == 'svg':
+        elif saveFilter == 'svg':
             mode = 'svg'
-        elif saveFile[-3:] in ['jpg', 'png', 'bmp']:
+        elif saveFilter in ['jpg', 'png', 'bmp', 'tiff']:
             mode = 'image'
-            extension = saveFile[-3:]
-            if extension == 'jpg':
+            if saveFilter == 'jpg':
                 quality = 90
-            elif extension == 'png':
+            elif saveFilter == 'png':
                 quality = 50
-            elif extension == 'bmp':
+            elif saveFilter == 'bmp':
                 quality = 1
-        elif saveFile[-4:] in ['jpeg', 'tiff']:
-            mode = 'image'
-            extension = saveFile[-4:]
-            if extension == 'jpeg':
-                quality = 90
-            elif extension == 'tiff':
+            elif saveFilter == 'tiff':
                 quality = 1
+        # Create a rect that's scaled appropriately to have some whitespace
+        sourceRect = self.scene().itemsBoundingRect()
+        padding = self.exportImageWhitespacePadding
+        scale = self.exportImageScaleFactor
+        sourceRect.setWidth(int(padding * sourceRect.width()))
+        sourceRect.setHeight(int(padding * sourceRect.height()))
+        width, height = sourceRect.width(), sourceRect.height()
+        if padding > 1:
+            sourceRect.translate(-width * (padding - 1) / (padding * 2.),
+                                 -height * (padding - 1) / (padding * 2.))
         if mode == 'pdf':
             # Initialize printer
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
-            sourceRect = self.scene().itemsBoundingRect()
             # Choose appropriate format
-            if saveFile[-3:] == 'pdf':
-                printer.setOutputFormat(printer.PdfFormat)
+            printer.setOutputFormat(printer.PdfFormat)
             printer.setOutputFileName(saveFile)
-            pageSize = QtGui.QPageSize(sourceRect.size().toSize(), matchPolicy=QtGui.QPageSize.ExactMatch)
+            printer.setFullPage(True)
+            pageSize = QtGui.QPageSize(QtCore.QSize(width, height), matchPolicy=QtGui.QPageSize.ExactMatch)
             printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
             self.scene().render(painter, source=sourceRect)
         elif mode == 'svg':
             svgGenerator = QtSvg.QSvgGenerator()
             svgGenerator.setFileName(saveFile)
-            sourceRect = self.scene().itemsBoundingRect()
-            width, height = sourceRect.width(), sourceRect.height()
             svgGenerator.setSize(QtCore.QSize(width, height))
             svgGenerator.setResolution(96)
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
         elif mode == 'image':
-            # Create a rect that's 1.5 times the boundingrect of all items
-            sourceRect = self.scene().itemsBoundingRect()
-            scale = 1.1
-            sourceRect.setWidth(int(scale * sourceRect.width()))
-            sourceRect.setHeight(int(scale * sourceRect.height()))
-            width, height = sourceRect.width(), sourceRect.height()
-            if not scale < 1:
-                sourceRect.translate(-width * (scale - 1) / 2.,
-                                     -height * (scale - 1) / 2.)
             # Create an image object
             img = QtGui.QImage(
-                QtCore.QSize(2 * width, 2 * height), QtGui.QImage.Format_RGB32)
+                QtCore.QSize(scale * width, scale * height), QtGui.QImage.Format_RGB32)
             # Set background to white
             img.fill(QtGui.QColor('white'))
             painter = QtGui.QPainter(img)
@@ -393,7 +519,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             painter.setRenderHint(painter.TextAntialiasing, True)
             targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
-            img.save(saveFile, extension, quality=quality)
+            img.save(saveFile, saveFilter, quality=quality)
 
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
@@ -402,6 +528,21 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
+
+    def loadAutobackupRoutine(self, loadFile=None):
+        # Ask if you would like to recover the autobackup
+        msgBox = QtWidgets.QMessageBox(self)
+        msgBox.setWindowTitle("Recover file")
+        msgBox.setText("An autobackup file was detected.")
+        msgBox.setInformativeText("Do you wish to recover from the autobackup file?")
+        msgBox.setStandardButtons(msgBox.Yes | msgBox.No)
+        msgBox.setDefaultButton(msgBox.Yes)
+        msgBox.setIcon(msgBox.Information)
+        ret = msgBox.exec_()
+        if ret == msgBox.Yes:
+            return glob.glob(loadFile + '.*')[0]
+        elif ret == msgBox.No:
+            return loadFile
 
     def loadRoutine(self, mode='symbol', loadFile=None):
         """This is the counterpart of the save routine. Used to load both schematics
@@ -415,34 +556,55 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     fileDialog = myFileDialog(
                         self,
                         'Load Symbol',
-                        './Resources/Symbols/',
+                        self.defaultSymbolSaveFolder,
                         filt='Symbols (*.sym)',
-                        mode='load')
+                        mode='load',
+                        showSymbolPreview=self.showSymbolPreview)
                 elif mode == 'schematic':
                     fileDialog = myFileDialog(
                         self,
                         'Load Schematic',
-                        './',
+                        self.defaultSchematicSaveFolder,
                         filt='Schematics (*.sch)',
-                        mode='load')
+                        mode='load',
+                        showSchematicPreview=self.showSchematicPreview)
                 if (fileDialog.exec_()):
                     loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':
+                # Check to see if an autobackup file exists if the mode is
+                # schematic or symbolModify
+                if mode == 'schematic' or mode == 'symbolModify':
+                    if glob.glob(loadFile + '.*') != []:
+                        loadFile = self.loadAutobackupRoutine(loadFile)
                 with open(loadFile, 'rb') as file:
                     loadItem = pickle.load(file)
+                if mode == 'schematic' or mode == 'symbolModify':
+                    # Remove trailing characters from autobackup file .XXXXXX
+                    if not loadFile.endswith(('.sch', '.sym')):
+                        loadFile = loadFile[:-7]
+                    if glob.glob(loadFile + '.*') != []:
+                        # Remove the old autobackup file
+                        os.remove(glob.glob(loadFile + '.*')[0])
             else:
                 return False
             if mode == 'schematic' or mode == 'symbolModify':
-                # Remove grid from scene, clear the scene and readd the grid
                 self.schematicFileName = None
                 self.symbolFileName = None
+                # Remove old autobackup file if it exists
+                # This will not exist when recovering from unsaved crash
+                if hasattr(self, 'autobackupFile'):
+                    self.autobackupFile.close()
+                    self.autobackupFile.remove()
                 if mode == 'schematic':
                     self.schematicFileName = loadFile
+                    self.autobackupFile = QtCore.QTemporaryFile(self.schematicFileName)
                 elif mode == 'symbolModify':
                     self.symbolFileName = loadFile
-                    self._grid.removeGrid()
+                    self.autobackupFile = QtCore.QTemporaryFile(self.symbolFileName)
+                self.autobackupFile.open()
+                self.autobackupFile.setAutoRemove(False)
+                # Clear the scene
                 self.scene().clear()
-                self._grid.createGrid()
                 loadItem.__init__(
                     None,
                     QtCore.QPointF(0, 0),
@@ -465,6 +627,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().removeItem(loadItem)
                 self.fitToViewRoutine()
                 self.undoStack.clear()
+                # Run an autobackup once items are loaded completely
+                self.autobackupRoutine()
             elif mode == 'symbol':
                 # Symbols are created with the pen/brush that they were saved in
                 # loadItem.setPos(self.mapToGrid(self.currentPos))
@@ -554,6 +718,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.setCursor(cursor)
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
+        # Reset all move items
+        self.moveItems = []
         # Clear the statusbar
         self.statusbarMessage.emit("", 0)
 
@@ -610,6 +776,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Toggles drawings snapping to grid"""
         self._grid.snapToGrid = state
 
+    def changeSnapToGridSpacing(self, spacing):
+        self._grid.snapToGridSpacing = spacing
+
     def toggleMajorGridPointsRoutine(self, state):
         """Toggles major grid points on and off"""
         self._grid.majorSpacingVisibility = state
@@ -632,65 +801,165 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
+    def changeFontRoutine(self, selectedFont):
+        if self.scene().selectedItems() != []:
+            sameFont = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, TextBox):
+                    if selectedFont.toString() != item.font().toString():
+                        sameFont = False
+                        break
+            if sameFont is False:
+                changeFont = ChangeFont(
+                    None,
+                    self.scene().selectedItems(),
+                    font=selectedFont)
+                self.undoStack.push(changeFont)
+        else:
+            self.selectedFont = selectedFont
+        self.statusbarMessage.emit("Changed font to %s %s" %
+                                   (selectedFont.family(), selectedFont.pointSize()),
+                                   1000)
+
+    def changeHeightRoutine(self, mode='reset'):
+        if self.scene().selectedItems == []:
+            return
+        else:
+            changeHeight = ChangeHeight(
+                None,
+                self.scene().selectedItems(),
+                mode=mode)
+            self.undoStack.push(changeHeight)
+        # If only 1 item is selected, report its height
+        info = ''
+        if len(self.scene().selectedItems()) == 1:
+            info = ' to ' + str(self.scene().selectedItems()[0].zValue())
+        if mode == 'forward':
+            self.statusbarMessage.emit(
+                "Brought selected item(s) forward" + info,
+                1000)
+        elif mode == 'back':
+            self.statusbarMessage.emit(
+                "Sent selected item(s) back" + info,
+                1000)
+        elif mode == 'reset':
+            self.statusbarMessage.emit(
+                "Reset the height(s) of the selected item(s)",
+                1000)
+
     def changeWidthRoutine(self, selectedWidth):
-        if selectedWidth != self.selectedWidth:
-            self.selectedWidth = selectedWidth
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            sameWidth = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedWidth != item.getLocalPenParameters('width'):
+                        sameWidth = False
+                        break
+                elif isinstance(item, TextBox):
+                    pass
+                elif selectedWidth != item.localPen.width():
+                    sameWidth = False
+                    break
+            if sameWidth is False:
                 changePen = ChangePen(
                     None,
                     self.scene().selectedItems(),
-                    width=self.selectedWidth)
+                    width=selectedWidth)
                 self.undoStack.push(changePen)
+        else:
+            self.selectedWidth = selectedWidth
         self.statusbarMessage.emit("Changed pen width to %d" %
-                                   (self.selectedWidth), 1000)
+                                   (selectedWidth), 1000)
 
     def changePenColourRoutine(self, selectedPenColour):
-        if selectedPenColour != self.selectedPenColour:
-            self.selectedPenColour = selectedPenColour
-            if self.scene().selectedItems() != []:
+        selectedPenColour = QtGui.QColor(selectedPenColour)
+        if self.scene().selectedItems() != []:
+            sameColour = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedPenColour != item.getLocalPenParameters('colour'):
+                        sameColour = False
+                        break
+                elif selectedPenColour != item.localPen.color():
+                    sameColour = False
+                    break
+            if sameColour is False:
                 changePen = ChangePen(
                     None,
                     self.scene().selectedItems(),
-                    penColour=self.selectedPenColour)
+                    penColour=selectedPenColour)
                 self.undoStack.push(changePen)
+        else:
+            self.selectedPenColour = selectedPenColour
         self.statusbarMessage.emit("Changed pen colour to %s" %
-                                   (self.selectedPenColour), 1000)
+                                   (selectedPenColour.name()), 1000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
-        if selectedPenStyle != self.selectedPenStyle:
-            self.selectedPenStyle = selectedPenStyle
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            samePenStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedPenStyle != item.getLocalPenParameters('style'):
+                        samePenStyle = False
+                        break
+                elif selectedPenStyle != item.localPen.style():
+                    samePenStyle = False
+                    break
+            if samePenStyle is False:
                 changePen = ChangePen(
                     None,
                     self.scene().selectedItems(),
-                    penStyle=self.selectedPenStyle)
+                    penStyle=selectedPenStyle)
                 self.undoStack.push(changePen)
+        else:
+            self.selectedPenStyle = selectedPenStyle
         self.statusbarMessage.emit("Changed pen style to %s" %
-                                   (self.selectedPenStyle), 1000)
+                                   (selectedPenStyle), 1000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
-        if selectedBrushColour != self.selectedBrushColour:
-            self.selectedBrushColour = selectedBrushColour
-            if self.scene().selectedItems() != []:
+        selectedBrushColour = QtGui.QColor(selectedBrushColour)
+        if self.scene().selectedItems() != []:
+            sameBrushColour = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedBrushColour != item.getLocalBrushParameters('colour'):
+                        sameBrushColour = False
+                        break
+                elif selectedBrushColour != item.localBrush.color():
+                    sameBrushColour = False
+                    break
+            if sameBrushColour is False:
                 changeBrush = ChangeBrush(
                     None,
                     self.scene().selectedItems(),
-                    brushColour=self.selectedBrushColour)
+                    brushColour=selectedBrushColour)
                 self.undoStack.push(changeBrush)
+        else:
+            self.selectedBrushColour = selectedBrushColour
         self.statusbarMessage.emit("Changed brush colour to %s" %
-                                   (self.selectedBrushColour), 1000)
+                                   (selectedBrushColour.name()), 1000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
-        if selectedBrushStyle != self.selectedBrushStyle:
-            self.selectedBrushStyle = selectedBrushStyle
-            if self.scene().selectedItems() != []:
+        if self.scene().selectedItems() != []:
+            sameBrushStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedBrushStyle != item.getLocalBrushParameters('style'):
+                        sameBrushStyle = False
+                        break
+                elif selectedBrushStyle != item.localBrush.style():
+                    sameBrushStyle = False
+                    break
+            if sameBrushStyle is False:
                 changeBrush = ChangeBrush(
                     None,
                     self.scene().selectedItems(),
-                    brushStyle=self.selectedBrushStyle)
+                    brushStyle=selectedBrushStyle)
                 self.undoStack.push(changeBrush)
+        else:
+            self.selectedBrushStyle = selectedBrushStyle
         self.statusbarMessage.emit("Changed brush style to %s" %
-                                   (self.selectedBrushStyle), 1000)
+                                   (selectedBrushStyle), 1000)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
@@ -771,6 +1040,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.resetToolbarButtons.emit()
                 for item in self.moveItems:
                     item.setSelected(False)
+                self.updateMoveItems()
         if self._keys['add'] is True:
             if (event.button() == QtCore.Qt.LeftButton):
                 # add = Add(None, self.scene(), self.loadItem, symbol=True, origin=self.mapToGrid(event.pos()), rotateAngle=self.rotations*self.rotateAngle, reflect=self.reflections)
@@ -874,17 +1144,24 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # If wire or arc mode are on
         if self._keys['w'] is True or self._keys['arc'] is True:
             # Keep drawing new wire segments
-            if (event.button() == QtCore.Qt.LeftButton):
+            if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = True
-            if (self._mouse['1'] is True):
+            if self._mouse['1'] is True:
                 self.oldPos = self.currentPos
                 self.currentPos = event.pos()
                 self.currentX = self.currentPos.x()
                 self.currentY = self.currentPos.y()
                 start = self.mapToGrid(self.currentPos)
                 if self._keys['w'] is True:
+                    # If it is a right click, cancel this wire
+                    # and wait for another LMB
+                    if event.button() == QtCore.Qt.RightButton:
+                        if self.currentWire is not None:
+                            self._mouse['1'] = False
+                            self.currentWire.cancelSegment()
+                            self.currentWire = None
                     # Create new wire if none exists
-                    if self.currentWire is None:
+                    elif self.currentWire is None:
                         self.currentWire = Wire(
                             None,
                             start,
@@ -968,7 +1245,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.endMacro()
                     self.currentNet = None
             if event.button() == QtCore.Qt.RightButton:
-                self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
+                if self.currentNet is not None:
+                    self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If rectangle mode is on, add a new rectangle
@@ -1049,7 +1327,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
                         brushColour=self.selectedBrushColour,
-                        brushStyle=self.selectedBrushStyle)
+                        brushStyle=self.selectedBrushStyle,
+                        font=self.selectedFont)
                     add = Add(None, self.scene(), self.currentTextBox)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)
@@ -1070,6 +1349,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         self.currentPos = event.pos()
+        self.updateMousePosLabel(self.currentPos)
         if (self._mouse['1'] is True):
             self.oldX = self.currentX
             self.oldY = self.currentY
@@ -1188,3 +1468,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.optionswindow.applied.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.finished.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.exec_()
+
+    def updateMousePosLabel(self, pos=None):
+        if pos is None:
+            return
+        pos = self.mapToGrid(pos)
+        text = "Current position: "
+        text += str('(') + str(pos.x()) + ', ' + str(pos.y()) + str(')')
+        self.mousePosLabel.setText(text)

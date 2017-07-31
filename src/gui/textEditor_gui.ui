@@ -41,6 +41,9 @@
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
+         <property name="toolTip">
+          <string>Change the formatting style to bold</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
 	font-size: 18px;
@@ -84,6 +87,9 @@
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
+         <property name="toolTip">
+          <string>Change the formatting style to italic</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
 	font-size: 18px;
@@ -123,6 +129,9 @@
          </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Add an underline to the text</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -164,6 +173,9 @@
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
+         <property name="toolTip">
+          <string>Add an overline to the text</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
 	font-size: 18px;
@@ -204,6 +216,9 @@
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
+         <property name="toolTip">
+          <string>Change the formatting style to subscript</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
 	font-size: 15px;
@@ -242,6 +257,9 @@
          </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Change the formatting style to superscript</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -282,6 +300,9 @@
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
+         <property name="toolTip">
+          <string>Change the font to symbol</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">font: 11pt &quot;Symbol&quot;;</string>
          </property>
@@ -318,6 +339,9 @@
          </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Insert LaTeX equations</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {

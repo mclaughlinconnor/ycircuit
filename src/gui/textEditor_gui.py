@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'src/gui/textEditor_gui.ui'
+# Form implementation generated from reading ui file '.\src\gui\textEditor_gui.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -141,20 +141,28 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Edit text"))
+        self.pushButton_bold.setToolTip(_translate("Dialog", "Change the formatting style to bold"))
         self.pushButton_bold.setText(_translate("Dialog", "B"))
         self.pushButton_bold.setShortcut(_translate("Dialog", "Ctrl+B"))
+        self.pushButton_italic.setToolTip(_translate("Dialog", "Change the formatting style to italic"))
         self.pushButton_italic.setText(_translate("Dialog", "I"))
         self.pushButton_italic.setShortcut(_translate("Dialog", "Ctrl+I"))
+        self.pushButton_underline.setToolTip(_translate("Dialog", "Add an underline to the text"))
         self.pushButton_underline.setText(_translate("Dialog", "U"))
         self.pushButton_underline.setShortcut(_translate("Dialog", "Ctrl+U"))
+        self.pushButton_overline.setToolTip(_translate("Dialog", "Add an overline to the text"))
         self.pushButton_overline.setText(_translate("Dialog", "O"))
         self.pushButton_overline.setShortcut(_translate("Dialog", "Ctrl+O"))
+        self.pushButton_subscript.setToolTip(_translate("Dialog", "Change the formatting style to subscript"))
         self.pushButton_subscript.setText(_translate("Dialog", "Sub"))
         self.pushButton_subscript.setShortcut(_translate("Dialog", "Ctrl+-"))
+        self.pushButton_superscript.setToolTip(_translate("Dialog", "Change the formatting style to superscript"))
         self.pushButton_superscript.setText(_translate("Dialog", "Sup"))
         self.pushButton_superscript.setShortcut(_translate("Dialog", "Ctrl+="))
+        self.pushButton_symbol.setToolTip(_translate("Dialog", "Change the font to symbol"))
         self.pushButton_symbol.setText(_translate("Dialog", "abc"))
         self.pushButton_symbol.setShortcut(_translate("Dialog", "Ctrl+S"))
+        self.pushButton_latex.setToolTip(_translate("Dialog", "Insert LaTeX equations"))
         self.pushButton_latex.setText(_translate("Dialog", "LaTeX"))
         self.pushButton_latex.setShortcut(_translate("Dialog", "Ctrl+L"))
 

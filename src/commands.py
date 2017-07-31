@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
-from .components import myGraphicsItemGroup
+from .components import myGraphicsItemGroup, TextBox
 import copy
 
 
@@ -245,6 +245,74 @@ class Mirror(QtWidgets.QUndoCommand):
             item.reflect(self.moving, self.listOfPoints[str(item)])
 
 
+class ChangeFont(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, listOfItems=None, **kwargs):
+        super().__init__(parent)
+        if isinstance(listOfItems, list):
+            self.listOfItems = listOfItems
+            for item in self.listOfItems:
+                changeFont = ChangeFont(
+                    self,
+                    item,
+                    **kwargs)
+        else:
+            self.item = listOfItems
+            self.oldFont = self.item.font()
+            if 'font' in kwargs:
+                self.newFont = kwargs['font']
+
+    def redo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.changeFont(self.newFont)
+        else:
+            super().redo()
+
+    def undo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.changeFont(self.oldFont)
+        else:
+            super().undo()
+
+
+class ChangeHeight(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, listOfItems=None, **kwargs):
+        super().__init__(parent)
+        if isinstance(listOfItems, list):
+            self.listOfItems = listOfItems
+            for item in self.listOfItems:
+                changeHeight = ChangeHeight(
+                    self,
+                    item,
+                    **kwargs)
+        else:
+            self.item = listOfItems
+            self.oldHeight = self.item.zValue()
+            if 'mode' in kwargs:
+                self.mode = kwargs['mode']
+
+    def redo(self):
+        if not hasattr(self, 'listOfItems'):
+            if self.mode == 'forward':
+                self.item.setZValue(self.item.zValue() + 1)
+            elif self.mode == 'back':
+                self.item.setZValue(self.item.zValue() - 1)
+            elif self.mode == 'reset':
+                self.item.setZValue(0)
+        else:
+            super().redo()
+
+    def undo(self):
+        if not hasattr(self, 'listOfItems'):
+            if self.mode == 'forward':
+                self.item.setZValue(self.item.zValue() - 1)
+            elif self.mode == 'back':
+                self.item.setZValue(self.item.zValue() + 1)
+            elif self.mode == 'reset':
+                self.item.setZValue(self.oldHeight)
+        else:
+            super().undo()
+
+
 class ChangePen(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super().__init__(parent)
@@ -303,10 +371,27 @@ class ChangePenColour(QtWidgets.QUndoCommand):
             self.newLocalPenColour = kwargs['penColour']
 
     def redo(self):
+        if hasattr(self, 'newLatexImageBinary'):
+            self.oldLatexImageBinary, self.item.latexImageBinary = self.item.latexImageBinary, self.newLatexImageBinary
+            self.oldLatexImageHtml, self.item.latexImageHtml = self.item.latexImageHtml, self.newLatexImageHtml
+            self.oldLatexExpression, self.item.latexExpression = self.item.latexExpression, self.newLatexExpression
+            self.item.update()
+            return
+        if isinstance(self.item, TextBox):
+            self.oldLatexImageBinary = self.item.latexImageBinary
+            self.oldLatexImageHtml = self.item.latexImageHtml
+            self.oldLatexExpression = self.item.latexExpression
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penColour=self.newLocalPenColour)
 
     def undo(self):
+        if isinstance(self.item, TextBox):
+            if self.item.latexImageBinary is not None:
+                self.item.latexImageBinary, self.newLatexImageBinary = self.oldLatexImageBinary, self.item.latexImageBinary
+                self.item.latexImageHtml, self.newLatexImageHtml = self.oldLatexImageHtml, self.item.latexImageHtml
+                self.item.latexExpression, self.newLatexExpression = self.oldLatexExpression, self.item.latexExpression
+                self.item.update()
+                return
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penColour=self.oldLocalPenColour)
 

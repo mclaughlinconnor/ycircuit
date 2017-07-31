@@ -7,7 +7,7 @@ Just to be clear, this tool is intended to be used only for drawing circuit sche
 
 YCircuit is written in [Python 3](https://www.python.org) and uses [PyQt5](https://www.riverbankcomputing.com/software/pyqt/download) as the GUI framework. The move from PyQt4 to PyQt5 makes this a little more future-proof but it comes with some tradeoffs, the worst of which is the inability to export to EPS.
 
-Please check out the [YCircuit website](https://siddharthshekar.bitbucket.io/YCircuit) for further details and some tutorials!
+Please check out the [YCircuit website](https://siddharthshekar.bitbucket.io/YCircuit) for further details, binary files and some tutorials!
 
 ## Installation ##
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ YCircuit currently has the following dependencies:
   * Python - tested on 3.5.2 (**Note**: This version is incompatible with Python 2.x)
   * PyQt5 - for rendering the GUI
   * SymPy - for handling LaTeX inputs
-  * NumPy - for handling some of the math
 
 The easiest way to satisfy all dependencies is to use [Anaconda](https://www.continuum.io/downloads). This is what I use also, and so we can be sure that the environments are (more or less) similar.
 
@@ -45,7 +44,7 @@ As of this point in time, the following options are available:
     * Create a new schematic (Ctrl+N)
     * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
     * Save and load schematics (.sch files) (Ctrl+S, Ctrl+L)
-    * Export symbol or schematic as a PDF, SVG, JPEG, PNG or BMP file (Ctrl+E)
+    * Export symbol or schematic as a PDF, SVG, JPG, PNG or BMP file (Ctrl+E)
         * While exporting to EPS was natively supported by PyQt4, the Qt team decided to drop this during the transition to Qt5. As a result, EPS is no longer supported by YCircuit. If you need a vector-based exporting option, use the PDF or SVG options.
   * Editing (Alt+E)
     * Undo (Ctrl+Z)
@@ -55,8 +54,10 @@ As of this point in time, the following options are available:
     * Copy (C)
     * Rotate (R)
     * Mirror (Shift+R)
+    * Change font (Alt+E->F)
     * Change pen colour, style and width (Alt+E->C,P,W)
     * Change fill colour and style
+    * Options (Ctrl+P)
   * Shapes (Alt+A)
     * Line (Alt+A->L)
     * Rectangle (Alt+A->R)
@@ -67,7 +68,7 @@ As of this point in time, the following options are available:
         * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed. Check [here](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.png) or [here for an SVG version](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.svg) in order to get an idea of what the LaTeX output looks like.
         * An option for a more coherent look would be to use the symbols button in the text editor.
   * Symbols (Alt+S)
-    * Wire (Right click to change the angle of the wire!) (Alt+S->W)
+    * Wire (Right click to change the angle of the wire!) (W)
     * [Resistor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/resistor.png) (Alt+S->R)
     * [Capacitor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/capacitor.png) (Alt+S->C)
     * [Ground](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/ground.png) (Alt+S->G)
@@ -100,12 +101,13 @@ An example output image would look something like this ([High res image](https:/
 
 Currently, the files have the following uses:
 
-  * top.py: Contains mappings from UI callbacks to actual functions. Used for launching the GUI.
+  * top.py: Used for launching the GUI.
   * src/
     * gui/
         * ycircuit_mainWindow.*: The UI file contains the output of Qt Designer while the py file is the exported version of the same.
     * drawingitems.py: Contains the Grid class for creating the background grid in the GUI and the TextEditor class for handling editing of TextBox objects.
     * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
+    * mainwindow.py: Contains mappings from UI callbacks to actual functions in the drawing area.
     * components.py: Defines item classes for creating and manipulating shapes.
     * commands.py: Defines command actions including how to handle undoing and redoing.
   * Resources/Symbols/
