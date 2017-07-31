@@ -596,7 +596,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         # Create a new file picker when the symbol directory pushbutton
         # is triggered
         self.ui.pushButton_symbolPreviewDirectory.clicked.connect(
-            self.pickSymbolViewerDirectory)
+            lambda x: self.pickSymbolViewerDirectory())
         # Connecting the symbol viewer to the appropriate model
         self.fileSystemModel = QtWidgets.QFileSystemModel()
         if hasattr(self.ui.drawingArea, 'defaultSymbolPreviewFolder'):

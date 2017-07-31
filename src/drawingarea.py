@@ -552,6 +552,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """This is the counterpart of the save routine. Used to load both schematics
         and symbols.
         """
+        # It is possible that loadFile may be a folder, when clicked through
+        # the symbol preview on the left. If so, return
+        if os.path.isdir(loadFile):
+            return
         possibleModes = ['schematic', 'symbol', 'symbolModify']
         if mode in possibleModes:
             if loadFile is None:
