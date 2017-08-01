@@ -38,9 +38,9 @@ if sys.platform == 'win32':
     include_files.append(sys.prefix + '/Library/plugins/imageformats')
     include_files.append(sys.prefix + '/Library/plugins/platforms')
 if sys.platform == 'linux':
-    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/imageformats')
-    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/platforms')
-    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/libQt5Svg.so.5')
+    include_files.append(sys.prefix + '/lib/python3.5/site-packages/PyQt5/Qt/plugins/imageformats')
+    include_files.append(sys.prefix + '/lib/python3.5/site-packages/PyQt5/Qt/plugins/platforms')
+    include_files.append(sys.prefix + '/lib/python3.5/site-packages/PyQt5/Qt/lib/libQt5Svg.so.5')
 
 excludes = [
     'concurrent',
