@@ -8,7 +8,7 @@ pipelines:
             - pip
           script: # Modify the commands below to build your repository.
             - pip install sip
-            - pip install PyQt5
+            - pip install PyQt5==5.8
             - pip install cx_Freeze==5.0
             - pip install sympy
             - python setup.py build
