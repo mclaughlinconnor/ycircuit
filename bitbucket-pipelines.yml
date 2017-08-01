@@ -1,0 +1,13 @@
+image: python:3.5.1
+
+pipelines:
+  branches:
+    develop:
+      - step:
+          caches:
+            - pip
+          script: # Modify the commands below to build your repository.
+            - pip install PyQt5==5.7.1
+            - pip install cx_Freeze
+            - pip install sympy
+            - python setup.py build
