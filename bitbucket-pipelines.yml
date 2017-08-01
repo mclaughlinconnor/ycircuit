@@ -11,3 +11,5 @@ pipelines:
             - pip install cx_Freeze
             - pip install sympy
             - python setup.py build
+            - tar -cvzf build/ycircuit-develop.tar build/exe.linux-x86_64-3.5/*
+            - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"build/ycircuit-develop.tar"
