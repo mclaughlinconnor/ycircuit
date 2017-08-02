@@ -1,10 +1,13 @@
 # -*- mode: python -*-
 
+# Add for working on windows
+import sys
+sys.setrecursionlimit(10000)
+
 block_cipher = None
 
 
 a = Analysis(['top.py'],
-             # pathex=['/u4/sshekar/Work/ycircuit'],
              pathex=['./'],
              binaries=None,
              datas=[('Resources', './Resources')],
