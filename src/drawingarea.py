@@ -539,6 +539,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         msgBox.setWindowTitle("Recover file")
         msgBox.setText("An autobackup file was detected.")
         msgBox.setInformativeText("Do you wish to recover from the autobackup file?")
+        msgBox.setDetailedText(("Selecting No will automatically delete the "
+        "autobackup file. The safest option is to answer Yes and then opening "
+        "the manually saved schematic later if the autobackup save was not "
+        "something you wanted to use."))
         msgBox.setStandardButtons(msgBox.Yes | msgBox.No)
         msgBox.setDefaultButton(msgBox.Yes)
         msgBox.setIcon(msgBox.Information)
