@@ -11,6 +11,6 @@ pipelines:
             - pip install PyQt5==5.8
             - pip install PyInstaller
             - pip install sympy
-            - python ~/.local/bin/PyInstaller -y top.spec
+            - pyinstaller -y top.spec
             - tar -cvzf build/ycircuit-develop.tar build/YCircuit/*
             - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"build/ycircuit-develop.tar"
