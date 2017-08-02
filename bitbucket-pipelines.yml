@@ -9,8 +9,8 @@ pipelines:
           script: # Modify the commands below to build your repository.
             - pip install sip
             - pip install PyQt5==5.8
-            - pip install cx_Freeze==5.0
+            - pip install PyInstaller
             - pip install sympy
-            - python setup.py build
-            - tar -cvzf build/ycircuit-develop.tar build/exe.linux-x86_64-3.5/*
+            - python ~/.local/bin/PyInstaller -y top.spec
+            - tar -cvzf build/ycircuit-develop.tar build/YCircuit/*
             - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"build/ycircuit-develop.tar"
