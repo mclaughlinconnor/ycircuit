@@ -23,7 +23,10 @@ a.binaries = [x for x in a.binaries if not x[0].startswith('matplotlib')]
 a.binaries = [x for x in a.binaries if not x[0].startswith('scipy')]
 a.binaries = [x for x in a.binaries if not x[0].startswith('numpy')]
 a.binaries = [x for x in a.binaries if not x[0].startswith('_')]
-a.binaries = [x for x in a.binaries if not x[0].startswith('lib') or x[0].startswith('libpython')]
+a.binaries = [x for x in a.binaries if not x[0].startswith('lib')
+              or x[0].startswith('libpython')
+              or x[0].startswith('libQt')
+              or x[0].startswith('libicu')]
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
