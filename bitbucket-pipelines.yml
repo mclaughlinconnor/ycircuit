@@ -12,5 +12,5 @@ pipelines:
             - pip install PyInstaller
             - pip install sympy
             - pyinstaller -y top.spec
-            - tar -cvzf build/ycircuit-develop.tar build/YCircuit/*
-            - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"build/ycircuit-develop.tar"
+            - tar -cvzf dist/ycircuit-develop.tar dist/YCircuit/*
+            - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"dist/ycircuit-develop.tar"
