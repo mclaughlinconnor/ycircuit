@@ -10,6 +10,11 @@ import shutil
 import sys
 from cx_Freeze import setup, Executable
 
+post = False
+if 'post' in sys.argv:
+    sys.argv.remove('post')
+    post = True
+
 base = None
 if sys.platform == 'win32':
     base = 'Win32GUI'
@@ -98,3 +103,30 @@ setup(name='YCircuit',
       options=options,
       executables=executables
       )
+
+if sys.platform == 'win32':
+    import zipfile
+    with zipfile.ZipFile('build/ycircuit-develop_win64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
+        for root, dirs, files in os.walk('build/'):
+            for file in files:
+                zip.write(os.path.join(root, file))
+    if post is True:
+        from subprocess import call
+        call(['curl',
+            '-s',
+            '-u', 'siddharthshekar',
+            '-X', 'POST',
+            'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
+            '-F', 'files=@build/ycircuit-develop_win64.zip'])
+if sys.platform == 'linux':
+    import tarfile
+    with tarfile.open('build/ycircuit-develop_linux64.tar', 'w:gz') as tar:
+        tar.add('build/exe.linux-x86_64-3.5')
+    if post is True:
+        from subprocess import call
+        call(['curl',
+            '-s',
+            '-u', 'siddharthshekar',
+            '-X', 'POST',
+            'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
+            '-F', 'files=@build/ycircuit-develop_linux64.tar'])
