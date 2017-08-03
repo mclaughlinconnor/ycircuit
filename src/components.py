@@ -215,8 +215,14 @@ class drawingElement(object):
         pen = QtGui.QPen(self.localPen)
         brush = QtGui.QBrush(self.localBrush)
         if gray == True:
-            pen.setColor(QtGui.QColor('gray'))
-            brush.setColor(QtGui.QColor('gray'))
+            penColour = self.localPen.color().lighter()
+            brushColour = self.localBrush.color().lighter()
+            if penColour == QtGui.QColor('black'):
+                penColour = QtGui.QColor('grey')
+            if brushColour == QtGui.QColor('black'):
+                brushColour = QtGui.QColor('grey')
+            pen.setColor(penColour)
+            brush.setColor(brushColour)
         self.setPen(pen)
         if hasattr(self, 'setBrush'):
             self.setBrush(brush)
