@@ -12,7 +12,7 @@ class Delete(QtWidgets.QUndoCommand):
         else:
             self.listOfItems = listOfItems
         for item in self.listOfItems:
-            item.changeColourToGray(False)
+            item.lightenColour(False)
 
     def redo(self):
         for item in self.listOfItems:
