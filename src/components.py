@@ -195,15 +195,15 @@ class drawingElement(object):
 
     def hoverEnterEvent(self, event):
         """Turns the item gray when mouse enters its bounding rect"""
-        self.changeColourToGray(True)
+        self.lightenColour(True)
 
     def hoverLeaveEvent(self, event):
         """Restores the item's original pen and brush when mouse leaves
         its bounding rect
         """
-        self.changeColourToGray(False)
+        self.lightenColour(False)
 
-    def changeColourToGray(self, gray=False):
+    def lightenColour(self, lighten=False):
         # For some reason, after creating a symbol, localPen and localBrush get
         # deleted. Check to see if they exist, and create them if they don't
         if not hasattr(self, 'localPen'):
@@ -214,7 +214,7 @@ class drawingElement(object):
             self.setLocalBrushOptions()
         pen = QtGui.QPen(self.localPen)
         brush = QtGui.QBrush(self.localBrush)
-        if gray == True:
+        if lighten == True:
             penColour = self.localPen.color().lighter()
             brushColour = self.localBrush.color().lighter()
             if penColour == QtGui.QColor('black'):
@@ -400,14 +400,14 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 item.setLocalBrushOptions(**kwargs)
 
     def hoverEnterEvent(self, event):
-        self.changeColourToGray(True)
+        self.lightenColour(True)
 
     def hoverLeaveEvent(self, event):
-        self.changeColourToGray(False)
+        self.lightenColour(False)
 
-    def changeColourToGray(self, gray=False):
+    def lightenColour(self, lighten=False):
         for item in self.listOfItems:
-            item.changeColourToGray(gray)
+            item.lightenColour(lighten)
 
     def loadItems(self, mode='symbol'):
         """Initializes items in self.listOfItems."""
@@ -1370,10 +1370,10 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         self.font_ = font
         self.setFont(self.font_)
 
-    def changeColourToGray(self, gray=False):
+    def lightenColour(self, lighten=False):
         # Only process this if text is not latex
         if self.latexImageBinary is None:
-            if gray is True:
+            if lighten is True:
                 self.changeTextColour('gray')
             else:
                 self.changeTextColour(self.localPenColour)
@@ -1382,7 +1382,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         # Show the editor on double click
         super().mouseDoubleClickEvent(event)
         # Reset the text colour from gray
-        self.changeColourToGray(False)
+        self.lightenColour(False)
         self.showEditor()
 
     def createCopy(self, parent=None):
