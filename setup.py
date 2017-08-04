@@ -104,23 +104,30 @@ setup(name='YCircuit',
       executables=executables
       )
 
+# Get current branch name
+from subprocess import check_output
+branch = check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+# Remove newline and decode
+branch = branch[:-1].decode('utf-8')
+
 if sys.platform == 'win32':
     import zipfile
-    with zipfile.ZipFile('build/ycircuit-develop_win64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        for root, dirs, files in os.walk('build/'):
-            for file in files:
-                zip.write(os.path.join(root, file))
-    if post is True:
-        from subprocess import call
-        call(['curl',
-            '-s',
-            '-u', 'siddharthshekar',
-            '-X', 'POST',
-            'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
-            '-F', 'files=@build/ycircuit-develop_win64.zip'])
+    with zipfile.ZipFile('build/ycircuit-' + branch + '_win64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
+        print('build/ycircuit-' + branch + '_win64.zip')
+        # for root, dirs, files in os.walk('build/exe.win-amd64-3.6'):
+        #     for file in files:
+        #         zip.write(os.path.join(root, file))
+    # if post is True:
+    #     from subprocess import call
+    #     call(['curl',
+    #         '-s',
+    #         '-u', 'siddharthshekar',
+    #         '-X', 'POST',
+    #         'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
+    #         '-F', 'files=@build/ycircuit-develop_win64.zip'])
 if sys.platform == 'linux':
     import tarfile
-    with tarfile.open('build/ycircuit-develop_linux64.tar', 'w:gz') as tar:
+    with tarfile.open('build/ycircuit-' + branch + 'develop_linux64.tar', 'w:gz') as tar:
         tar.add('build/exe.linux-x86_64-3.5')
     if post is True:
         from subprocess import call
