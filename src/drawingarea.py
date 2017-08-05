@@ -1427,8 +1427,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Pan or zoom depending on keyboard modifiers
         eventDelta = event.angleDelta().y()
         if eventDelta >= 0:
+            # Ignore event for fast scrolls where delta > 240
+            if eventDelta > 240:
+                event.ignore()
+                return
             delta = max(120, eventDelta)
         elif eventDelta < 0:
+            # Ignore event for fast scrolls where delta < -240
+            if eventDelta < -240:
+                event.ignore()
+                return
             delta = min(-120, eventDelta)
         scaleFactor = -delta / 240.
         modifiers = QtWidgets.QApplication.keyboardModifiers()
@@ -1439,7 +1447,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         else:
             if scaleFactor < 0:
                 scaleFactor = -1 / scaleFactor
-            scaleFactor = 1 + (scaleFactor - 1) / 5.
+            scaleFactor = 1 + (scaleFactor - 1) / 2.5
             oldPos = self.mapToScene(event.pos())
             self.scale(scaleFactor, scaleFactor)
             newPos = self.mapToScene(event.pos())
