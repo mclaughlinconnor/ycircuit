@@ -1,7 +1,17 @@
 <RCC>
   <qresource prefix="icons">
+    <file>gtk-edit.svg</file>
+    <file>insert-line.svg</file>
+    <file>insert-object.svg</file>
+    <file>document-open.svg</file>
+    <file>insert-text.svg</file>
+    <file>document-export.svg</file>
+    <file>document-new.svg</file>
+    <file>document-save.svg</file>
+    <file>document-save-as.svg</file>
     <file>view-fullscreen.svg</file>
     <file>edit-copy.svg</file>
+    <file>system-run.svg</file>
     <file>edit-redo.svg</file>
     <file>edit-undo.svg</file>
     <file>list-remove.svg</file>
