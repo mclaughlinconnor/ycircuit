@@ -547,6 +547,7 @@
    <addaction name="action_editShape"/>
    <addaction name="separator"/>
    <addaction name="action_options"/>
+   <addaction name="action_escape"/>
   </widget>
   <action name="action_exportFile">
    <property name="icon">
@@ -1712,6 +1713,27 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+0</string>
+   </property>
+  </action>
+  <action name="action_escape">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/edit-clear.svg</normaloff>:/icons/edit-clear.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Cancel action</string>
+   </property>
+   <property name="iconText">
+    <string>Cancel action</string>
+   </property>
+   <property name="toolTip">
+    <string>Cancels any action being performed</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

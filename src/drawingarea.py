@@ -152,13 +152,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', type=float)
         self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', type=float)
 
-    def keyReleaseEvent(self, event):
-        """Run escapeRoutine when the escape button is pressed"""
-        super().keyReleaseEvent(event)
-        keyPressed = event.key()
-        if (keyPressed == QtCore.Qt.Key_Escape):
-            self.escapeRoutine()
-
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
         self.escapeRoutine()

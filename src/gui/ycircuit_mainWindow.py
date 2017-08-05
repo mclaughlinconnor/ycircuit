@@ -475,6 +475,12 @@ class Ui_MainWindow(object):
         self.action_heightSendBack.setObjectName("action_heightSendBack")
         self.action_heightReset = QtWidgets.QAction(MainWindow)
         self.action_heightReset.setObjectName("action_heightReset")
+        self.action_escape = QtWidgets.QAction(MainWindow)
+        icon18 = QtGui.QIcon()
+        icon18.addPixmap(QtGui.QPixmap(":/icons/edit-clear.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.action_escape.setIcon(icon18)
+        self.action_escape.setIconVisibleInMenu(False)
+        self.action_escape.setObjectName("action_escape")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -629,6 +635,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_editShape)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.action_options)
+        self.toolBar.addAction(self.action_escape)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -893,6 +900,10 @@ class Ui_MainWindow(object):
         self.action_heightReset.setText(_translate("MainWindow", "Reset"))
         self.action_heightReset.setToolTip(_translate("MainWindow", "Resets the height of the selected item(s)"))
         self.action_heightReset.setShortcut(_translate("MainWindow", "Ctrl+0"))
+        self.action_escape.setText(_translate("MainWindow", "Cancel action"))
+        self.action_escape.setIconText(_translate("MainWindow", "Cancel action"))
+        self.action_escape.setToolTip(_translate("MainWindow", "Cancels any action being performed"))
+        self.action_escape.setShortcut(_translate("MainWindow", "Esc"))
 
 from src.drawingarea import DrawingArea
 import icon_rc

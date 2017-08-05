@@ -82,6 +82,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.action_pickFont_triggered)
         self.ui.action_options.triggered.connect(
             self.ui.drawingArea.optionsRoutine)
+        self.ui.action_escape.triggered.connect(
+            self.ui.drawingArea.escapeRoutine)
 
         self.ui.action_heightBringForward.triggered.connect(
             lambda x: self.ui.drawingArea.changeHeightRoutine('forward'))
