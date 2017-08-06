@@ -123,10 +123,10 @@ if sys.platform == 'win32':
             '-u', 'siddharthshekar',
             '-X', 'POST',
             'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
-            '-F', 'files=@build/ycircuit-develop_win64.zip'])
+            '-F', 'files=@build/ycircuit-' + branch + '_win64.zip'])
 if sys.platform == 'linux':
     import tarfile
-    with tarfile.open('build/ycircuit-' + branch + 'develop_linux64.tar', 'w:gz') as tar:
+    with tarfile.open('build/ycircuit-' + branch + '_linux64.tar', 'w:gz') as tar:
         tar.add('build/exe.linux-x86_64-3.5')
     if post is True:
         from subprocess import call
@@ -135,4 +135,4 @@ if sys.platform == 'linux':
             '-u', 'siddharthshekar',
             '-X', 'POST',
             'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
-            '-F', 'files=@build/ycircuit-develop_linux64.tar'])
+            '-F', 'files=@build/ycircuit-' + branch + '_linux64.tar'])
