@@ -157,6 +157,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.escapeRoutine()
         self._keys['w'] = True
         self.currentWire = None
+        self.statusbarMessage.emit('Left click to begin drawing a new line (press ESC to cancel)', 0)
 
     def addArc(self, points=3):
         """Set _key to arc mode so that an arc is added when LMB is pressed"""
@@ -164,24 +165,28 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._keys['arc'] = True
         self.arcPoints = points
         self.currentArc = None
+        self.statusbarMessage.emit('Left click to begin drawing a new arc (press ESC to cancel)', 0)
 
     def addRectangle(self):
         """Set _key to rectangle mode so that a rectangle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['rectangle'] = True
         self.currentRectangle = None
+        self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
 
     def addCircle(self):
         """Set _key to circle mode so that a circle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['circle'] = True
         self.currentCircle = None
+        self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
 
     def addEllipse(self):
         """Set _key to ellipse mode so that an ellipse is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['ellipse'] = True
         self.currentEllipse = None
+        self.statusbarMessage.emit('Left click to begin drawing a new ellipse (press ESC to cancel)', 0)
 
     def addTextBox(self):
         """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
@@ -191,12 +196,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.setCursor(cursor)
         self._keys['textBox'] = True
         self.currentTextBox = None
+        self.statusbarMessage.emit('Left click to pick the location of the new text box (press ESC to cancel)', 0)
 
     def addNet(self):
         """Set _key to net mode so that a net is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['net'] = True
         self.currentNet = None
+        self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
 
     def addResistor(self):
         """Load the standard resistor"""
@@ -646,6 +653,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.moveStartPoint = self.mapToGrid(self.currentPos)
                 self._keys['add'], self._mouse['1'] = True, True
                 loadItem.moveTo(self.moveStartPoint, 'start')
+                self.statusbarMessage.emit(
+                    'Left click to place the symbol (press ESC to cancel)',
+                    0)
                 self.updateMoveItems()
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
@@ -736,13 +746,25 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.escapeRoutine()
         self.updateMoveItems()
         self._keys['m'] = True
-        self.statusbarMessage.emit("Move (Press ESC to cancel)", 0)
+        if self.moveItems == []:
+            self.statusbarMessage.emit(
+                'Select items to move, then left click to pick the origin for the move (Press ESC to cancel)',
+                0)
+        else:
+            self.statusbarMessage.emit("Left click to pick the origin for the move (Press ESC to cancel)", 0)
 
     def copyRoutine(self):
         """Preps to begin copying items"""
         self.escapeRoutine()
         self._keys['c'] = True
-        self.statusbarMessage.emit("Copy (Press ESC to cancel)", 0)
+        self.updateMoveItems()
+        # self.statusbarMessage.emit("Copy (Press ESC to cancel)", 0)
+        if self.moveItems == []:
+            self.statusbarMessage.emit(
+                'Select items to copy, then left click to pick the origin for the copy (Press ESC to cancel)',
+                0)
+        else:
+            self.statusbarMessage.emit("Left click to pick the origin for the copy (Press ESC to cancel)", 0)
 
     def deleteRoutine(self):
         """Delete selected items"""
@@ -777,37 +799,57 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._grid.enableGrid = not self._grid.enableGrid
         if self._grid.enableGrid is True:
             self._grid.createGrid()
+            self.statusbarMessage.emit('The grid is now visible', 1000)
         else:
             self.setBackgroundBrush(QtGui.QBrush())
+            self.statusbarMessage.emit('The grid is no longer visible', 1000)
 
     def toggleSnapToGridRoutine(self, state):
         """Toggles drawings snapping to grid"""
         self._grid.snapToGrid = state
+        if state is True:
+            self.statusbarMessage.emit('Snap to grid is enabled', 1000)
+        else:
+            self.statusbarMessage.emit('Snap to grid is disabled', 1000)
 
     def changeSnapToGridSpacing(self, spacing):
-        self._grid.snapToGridSpacing = spacing
+        if spacing != self._grid.snapToGridSpacing:
+            self._grid.snapToGridSpacing = spacing
+            self.statusbarMessage.emit('Snap to grid spacing changed to ' + str(spacing), 1000)
 
     def toggleMajorGridPointsRoutine(self, state):
         """Toggles major grid points on and off"""
         self._grid.majorSpacingVisibility = state
+        if state is True:
+            self.statusbarMessage.emit('Major grid points are now visible', 1000)
+        else:
+            self.statusbarMessage.emit('Major grid points are no longer visible', 1000)
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
     def changeMajorGridPointSpacing(self, spacing):
-        self._grid.majorSpacing = spacing
-        if self._grid.enableGrid is True:
-            self._grid.createGrid()
+        if spacing != self._grid.majorSpacing:
+            self._grid.majorSpacing = spacing
+            self.statusbarMessage.emit('Major grid point spacing changed to ' + str(spacing), 1000)
+            if self._grid.enableGrid is True:
+                self._grid.createGrid()
 
     def toggleMinorGridPointsRoutine(self, state):
         """Toggles minor grid points on and off"""
         self._grid.minorSpacingVisibility = state
+        if state is True:
+            self.statusbarMessage.emit('Minor grid points are now visible', 1000)
+        else:
+            self.statusbarMessage.emit('Minor grid points are no longer visible', 1000)
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
     def changeMinorGridPointSpacing(self, spacing):
-        self._grid.minorSpacing = spacing
-        if self._grid.enableGrid is True:
-            self._grid.createGrid()
+        if spacing != self._grid.minorSpacing:
+            self._grid.minorSpacing = spacing
+            self.statusbarMessage.emit('Minor grid point spacing changed to ' + str(spacing), 1000)
+            if self._grid.enableGrid is True:
+                self._grid.createGrid()
 
     def changeFontRoutine(self, selectedFont):
         if self.scene().selectedItems() != []:
@@ -874,10 +916,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     width=selectedWidth)
                 self.undoStack.push(changePen)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed pen width of the selected item(s) to %d" %(selectedWidth),
+                    1000)
+        elif selectedWidth != self.selectedWidth:
             self.selectedWidth = selectedWidth
-        self.statusbarMessage.emit("Changed pen width to %d" %
-                                   (selectedWidth), 1000)
+            self.statusbarMessage.emit(
+                "Changed pen width to %d" %(selectedWidth),
+                1000)
 
     def changePenColourRoutine(self, selectedPenColour):
         selectedPenColour = QtGui.QColor(selectedPenColour)
@@ -897,12 +943,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     penColour=selectedPenColour)
                 self.undoStack.push(changePen)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed pen colour of the selected item(s) to %s" %(selectedPenColour.name()),
+                    1000)
+        elif selectedPenColour != QtGui.QColor(self.selectedPenColour):
             self.selectedPenColour = selectedPenColour
-        self.statusbarMessage.emit("Changed pen colour to %s" %
-                                   (selectedPenColour.name()), 1000)
+            self.statusbarMessage.emit(
+                "Changed pen colour to %s" %(selectedPenColour.name()),
+                1000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
+        styles = {
+            1: 'solid',
+            2: 'dash',
+            3: 'dot',
+            4: 'dash-dot',
+            5: 'dash-dot-dot'
+        }
         if self.scene().selectedItems() != []:
             samePenStyle = True
             for item in self.scene().selectedItems():
@@ -919,10 +976,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     penStyle=selectedPenStyle)
                 self.undoStack.push(changePen)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed the pen style of the selected item(s) to %s" %(styles[selectedPenStyle]),
+                    1000)
+        elif selectedPenStyle != self.selectedPenStyle:
             self.selectedPenStyle = selectedPenStyle
-        self.statusbarMessage.emit("Changed pen style to %s" %
-                                   (selectedPenStyle), 1000)
+            self.statusbarMessage.emit(
+                "Changed pen style to %s" %(styles[selectedPenStyle]),
+                1000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
         selectedBrushColour = QtGui.QColor(selectedBrushColour)
@@ -942,12 +1003,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     brushColour=selectedBrushColour)
                 self.undoStack.push(changeBrush)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed the brush colour of the selected item(s) to %s" %(selectedBrushColour.name()),
+                    1000)
+        elif selectedBrushColour != QtGui.QColor(self.selectedBrushColour):
             self.selectedBrushColour = selectedBrushColour
-        self.statusbarMessage.emit("Changed brush colour to %s" %
-                                   (selectedBrushColour.name()), 1000)
+            self.statusbarMessage.emit(
+                "Changed brush colour to %s" %(selectedBrushColour.name()),
+                1000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
+        styles = {
+            0: 'no fill',
+            1: 'solid',
+        }
         if self.scene().selectedItems() != []:
             sameBrushStyle = True
             for item in self.scene().selectedItems():
@@ -964,10 +1033,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     brushStyle=selectedBrushStyle)
                 self.undoStack.push(changeBrush)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed the brush style of the selected item(s) to %s" %(styles[selectedBrushStyle]),
+                    1000)
+        elif selectedBrushStyle != self.selectedBrushStyle:
             self.selectedBrushStyle = selectedBrushStyle
-        self.statusbarMessage.emit("Changed brush style to %s" %
-                                   (selectedBrushStyle), 1000)
+            self.statusbarMessage.emit(
+                "Changed brush style to %s" %(styles[selectedBrushStyle]),
+                1000)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
@@ -995,6 +1068,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self._mouse['1'] = False
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
+                self.statusbarMessage.emit('Left click to place item(s) (press ESC to cancel)', 0)
                 self.moveStartPoint = self.mapToGrid(event.pos())
                 for i in self.moveItems:
                     i.moveTo(self.moveStartPoint, 'start')
@@ -1065,6 +1139,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Also accounts for arcs because they are subclassed from Wire
             if isinstance(item, Wire):
                 if (event.button() == QtCore.Qt.LeftButton):
+                    self.statusbarMessage.emit('Left click to place the current vertex here and move to the next one (press ESC when done)', 0)
                     edit = Edit(
                         None,
                         self.scene(),
@@ -1089,6 +1164,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                 self.scene(), item,
                                 self.mapToGrid(event.pos()))
                     self.undoStack.push(edit)
+                    self.statusbarMessage.emit('', 0)
             if self._mouse['1'] is False:
                 self.undoStack.endMacro()
         # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
@@ -1161,6 +1237,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.currentY = self.currentPos.y()
                 start = self.mapToGrid(self.currentPos)
                 if self._keys['w'] is True:
+                    self.statusbarMessage.emit('Left click to place the next vertex (Right click to end this line and start a new line or press ESC to cancel)', 0)
                     # If it is a right click, cancel this wire
                     # and wait for another LMB
                     if event.button() == QtCore.Qt.RightButton:
@@ -1184,6 +1261,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         draw = Draw(None, self.scene(), self.currentWire, start)
                         self.undoStack.push(draw)
                 elif self._keys['arc'] is True:
+                    self.statusbarMessage.emit('Left click to place the next vertex (press ESC to cancel)', 0)
                     # Create new arc if none exists
                     if self.currentArc is None:
                         self.currentArc = Arc(
@@ -1208,6 +1286,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation or press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 # Create new net if none exists
@@ -1223,6 +1302,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Add the original net
                     self.scene().addItem(self.currentNet)
             else:
+                self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
                 if self.currentNet is not None:
                     netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet))]
                     netList.remove(self.currentNet)
@@ -1262,6 +1342,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to finish drawing the rectangle (press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentRectangle is None:
@@ -1275,7 +1356,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentRectangle)
                     self.undoStack.push(add)
-                    # self.scene().addItem(self.currentRectangle)
+            else:
+                self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
+                self.currentRectangle = None
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If circle mode is on, add a new circle
@@ -1283,6 +1366,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to finish drawing the circle (press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentCircle is None:
@@ -1297,6 +1381,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     add = Add(None, self.scene(), self.currentCircle)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentCircle)
+            else:
+                self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
+                self.currentCircle = None
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If ellipse mode is on, add a new ellipse
@@ -1304,6 +1391,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to finish drawing the ellipse (press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentEllipse is None:
@@ -1318,6 +1406,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     add = Add(None, self.scene(), self.currentEllipse)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentEllipse)
+            else:
+                self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
+                self.currentEllipse = None
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If textbox mode is on, add a new textbox
@@ -1341,6 +1432,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)
                 self._keys['textBox'] = False
+                self.statusbarMessage.emit('', 0)
                 # Change cursor shape to a text editing style
                 cursor = self.cursor()
                 cursor.setShape(QtCore.Qt.ArrowCursor)
@@ -1455,13 +1547,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 cursor = self.cursor()
                 if isinstance(item, Circle):
                     sceneP = item.end.toPoint()
+                    self.statusbarMessage.emit('Left click to place the current vertex here and finish editing (press ESC to cancel)', 0)
                 elif isinstance(item, Rectangle) or isinstance(item, Ellipse):
                     sceneP = item.mapToScene(item.p2).toPoint()
+                    self.statusbarMessage.emit('Left click to place the current vertex here and finish editing (press ESC to cancel)', 0)
                 elif isinstance(item, Wire):
                     # poly = item.oldPath.toSubpathPolygons(item.transform())[0]
                     # item.editPointNumber = poly.size() - 1
                     item.editPointNumber = 0
                     sceneP = item.mapToScene(item.editPointLocation(item.editPointNumber))
+                    self.statusbarMessage.emit('Left click to place the current vertex here and move to the next vertex (press ESC to cancel)', 0)
                 else:
                     self.statusbarMessage.emit("The selected item cannot be edited", 1000)
                     return
