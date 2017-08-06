@@ -1436,6 +1436,7 @@ class Arc(Wire):
         self.setFocus()
         self.undoPointsList = []
         self.startPoint = QtCore.QPointF(0, 0)
+        self.localPen.setCapStyle(QtCore.Qt.RoundCap)
 
     def __getstate__(self):
         localDict = super().__getstate__()

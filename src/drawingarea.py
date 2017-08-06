@@ -280,6 +280,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         removeItems = []
         if self._keys['m'] is True or self._keys['add'] is True:
             removeItems = self.moveItems
+        if self._keys['rectangle'] is True:
+            removeItems = [self.currentRectangle]
+        if self._keys['circle'] is True:
+            removeItems = [self.currentCircle]
+        if self._keys['ellipse'] is True:
+            removeItems = [self.currentEllipse]
         if self._keys['w'] is True:
             removeItems = [self.currentWire]
         if self._keys['arc'] is True:
