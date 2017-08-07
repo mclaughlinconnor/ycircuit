@@ -467,10 +467,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
             saveFilter = 'bmp'
         elif '*.tiff' in saveFilter:
             saveFilter = 'tiff'
-        if not saveFile.endswith('.' + saveFilter):
-            saveFile = str(saveFile) + '.' + saveFilter
         # Check that file is valid
-        if saveFile == '':
+        if saveFile != '':
+            if not saveFile.endswith('.' + saveFilter):
+                saveFile = str(saveFile) + '.' + saveFilter
+        else:
             # Add the grid back to the scene
             self._grid.createGrid()
             return
