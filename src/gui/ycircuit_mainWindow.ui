@@ -269,6 +269,13 @@
      <addaction name="separator"/>
      <addaction name="action_heightReset"/>
     </widget>
+    <widget class="QMenu" name="menuGroup">
+     <property name="title">
+      <string>Group</string>
+     </property>
+     <addaction name="action_group"/>
+     <addaction name="action_ungroup"/>
+    </widget>
     <addaction name="action_undo"/>
     <addaction name="action_redo"/>
     <addaction name="separator"/>
@@ -281,6 +288,7 @@
     <addaction name="action_pickFont"/>
     <addaction name="separator"/>
     <addaction name="menuHeight"/>
+    <addaction name="menuGroup"/>
     <addaction name="separator"/>
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
@@ -1734,6 +1742,28 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_group">
+   <property name="text">
+    <string>Group</string>
+   </property>
+   <property name="toolTip">
+    <string>Group selected items together</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="action_ungroup">
+   <property name="text">
+    <string>Ungroup</string>
+   </property>
+   <property name="toolTip">
+    <string>Disband the current group</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+G</string>
    </property>
   </action>
  </widget>

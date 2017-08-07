@@ -1594,3 +1594,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
         text = "Current position: "
         text += str('(') + str(pos.x()) + ', ' + str(pos.y()) + str(')')
         self.mousePosLabel.setText(text)
+
+    def groupItems(self, mode='group'):
+        listOfItems = self.scene().selectedItems()
+        if listOfItems == []:
+            return
+        if mode == 'ungroup' and len(listOfItems) > 1:
+            self.statusbarMessage.emit('Please select only one item to ungroup', 1000)
+            return
+        if mode == 'group' and len(listOfItems) == 1:
+            self.statusbarMessage.emit('Please select at least two items to group', 1000)
+            return
+        if mode == 'group':
+            group = Group(None, self.scene(), listOfItems)
+            self.undoStack.push(group)
+        if mode == 'ungroup':
+            ungroup = Ungroup(None, self.scene(), listOfItems[0])
+            self.undoStack.push(ungroup)

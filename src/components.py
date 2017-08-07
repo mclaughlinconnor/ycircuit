@@ -180,6 +180,9 @@ class drawingElement(object):
         # Copy reflection info if it exists
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
+        if hasattr(self, 'height'):
+            newItem.height = self.height
+            newItem.setZValue(newItem.height)
         if parent is None:
             # Add new item to scene if no parent exists
             self.scene().addItem(newItem)
@@ -291,6 +294,9 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         # Copy reflection info if it exists
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
+        if hasattr(self, 'height'):
+            newItem.height = self.height
+            newItem.setZValue(newItem.height)
         if newItem.parentItem() is None:
             self.scene().addItem(newItem)
             newItem.moveTo(self.scenePos(), 'start')
@@ -1417,6 +1423,11 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 penColour = self.localPenColour,
                 brushColour = self.localBrushColour)
             newItem.changeFont(self.font())
+        if hasattr(self, 'reflections'):
+            newItem.reflections = self.reflections
+        if hasattr(self, 'height'):
+            newItem.height = self.height
+            newItem.setZValue(newItem.height)
         newItem.setTransform(self.transform())
         self.scene().addItem(newItem)
         newItem.setSelected(True)

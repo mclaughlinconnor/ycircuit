@@ -313,6 +313,65 @@ class ChangeHeight(QtWidgets.QUndoCommand):
             super().undo()
 
 
+class Group(QtWidgets.QUndoCommand):
+    def __init__(
+            self,
+            parent=None,
+            scene=None,
+            listOfItems=None,
+            **kwargs):
+        super().__init__(parent)
+        self.scene = scene
+        self.listOfItems = listOfItems
+
+        x = min([item.scenePos().x() for item in self.listOfItems])
+        y = min([item.scenePos().y() for item in self.listOfItems])
+        self.origin = QtCore.QPointF(x, y)
+
+    def redo(self):
+        self.item = myGraphicsItemGroup(None, self.origin, [])
+        self.scene.addItem(self.item)
+        self.item.origin = self.origin
+        # Set relative origins of child items
+        for item in self.listOfItems:
+            item.origin = item.pos() - self.item.origin
+        self.item.setItems(self.listOfItems)
+
+    def undo(self):
+        self.item.reparentItems()
+        self.scene.removeItem(self.item)
+
+
+class Ungroup(QtWidgets.QUndoCommand):
+    def __init__(
+            self,
+            parent=None,
+            scene=None,
+            item=None,
+            **kwargs):
+        super().__init__(parent)
+        self.scene = scene
+        self.item = item
+        self.listOfItems = item.listOfItems
+
+        x = min([item.scenePos().x() for item in self.listOfItems])
+        y = min([item.scenePos().y() for item in self.listOfItems])
+        self.origin = QtCore.QPointF(x, y)
+
+    def redo(self):
+        self.item.reparentItems()
+        self.scene.removeItem(self.item)
+
+    def undo(self):
+        self.item = myGraphicsItemGroup(None, self.origin, [])
+        self.scene.addItem(self.item)
+        self.item.origin = self.origin
+        # Set relative origins of child items
+        for item in self.listOfItems:
+            item.origin = item.pos() - self.item.origin
+        self.item.setItems(self.listOfItems)
+
+
 class ChangePen(QtWidgets.QUndoCommand):
     def __init__(self, parent=None, item=None, **kwargs):
         super().__init__(parent)

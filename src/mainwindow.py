@@ -92,6 +92,11 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_heightReset.triggered.connect(
             lambda x: self.ui.drawingArea.changeHeightRoutine('reset'))
 
+        self.ui.action_group.triggered.connect(
+            lambda x: self.ui.drawingArea.groupItems('group'))
+        self.ui.action_ungroup.triggered.connect(
+            lambda x: self.ui.drawingArea.groupItems('ungroup'))
+
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(
             lambda x: self.action_setWidth_triggered(2))
