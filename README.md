@@ -55,6 +55,8 @@ As of this point in time, the following options are available:
     * Rotate (R)
     * Mirror (Shift+R)
     * Change font (Alt+E->F)
+    * Change heights of items to bring them forward or send them back (Ctrl++/-/=)
+    * Group/ungroup items for easy manipulation (Ctrl+G/Ctrl+Shift+G)
     * Change pen colour, style and width (Alt+E->C,P,W)
     * Change fill colour and style
     * Options (Ctrl+P)
