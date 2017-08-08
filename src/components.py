@@ -774,7 +774,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
             for dot in allDots[:]:
                 dotPos = mergedNet.mapFromScene(dot.scenePos())
                 # The dot's scenePos is slightly to the left of actual center
-                dotPos += QtCore.QPointF(5, 0)
+                dotPos += QtCore.QPointF(4, 0)
                 if dotPos in [mergedNet.line().p1(), mergedNet.line().p2()]:
                     allDots.remove(dot)
                 elif not mergedNet.contains(dotPos):
