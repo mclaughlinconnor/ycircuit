@@ -1422,7 +1422,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 brush=brush,
                 penColour = self.localPenColour,
                 brushColour = self.localBrushColour)
-            newItem.changeFont(self.font())
+            newItem.localPenWidth = self.localPenWidth
+            newItem.setFont(self.font())
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
         if hasattr(self, 'height'):
