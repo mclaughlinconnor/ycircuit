@@ -1609,5 +1609,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             group = Group(None, self.scene(), listOfItems)
             self.undoStack.push(group)
         if mode == 'ungroup':
-            ungroup = Ungroup(None, self.scene(), listOfItems[0])
-            self.undoStack.push(ungroup)
+            if isinstance(listOfItems[0], myGraphicsItemGroup):
+                ungroup = Ungroup(None, self.scene(), listOfItems[0])
+                self.undoStack.push(ungroup)
+            else:
+                self.statusbarMessage.emit('Selected instance needs to be a group/symbol', 1000)
