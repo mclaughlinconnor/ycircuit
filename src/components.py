@@ -769,7 +769,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         if mergedNet == self:
             scene = mergedNet.scene()
             # Check if the item is a dot
-            allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
+            allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -4, 8, 8)]
             # Keep only dots that are inside the net (not on endpoints)
             for dot in allDots[:]:
                 dotPos = mergedNet.mapFromScene(dot.scenePos())
@@ -781,7 +781,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                     allDots.remove(dot)
             if allDots != []:
                 # Find parent item of the dot instead of the circle that has been found
-                for i in xrange(len(allDots)):
+                for i in range(len(allDots)):
                     while allDots[i].parentItem() is not None:
                         allDots[i] = allDots[i].parentItem()
                 # Delete the dots that are on the net
@@ -892,7 +892,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         newNetList1 = [item for item in netList if item.collidesWithItem(newNet1)]
                         newNetList2 = [item for item in netList if item.collidesWithItem(newNet2)]
                         # Add a dot if required
-                        allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.oldRect == QtCore.QRectF(0, -5, 10, 10)]
+                        allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.rect() == QtCore.QRectF(0, -4, 8, 8)]
                         dotExists = False
                         for item in allDots:
                             existingDotPos = item.scenePos()
@@ -911,7 +911,13 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                                 scene.removeItem(dot1)
                                 add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
                                 undoStack.push(add1)
+                        for net in newNetList1:
+                            if net.scene() is None:
+                                newNetList1.remove(net)
                         newNet1.splitNets(newNetList1, undoStack)
+                        for net in newNetList2:
+                            if net.scene() is None:
+                                newNetList2.remove(net)
                         newNet2.splitNets(newNetList2, undoStack)
                         # Break if self has been deleted
                         if self.scene() is None:

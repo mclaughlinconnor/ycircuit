@@ -13,6 +13,9 @@ class Delete(QtWidgets.QUndoCommand):
             self.listOfItems = listOfItems
         for item in self.listOfItems:
             item.lightenColour(False)
+            # Need to remember where exactly the item was deleted in case
+            # its parent is moved in the future
+            item.deletePos = item.pos()
 
     def redo(self):
         for item in self.listOfItems:
@@ -21,6 +24,7 @@ class Delete(QtWidgets.QUndoCommand):
     def undo(self):
         for item in self.listOfItems:
             self.scene.addItem(item)
+            item.setPos(item.deletePos)
 
 
 class AddMulti(QtWidgets.QUndoCommand):

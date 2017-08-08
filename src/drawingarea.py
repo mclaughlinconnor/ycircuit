@@ -783,7 +783,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
                 if item2 in netList:
                     netList.remove(item2)
-                for item in netList:
+                for item in netList[:]:
                     mergedNet = item.mergeNets(netList, self.undoStack)
                     if mergedNet is not None:
                         mergedNet.splitNets(netList, self.undoStack)
@@ -1089,7 +1089,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
                             if item2 in netList:
                                 netList.remove(item2)
-                            for item in netList:
+                            for item in netList[:]:
                                 mergedNet = item.mergeNets(netList, self.undoStack)
                                 if mergedNet is not None:
                                     mergedNet.splitNets(netList, self.undoStack)
