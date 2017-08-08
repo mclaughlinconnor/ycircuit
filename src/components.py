@@ -902,7 +902,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                                 dotExists = True
                                 break
                         if dotExists is False:
-                            with open('Resources/Symbols/Standard/dot.sym', 'rb') as f:
+                            with open('Resources/Symbols/Standard/Dot.sym', 'rb') as f:
                                 dot1 = pickle.load(f)
                                 dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
                                 scene.addItem(dot1)
