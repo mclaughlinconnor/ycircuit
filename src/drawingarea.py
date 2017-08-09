@@ -1314,30 +1314,32 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet))]
                     netList.remove(self.currentNet)
                     self.scene().removeItem(self.currentNet)
-                    self.undoStack.beginMacro('')
-                    add = Add(None, self.scene(), self.currentNet)
-                    self.undoStack.push(add)
-                    mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
-                    self.currentNet.splitNets(netList, self.undoStack)
-                    # Add the perpendicular line properly, if it exists
-                    if self.currentNet.perpLine is not None:
-                        netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
-                        netList.remove(self.currentNet.perpLine)
-                        perpLineObscured = False
-                        for net in netList:
-                            p1 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p1())
-                            p2 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p2())
-                            if (net.contains(p1) and net.contains(p2)) and net != self.currentNet.perpLine:
-                                perpLineObscured = True
-                        self.scene().removeItem(self.currentNet.perpLine)
-                        if perpLineObscured is False:
-                            self.undoStack.endMacro()
-                            self.undoStack.beginMacro('')
-                            add = Add(None, self.scene(), self.currentNet.perpLine)
-                            self.undoStack.push(add)
-                            mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
-                            self.currentNet.perpLine.splitNets(netList, self.undoStack)
-                    self.undoStack.endMacro()
+                    # Only do this if current net is not 0 length
+                    if self.currentNet.line().length() > 0.01:
+                        self.undoStack.beginMacro('')
+                        add = Add(None, self.scene(), self.currentNet)
+                        self.undoStack.push(add)
+                        mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
+                        self.currentNet.splitNets(netList, self.undoStack)
+                        # Add the perpendicular line properly, if it exists
+                        if self.currentNet.perpLine is not None:
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
+                            netList.remove(self.currentNet.perpLine)
+                            perpLineObscured = False
+                            for net in netList:
+                                p1 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p1())
+                                p2 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p2())
+                                if (net.contains(p1) and net.contains(p2)) and net != self.currentNet.perpLine:
+                                    perpLineObscured = True
+                            self.scene().removeItem(self.currentNet.perpLine)
+                            if perpLineObscured is False:
+                                self.undoStack.endMacro()
+                                self.undoStack.beginMacro('')
+                                add = Add(None, self.scene(), self.currentNet.perpLine)
+                                self.undoStack.push(add)
+                                mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
+                                self.currentNet.perpLine.splitNets(netList, self.undoStack)
+                        self.undoStack.endMacro()
                     self.currentNet = None
             if event.button() == QtCore.Qt.RightButton:
                 if self.currentNet is not None:
