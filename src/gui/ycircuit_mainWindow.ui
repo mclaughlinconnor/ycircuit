@@ -493,11 +493,18 @@
     <addaction name="action_addTextBox"/>
     <addaction name="action_editShape"/>
    </widget>
+   <widget class="QMenu" name="menu_help">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="action_updateYCircuit"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuSh_ape"/>
    <addaction name="menu_AddSymbol"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="maximumSize">
@@ -1764,6 +1771,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>
+   </property>
+  </action>
+  <action name="action_updateYCircuit">
+   <property name="text">
+    <string>Update</string>
+   </property>
+   <property name="toolTip">
+    <string>Update YCircuit to the latest version</string>
    </property>
   </action>
  </widget>

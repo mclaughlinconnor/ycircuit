@@ -5,6 +5,9 @@ from .components import TextBox
 from .drawingitems import myIconProvider
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .gui.ycircuit_mainWindow import Ui_MainWindow
+import os
+import glob
+import urllib.request
 
 
 class myMainWindow(QtWidgets.QMainWindow):
@@ -260,6 +263,10 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.addSource('CCVS'))
         self.ui.action_addCCCS.triggered.connect(
             lambda x: self.ui.drawingArea.addSource('CCCS'))
+
+        # About menu
+        self.ui.action_updateYCircuit.triggered.connect(
+            self.updateYCircuit)
 
         # Miscellaneous signal and slot connections
         self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)
@@ -644,3 +651,16 @@ class myMainWindow(QtWidgets.QMainWindow):
         if dir_ != '':
             index = self.fileSystemModel.setRootPath(dir_)
             self.ui.listView_symbolPreview.setRootIndex(index)
+
+    def updateYCircuit(self):
+        files = glob.glob('src/*.py')
+        files.extend(glob.glob('src/gui/*.py'))
+        files = [f.replace('\\', '/') for f in files]
+        newFiles = [f.replace('src', 'src2') for f in files]
+        url = 'https://bitbucket.org/siddharthshekar/ycircuit/raw/develop/'
+        os.mkdir('src2')
+        os.mkdir('src2/gui')
+        for i in range(len(files)):
+            print(files[i], newFiles[i])
+            urllib.request.urlretrieve(url + files[i], newFiles[i])
+        print(files)

@@ -23,6 +23,9 @@ includes = [
     'copy',
     'ctypes',
     'distutils',
+    'email',
+    'html',
+    'http',
     'io',
     'os',
     'pickle',
@@ -31,7 +34,8 @@ includes = [
     'sip',
     'sympy',
     'src',
-    'sys']
+    'sys',
+    'urllib']
 
 include_files = [
     'Resources'
@@ -50,9 +54,6 @@ if sys.platform == 'linux':
 excludes = [
     'concurrent',
     'curses',
-    'email',
-    'html',
-    'http',
     'IPython',
     'json'
     'jupyter',
@@ -68,7 +69,6 @@ excludes = [
     'pydoc_data',
     'scipy',
     'tkinter'
-    'urllib',
     'xml'
 ]
 
