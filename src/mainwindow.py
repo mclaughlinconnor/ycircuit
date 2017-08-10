@@ -21,7 +21,8 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.drawingArea.mousePosLabel = QtWidgets.QLabel()
         self.ui.statusbar.addPermanentWidget(self.ui.drawingArea.mousePosLabel)
         self.downloader = QtNetwork.QNetworkAccessManager()
-        if self.downloader.networkAccessible() == self.downloader.Accessible:
+        self.downloader.setConfiguration(QtNetwork.QNetworkConfigurationManager().defaultConfiguration())
+        if self.downloader.networkAccessible() != self.downloader.NotAccessible:
             self.ui.action_updateYCircuit.setEnabled(True)
 
         # Connect actions to relevant slots
@@ -655,7 +656,10 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.listView_symbolPreview.setRootIndex(index)
 
     def updateYCircuit(self):
-        if self.downloader.networkAccessible() != self.downloader.Accessible:
+        # For some reason, when building on Windows, networkAccessible returns
+        # unknown accessibility. Hence, instead of explicitly checking for
+        # accessibility, we instead check for lack thereof
+        if self.downloader.networkAccessible() == self.downloader.NotAccessible:
             self.ui.statusbar.showMessage('Please make sure you are connected to the internet', 1000)
             return
         url = 'https://bitbucket.org/siddharthshekar/ycircuit/downloads/'
