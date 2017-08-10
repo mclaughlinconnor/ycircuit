@@ -23,9 +23,6 @@ includes = [
     'copy',
     'ctypes',
     'distutils',
-    'email',
-    'html',
-    'http',
     'io',
     'os',
     'pickle',
@@ -34,8 +31,7 @@ includes = [
     'sip',
     'sympy',
     'src',
-    'sys',
-    'urllib']
+    'sys']
 
 include_files = [
     'Resources'
@@ -54,6 +50,9 @@ if sys.platform == 'linux':
 excludes = [
     'concurrent',
     'curses',
+    'email',
+    'html',
+    'http',
     'IPython',
     'json'
     'jupyter',
@@ -68,7 +67,8 @@ excludes = [
     'py',
     'pydoc_data',
     'scipy',
-    'tkinter'
+    'tkinter',
+    'urllib',
     'xml'
 ]
 
@@ -116,23 +116,44 @@ if sys.platform == 'win32':
         for root, dirs, files in os.walk('build/exe.win-amd64-3.6'):
             for file in files:
                 zip.write(os.path.join(root, file))
+    with zipfile.ZipFile('build/ycircuit-' + branch + '_win64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
+        for root, dirs, files in os.walk('src'):
+            for file in files:
+                zip.write(os.path.join(root, file))
+        for root, dirs, files in os.walk('Resources'):
+            for file in files:
+                zip.write(os.path.join(root, file))
     if post is True:
         from subprocess import call
         call(['curl',
-            '-s',
-            '-u', 'siddharthshekar',
-            '-X', 'POST',
-            'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
-            '-F', 'files=@build/ycircuit-' + branch + '_win64.zip'])
+              '-s',
+              '-u', 'siddharthshekar',
+              '-X', 'POST',
+              'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
+              '-F', 'files=@build/ycircuit-' + branch + '_win64.zip',
+              '-F', 'files=@build/ycircuit-' + branch + '_win64_update.zip'])
 if sys.platform == 'linux':
-    import tarfile
-    with tarfile.open('build/ycircuit-' + branch + '_linux64.tar', 'w:gz') as tar:
-        tar.add('build/exe.linux-x86_64-3.5')
+    import zipfile
+    with zipfile.ZipFile('build/ycircuit-' + branch + '_linux64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
+        for root, dirs, files in os.walk('build/exe.linux-x86_64-3.5'):
+            for file in files:
+                zip.write(os.path.join(root, file))
+    with zipfile.ZipFile('build/ycircuit-' + branch + '_linux64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
+        for root, dirs, files in os.walk('src'):
+            for file in files:
+                zip.write(os.path.join(root, file))
+        for root, dirs, files in os.walk('Resources'):
+            for file in files:
+                zip.write(os.path.join(root, file))
+    # import tarfile
+    # with tarfile.open('build/ycircuit-' + branch + '_linux64.tar', 'w:gz') as tar:
+    #     tar.add('build/exe.linux-x86_64-3.5')
     if post is True:
         from subprocess import call
         call(['curl',
-            '-s',
-            '-u', 'siddharthshekar',
-            '-X', 'POST',
-            'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
-            '-F', 'files=@build/ycircuit-' + branch + '_linux64.tar'])
+              '-s',
+              '-u', 'siddharthshekar',
+              '-X', 'POST',
+              'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
+              '-F', 'files=@build/ycircuit-' + branch + '_linux64.zip',
+              '-F', 'files=@build/ycircuit-' + branch + '_linux64_update.zip'])

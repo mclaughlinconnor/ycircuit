@@ -3,11 +3,10 @@ sys.path.append('./Resources/icons/')
 from .drawingarea import DrawingArea
 from .components import TextBox
 from .drawingitems import myIconProvider
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork
 from .gui.ycircuit_mainWindow import Ui_MainWindow
-import os
-import glob
-import urllib.request
+import zipfile
+import os, distutils.dir_util
 
 
 class myMainWindow(QtWidgets.QMainWindow):
@@ -21,6 +20,9 @@ class myMainWindow(QtWidgets.QMainWindow):
 
         self.ui.drawingArea.mousePosLabel = QtWidgets.QLabel()
         self.ui.statusbar.addPermanentWidget(self.ui.drawingArea.mousePosLabel)
+        self.downloader = QtNetwork.QNetworkAccessManager()
+        if self.downloader.networkAccessible() == self.downloader.Accessible:
+            self.ui.action_updateYCircuit.setEnabled(True)
 
         # Connect actions to relevant slots
         # File menu
@@ -653,14 +655,27 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.listView_symbolPreview.setRootIndex(index)
 
     def updateYCircuit(self):
-        files = glob.glob('src/*.py')
-        files.extend(glob.glob('src/gui/*.py'))
-        files = [f.replace('\\', '/') for f in files]
-        newFiles = [f.replace('src', 'src2') for f in files]
-        url = 'https://bitbucket.org/siddharthshekar/ycircuit/raw/develop/'
-        os.mkdir('src2')
-        os.mkdir('src2/gui')
-        for i in range(len(files)):
-            print(files[i], newFiles[i])
-            urllib.request.urlretrieve(url + files[i], newFiles[i])
-        print(files)
+        if self.downloader.networkAccessible() != self.downloader.Accessible:
+            self.ui.statusbar.showMessage('Please make sure you are connected to the internet', 1000)
+            return
+        url = 'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads/'
+        if sys.platform == 'linux':
+            updateFile = 'ycircuit-develop_linux64_update.zip'
+        elif sys.platform == 'win32':
+            updateFile = 'ycircuit-develop_win64_update.zip'
+        url += updateFile
+        request = QtNetwork.QNetworkRequest(QtCore.QUrl(url))
+        data = self.downloader.get(request)
+        with open(updateFile, 'wb') as f:
+            while data.isRunning():
+                self.ui.statusbar.showMessage('Downloading update', 0)
+                QtCore.QCoreApplication.processEvents()
+            f.write(data.readAll())
+        with zipfile.ZipFile(updateFile, 'rb', zipfile.ZIP_DEFLATED) as zip:
+            if sys.platform == 'linux':
+                zip.extractall('lib/python3.5/')
+                distutils.dir_util.copy_tree('lib/python3.5/Resources', 'Resources')
+                distutils.dir_util.remove_tree('lib/python3.5/Resources')
+            elif sys.platform == 'win32':
+                zip.extractall('./')
+        self.ui.statusbar.showMessage('Update completed', 1000)
