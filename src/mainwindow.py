@@ -658,20 +658,36 @@ class myMainWindow(QtWidgets.QMainWindow):
         if self.downloader.networkAccessible() != self.downloader.Accessible:
             self.ui.statusbar.showMessage('Please make sure you are connected to the internet', 1000)
             return
-        url = 'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads/'
+        url = 'https://bitbucket.org/siddharthshekar/ycircuit/downloads/'
         if sys.platform == 'linux':
             updateFile = 'ycircuit-develop_linux64_update.zip'
         elif sys.platform == 'win32':
             updateFile = 'ycircuit-develop_win64_update.zip'
         url += updateFile
+        loop = QtCore.QEventLoop()
         request = QtNetwork.QNetworkRequest(QtCore.QUrl(url))
         data = self.downloader.get(request)
+        self.downloader.finished.connect(self.processDownloadedUpdate)
+        self.downloader.finished.connect(loop.exit)
+        self.ui.statusbar.showMessage('Downloading update', 0)
+        loop.exec_()
+
+    def processDownloadedUpdate(self, data):
+        statusCode = data.attribute(QtNetwork.QNetworkRequest.HttpStatusCodeAttribute)
+        print(statusCode)
+        if statusCode == 302:
+            url = data.attribute((QtNetwork.QNetworkRequest.RedirectionTargetAttribute))
+            print('Redirecting to', url)
+            request = QtNetwork.QNetworkRequest(url)
+            data = self.downloader.get(request)
+            return
+        if sys.platform == 'linux':
+            updateFile = 'ycircuit-develop_linux64_update.zip'
+        elif sys.platform == 'win32':
+            updateFile = 'ycircuit-develop_win64_update.zip'
         with open(updateFile, 'wb') as f:
-            while data.isRunning():
-                self.ui.statusbar.showMessage('Downloading update', 0)
-                QtCore.QCoreApplication.processEvents()
             f.write(data.readAll())
-        with zipfile.ZipFile(updateFile, 'rb', zipfile.ZIP_DEFLATED) as zip:
+        with zipfile.ZipFile(updateFile, 'r', zipfile.ZIP_DEFLATED) as zip:
             if sys.platform == 'linux':
                 zip.extractall('lib/python3.5/')
                 distutils.dir_util.copy_tree('lib/python3.5/Resources', 'Resources')
