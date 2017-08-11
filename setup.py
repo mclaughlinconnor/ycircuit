@@ -42,6 +42,8 @@ include_files = [
 if sys.platform == 'win32':
     include_files.append(sys.prefix + '/Library/plugins/imageformats')
     include_files.append(sys.prefix + '/Library/plugins/platforms')
+    include_files.append(sys.prefix + '/Library/bin/libeay32.dll')
+    include_files.append(sys.prefix + '/Library/bin/ssleay32.dll')
 if sys.platform == 'linux':
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/imageformats')
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/platforms')
