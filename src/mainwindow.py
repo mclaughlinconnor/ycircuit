@@ -699,3 +699,4 @@ class myMainWindow(QtWidgets.QMainWindow):
             elif sys.platform == 'win32':
                 zip.extractall('./')
         self.ui.statusbar.showMessage('Update completed', 1000)
+        self.downloader.disconnect()
