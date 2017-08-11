@@ -679,11 +679,17 @@ class myMainWindow(QtWidgets.QMainWindow):
     def processDownloadedUpdate(self, data):
         statusCode = data.attribute(QtNetwork.QNetworkRequest.HttpStatusCodeAttribute)
         print(statusCode)
+        # Handle redirects
         if statusCode == 302:
             url = data.attribute((QtNetwork.QNetworkRequest.RedirectionTargetAttribute))
             print('Redirecting to', url)
             request = QtNetwork.QNetworkRequest(url)
             data = self.downloader.get(request)
+            return
+        # Handle file not found error
+        elif statusCode == 404:
+            self.ui.statusbr.showMessage('Could not download the update', 1000)
+            print('Update could not be downloaded')
             return
         if sys.platform == 'linux':
             updateFile = 'ycircuit-develop_linux64_update.zip'
