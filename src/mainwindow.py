@@ -6,7 +6,7 @@ from .drawingitems import myIconProvider
 from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork
 from .gui.ycircuit_mainWindow import Ui_MainWindow
 import zipfile
-import os, distutils.dir_util
+import os
 import logging
 
 
@@ -729,12 +729,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             f.write(data.readAll())
         with zipfile.ZipFile(updateFile, 'r', zipfile.ZIP_DEFLATED) as zip:
             self.logger.info('Unzipping update files')
-            if sys.platform == 'linux':
-                zip.extractall('lib/python3.5/')
-                distutils.dir_util.copy_tree('lib/python3.5/Resources', 'Resources')
-                distutils.dir_util.remove_tree('lib/python3.5/Resources')
-            elif sys.platform == 'win32':
-                zip.extractall('./')
+            zip.extractall('./')
         self.ui.statusbar.showMessage('Update completed', 1000)
         self.logger.info('Update completed')
         self.downloader.disconnect()

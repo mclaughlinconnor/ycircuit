@@ -48,6 +48,7 @@ if sys.platform == 'linux':
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/imageformats')
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/platforms')
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/libQt5Svg.so.5')
+include_files.append('./LICENSE.txt')
 
 excludes = [
     'concurrent',
@@ -100,7 +101,7 @@ if os.path.isdir('build'):
     shutil.rmtree('build')
 
 setup(name='YCircuit',
-      version='0.1',
+      version='0.2',
       description='YCircuit',
       options=options,
       executables=executables
@@ -119,6 +120,7 @@ if sys.platform == 'win32':
             for file in files:
                 zip.write(os.path.join(root, file))
     with zipfile.ZipFile('build/ycircuit-' + branch + '_win64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
+        zip.write('build/exe.win-amd64-3.6/YCircuit.exe', 'YCircuit.exe')
         for root, dirs, files in os.walk('src'):
             for file in files:
                 zip.write(os.path.join(root, file))
@@ -141,9 +143,10 @@ if sys.platform == 'linux':
             for file in files:
                 zip.write(os.path.join(root, file))
     with zipfile.ZipFile('build/ycircuit-' + branch + '_linux64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
+        zip.write('build/exe.linux-x86_64-3.5/YCircuit', 'YCircuit')
         for root, dirs, files in os.walk('src'):
             for file in files:
-                zip.write(os.path.join(root, file))
+                zip.write(os.path.join(root, file), 'lib/python3.5/' + os.path.join(root, file))
         for root, dirs, files in os.walk('Resources'):
             for file in files:
                 zip.write(os.path.join(root, file))

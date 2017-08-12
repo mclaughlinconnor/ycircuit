@@ -6,6 +6,9 @@ from .optionswindow import MyOptionsWindow
 import pickle
 import os
 import glob
+import logging
+
+logger = logging.getLogger('YCircuit.drawingarea')
 
 # from src import components
 # import sys
@@ -87,11 +90,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.autobackupFile = QtCore.QTemporaryFile(autobackupFileNameTemplate)
             self.autobackupFile.open()
             self.autobackupFile.setAutoRemove(False)
+            logger.info('Creating autobackup file %s', self.autobackupFile.fileName())
         self.autobackupTimer.start()
 
     def applySettingsFromFile(self, fileName=None):
         # Load settings file
         settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
+        logger.info('Applying settings from file %s', fileName)
 
         # Font settings
         fontFamily = settings.value('Painting/Font/Family')
@@ -307,11 +312,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.escapeRoutine()
         else:
             selectedItems = self.scene().selectedItems()
+            logger.info('Starting autobackup')
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
         # Create list of items
         listOfItems = self.listOfItemsToSave(mode)
         # Return if no items are present
         if len(listOfItems) == 0:
+            logger.info('Nothing to save')
             return
         if mode in possibleModes:
             x = min([item.scenePos().x() for item in listOfItems])
@@ -336,6 +343,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 # Pressing escape sets selectOrigin to None
                 if self.selectOrigin is None:
                     return
+                logger.info('Setting origin for symbol at %s', origin)
 
             saveObject = myGraphicsItemGroup(None, origin, [])
             self.scene().addItem(saveObject)
@@ -344,6 +352,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
+                logger.info('Setting origin for item %s to %s', item, item.origin)
             saveObject.setItems(listOfItems)
 
             saveFile = ''
@@ -406,11 +415,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
             if saveFile[:-4] != '':
                 with open(saveFile, 'wb') as file:
+                    logger.info('Saving to file %s', saveFile)
                     pickle.dump(saveObject, file, -1)
                 # Delete old autobackup file
                 if mode != 'autobackup':
                     self.autobackupFile.close()
                     self.autobackupFile.remove()
+                    logger.info('Closing old autobackup file')
                 if mode == 'symbol' or mode == 'symbolAs':
                     self.symbolFileName = saveFile
                     self.schematicFileName = None
@@ -424,7 +435,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.autobackupFile.setAutoRemove(False)
                     with open(self.autobackupFile.fileName(), 'wb') as file:
                         pickle.dump(saveObject, file, -1)
+                    logger.info('New autobackup file created at %s', self.autobackupFile.fileName())
                     self.undoStack.setClean()
+                    logger.info('Setting undo stack to clean')
             # Always reparent items
             saveObject.reparentItems()
             self.scene().removeItem(saveObject)
@@ -438,11 +451,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
         created. This rect is then projected onto a QPixmap at a higher resolution to
         create the final image.
         """
+        logger.info('Beginning export')
         # Remove grid from the scene to avoid saving it
         self._grid.removeGrid()
         # Return if no items are present
         if len(self.scene().items()) == 0:
             self._grid.createGrid()
+            logger.info('Nothing to export')
             return
         # Deselect items before exporting
         selectedItems = self.scene().selectedItems()
@@ -475,6 +490,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Add the grid back to the scene
             self._grid.createGrid()
             return
+        logger.info('Exporting to file %s', saveFile)
         if saveFilter == 'pdf':
             mode = 'pdf'
         elif saveFilter == 'svg':
@@ -499,6 +515,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if padding > 1:
             sourceRect.translate(-width * (padding - 1) / (padding * 2.),
                                  -height * (padding - 1) / (padding * 2.))
+        logger.info('Source rectangle set to %s', sourceRect)
         if mode == 'pdf':
             # Initialize printer
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
@@ -510,6 +527,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
             self.scene().render(painter, source=sourceRect)
+            logger.info('Rendering SVG')
         elif mode == 'svg':
             svgGenerator = QtSvg.QSvgGenerator()
             svgGenerator.setFileName(saveFile)
@@ -518,6 +536,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
+            logger.info('Rendering PDF')
         elif mode == 'image':
             # Create an image object
             img = QtGui.QImage(
@@ -531,6 +550,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
             img.save(saveFile, saveFilter, quality=quality)
+            logger.info('Rendering PNG to target rectangle %s', targetRect)
 
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
@@ -539,6 +559,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
+        logger.info('Finishing export')
 
     def loadAutobackupRoutine(self, loadFile=None):
         # Ask if you would like to recover the autobackup
@@ -555,8 +576,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         msgBox.setIcon(msgBox.Information)
         ret = msgBox.exec_()
         if ret == msgBox.Yes:
+            logger.info('Loading autobackup file')
             return glob.glob(loadFile + '.*')[0]
         elif ret == msgBox.No:
+            logger.info('Loading selected file')
             return loadFile
 
     def loadRoutine(self, mode='symbol', loadFile=None):
@@ -568,6 +591,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if loadFile is not None:
             if os.path.isdir(loadFile):
                 return
+        logger.info('Beginning load routine')
         possibleModes = ['schematic', 'symbol', 'symbolModify']
         if mode in possibleModes:
             if loadFile is None:
@@ -593,6 +617,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if loadFile != '':
                 # Check to see if an autobackup file exists if the mode is
                 # schematic or symbolModify
+                logger.info('Loading file %s', loadFile)
                 if mode == 'schematic' or mode == 'symbolModify':
                     if glob.glob(loadFile + '.*') != []:
                         loadFile = self.loadAutobackupRoutine(loadFile)
@@ -615,6 +640,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if hasattr(self, 'autobackupFile'):
                     self.autobackupFile.close()
                     self.autobackupFile.remove()
+                    logger.info('Closing old autobackup file')
                 if mode == 'schematic':
                     self.schematicFileName = loadFile
                     self.autobackupFile = QtCore.QTemporaryFile(self.schematicFileName)
@@ -623,6 +649,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.autobackupFile = QtCore.QTemporaryFile(self.symbolFileName)
                 self.autobackupFile.open()
                 self.autobackupFile.setAutoRemove(False)
+                logger.info('Creating new autobackup file %s', self.autobackupFile.fileName())
                 # Clear the scene
                 self.scene().clear()
                 loadItem.__init__(
@@ -633,6 +660,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().addItem(loadItem)
                 # loadItem.loadItems(mode)
             elif mode == 'symbol':
+                logger.info('Loading item %s as a symbol', loadItem)
                 self.loadItem = loadItem
                 loadItem.__init__(
                     None,
@@ -647,6 +675,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().removeItem(loadItem)
                 self.fitToViewRoutine()
                 self.undoStack.clear()
+                logger.info('Clearing the undo stack')
                 # Run an autobackup once items are loaded completely
                 self.autobackupRoutine()
             elif mode == 'symbol':
@@ -668,9 +697,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.items = self.scene().items()
         # Capture focus
         self.setFocus(True)
+        logger.info('Load routine complete')
 
     def escapeRoutine(self):
         """Resets all variables to the default state"""
+        logger.info('Cancelling previous operation')
         # If mouse had been clicked
         if self._mouse['1'] is True:
             # Unclick mouse
@@ -798,8 +829,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Fit to (0, 0, 800, 800) if nothing is present
             rect = QtCore.QRectF(0, 0, 800, 800)
             self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+            logger.info('Set viewport to %s', rect)
         else:
             self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+            logger.info('Set viewport to %s', self.scene().itemsBoundingRect())
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
@@ -807,30 +840,35 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if self._grid.enableGrid is True:
             self._grid.createGrid()
             self.statusbarMessage.emit('The grid is now visible', 1000)
+            logger.info('Grid set to visible')
         else:
             self.setBackgroundBrush(QtGui.QBrush())
             self.statusbarMessage.emit('The grid is no longer visible', 1000)
+            logger.info('Grid set to invisible')
 
     def toggleSnapToGridRoutine(self, state):
         """Toggles drawings snapping to grid"""
         self._grid.snapToGrid = state
         if state is True:
             self.statusbarMessage.emit('Snap to grid is enabled', 1000)
+            logger.info('Snap to grid is enabled')
         else:
             self.statusbarMessage.emit('Snap to grid is disabled', 1000)
+            logger.info('Snap to grid is disabled')
 
     def changeSnapToGridSpacing(self, spacing):
         if spacing != self._grid.snapToGridSpacing:
             self._grid.snapToGridSpacing = spacing
-            self.statusbarMessage.emit('Snap to grid spacing changed to ' + str(spacing), 1000)
 
     def toggleMajorGridPointsRoutine(self, state):
         """Toggles major grid points on and off"""
         self._grid.majorSpacingVisibility = state
         if state is True:
             self.statusbarMessage.emit('Major grid points are now visible', 1000)
+            logger.info('Major grid points set to visible')
         else:
             self.statusbarMessage.emit('Major grid points are no longer visible', 1000)
+            logger.info('Major grid points set to invisible')
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
@@ -846,8 +884,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._grid.minorSpacingVisibility = state
         if state is True:
             self.statusbarMessage.emit('Minor grid points are now visible', 1000)
+            logger.info('Minor grid points set to visible')
         else:
             self.statusbarMessage.emit('Minor grid points are no longer visible', 1000)
+            logger.info('Minor grid points set to invisible')
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
@@ -1057,6 +1097,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if self._keys['c'] is True:
             # Check to make sure this is the first click
             if self._mouse['1'] is False:
+                logger.info('Creating copies of items %s', self.scene().selectedItems())
                 for item in self.scene().selectedItems():
                     item.createCopy()
                 # Save a copy locally so that items don't disappear
@@ -1077,6 +1118,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if (self._mouse['1'] is True):
                 self.statusbarMessage.emit('Left click to place item(s) (press ESC to cancel)', 0)
                 self.moveStartPoint = self.mapToGrid(event.pos())
+                logger.info('Beginning move from %s', self.moveStartPoint)
                 for i in self.moveItems:
                     i.moveTo(self.moveStartPoint, 'start')
                 # Create a macro and save all rotate/mirror commands
@@ -1099,6 +1141,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['c'] is True:
                     copy_ = Copy(None, self.scene(), self.moveItems, point=point)
                     self.undoStack.push(copy_)
+                    logger.info('Finishing copy')
                 else:
                     # Cancel the move and add the move to undo stack properly
                     for item in self.moveItems:
@@ -1110,6 +1153,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         startPoint=self.moveStartPoint,
                         stopPoint=point)
                     self.undoStack.push(move)
+                    logger.info('Finishing move')
                 # Evaluate if any new nets need to be split/merged
                 # if self._keys['c'] is False:
                 if True:
@@ -1183,6 +1227,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def updateMoveItems(self):
         """Simple function that generates a list of selected items"""
         self.moveItems = self.scene().selectedItems()
+        logger.debug('Updating move items list to %s', self.moveItems)
 
     def rotateRoutine(self, modifier=None):
         """Handles rotation and reflection of selected items"""
@@ -1252,8 +1297,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             self._mouse['1'] = False
                             self.currentWire.cancelSegment()
                             self.currentWire = None
+                        logger.info('End drawing wire')
                     # Create new wire if none exists
                     elif self.currentWire is None:
+                        logger.info('Begin drawing a wire at %s', start)
                         self.currentWire = Wire(
                             None,
                             start,
@@ -1271,6 +1318,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.statusbarMessage.emit('Left click to place the next vertex (press ESC to cancel)', 0)
                     # Create new arc if none exists
                     if self.currentArc is None:
+                        logger.info('Begin drawing arc')
                         self.currentArc = Arc(
                             None,
                             start,
@@ -1284,6 +1332,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         self.undoStack.push(add)
                     # If arc exists, add segments
                     else:
+                        logger.info('Setting arc point %d to %s', self.currentArc.clicks, start)
                         self.currentArc.updateArc(start, click=True)
                         if self.currentArc.clicks == self.currentArc.points:
                             self.currentArc = None
@@ -1298,6 +1347,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 start = self.mapToGrid(self.currentPos)
                 # Create new net if none exists
                 if self.currentNet is None:
+                    logger.info('Begin drawing net at %s', start)
                     self.currentNet = Net(
                         None,
                         start,
@@ -1341,6 +1391,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                 self.currentNet.perpLine.splitNets(netList, self.undoStack)
                         self.undoStack.endMacro()
                     self.currentNet = None
+                    logger.info('Finish drawing net')
             if event.button() == QtCore.Qt.RightButton:
                 if self.currentNet is not None:
                     self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
@@ -1355,6 +1406,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentRectangle is None:
+                    logger.info('Start drawing rectangle at %s', start)
                     self.currentRectangle = Rectangle(
                         None,
                         start=start,
@@ -1366,6 +1418,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     add = Add(None, self.scene(), self.currentRectangle)
                     self.undoStack.push(add)
             else:
+                logger.info('Finish drawing rectangle')
                 self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
                 self.currentRectangle = None
             for item in self.scene().selectedItems():
@@ -1379,6 +1432,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentCircle is None:
+                    logger.info('Start drawing circle at %s', start)
                     self.currentCircle = Circle(
                         None,
                         start=start,
@@ -1391,6 +1445,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentCircle)
             else:
+                logger.info('Finish drawing circle')
                 self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
                 self.currentCircle = None
             for item in self.scene().selectedItems():
@@ -1404,6 +1459,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentEllipse is None:
+                    logger.info('Start drawing ellipse at %s', start)
                     self.currentEllipse = Ellipse(
                         None,
                         start=start,
@@ -1416,6 +1472,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentEllipse)
             else:
+                logger.info('Finish drawing ellipse')
                 self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
                 self.currentEllipse = None
             for item in self.scene().selectedItems():
@@ -1427,6 +1484,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self._mouse['1'] is True:
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
+                logger.info('Draw text box at %s', start)
                 if self.currentTextBox is None:
                     self.currentTextBox = TextBox(
                         None,
@@ -1536,8 +1594,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         modifiers = QtWidgets.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ControlModifier:
             self.translate(0, -scaleFactor * 100)
+            logger.info('Move viewport in the Y direction by %d', -scaleFactor*100)
         elif modifiers == QtCore.Qt.ShiftModifier:
             self.translate(-scaleFactor * 100, 0)
+            logger.info('Move viewport in the X direction by %d', -scaleFactor*100)
         else:
             if scaleFactor < 0:
                 scaleFactor = -1 / scaleFactor
@@ -1547,11 +1607,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
             newPos = self.mapToScene(event.pos())
             delta = newPos - oldPos
             self.translate(delta.x(), delta.y())
+            logger.info('Viewport scaled by %.2f', scaleFactor)
 
     def editShape(self):
         # Only process this if edit mode is not already active
         if self._keys['edit'] is False:
             if len(self.scene().selectedItems()) == 1:
+                logger.info('Begin editing')
                 item = self.scene().selectedItems()[0]
                 cursor = self.cursor()
                 if isinstance(item, Circle):
