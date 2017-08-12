@@ -17,6 +17,9 @@ fh.setFormatter(formatter)
 
 logger.addHandler(fh)
 
+def logException(excType, value, traceback):
+    logger.critical('Uncaught exception', exc_info=(excType, value, traceback))
+
 if __name__ == "__main__":
     logger.info('YCircuit started on ' + sys.platform)
     if platform.system() == 'Windows':
@@ -34,5 +37,6 @@ if __name__ == "__main__":
     form = myMainWindow()
     form.showMaximized()
     form.ui.drawingArea.fitToViewRoutine()
+    sys.excepthook = logException
     app.exec_()
     logger.info('YCircuit closed normally\n')
