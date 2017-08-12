@@ -715,16 +715,21 @@ class myMainWindow(QtWidgets.QMainWindow):
             return
         # Handle file not found error
         elif statusCode == 404:
-            self.ui.statusbr.showMessage('Could not download the update', 1000)
+            self.ui.statusbar.showMessage('Could not download the update', 1000)
             self.logger.info('Could not download the update')
             print('Update could not be downloaded')
+            self.downloader.disconnect()
             return
         self.ui.statusbar.showMessage('Installing update', 0)
         self.logger.info('Installing update')
         if sys.platform == 'linux':
             updateFile = 'ycircuit-develop_linux64_update.zip'
+            self.logger.info('Renaming current executable to YCircuit_old')
+            os.replace('./YCircuit', './YCircuit_old')
         elif sys.platform == 'win32':
             updateFile = 'ycircuit-develop_win64_update.zip'
+            self.logger.info('Renaming current executable to YCircuit_old.exe')
+            os.replace('./YCircuit.exe', './YCircuit_old.exe')
         with open(updateFile, 'wb') as f:
             f.write(data.readAll())
         with zipfile.ZipFile(updateFile, 'r', zipfile.ZIP_DEFLATED) as zip:
