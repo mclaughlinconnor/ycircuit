@@ -42,7 +42,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Change the formatting style to bold</string>
+          <string>Change the formatting style to bold (Ctrl+B)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -88,7 +88,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Change the formatting style to italic</string>
+          <string>Change the formatting style to italic (Ctrl+I)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -131,7 +131,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Add an underline to the text</string>
+          <string>Add an underline to the text (Ctrl+U)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -174,7 +174,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Add an overline to the text</string>
+          <string>Add an overline to the text (Ctrl+O)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -217,7 +217,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Change the formatting style to subscript</string>
+          <string>Change the formatting style to subscript (Ctrl+-)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -259,7 +259,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Change the formatting style to superscript</string>
+          <string>Change the formatting style to superscript (Ctrl++)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -301,7 +301,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Change the font to symbol</string>
+          <string>Change the font to symbol (Ctrl+S)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">font: 11pt &quot;Symbol&quot;;</string>
@@ -341,7 +341,7 @@
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Insert LaTeX equations</string>
+          <string>Insert LaTeX equations (Ctrl+L)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {

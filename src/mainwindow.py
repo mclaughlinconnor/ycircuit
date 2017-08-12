@@ -691,6 +691,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.statusbr.showMessage('Could not download the update', 1000)
             print('Update could not be downloaded')
             return
+        self.ui.statusbar.showMessage('Installing update', 0)
         if sys.platform == 'linux':
             updateFile = 'ycircuit-develop_linux64_update.zip'
         elif sys.platform == 'win32':
