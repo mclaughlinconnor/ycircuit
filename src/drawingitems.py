@@ -4,11 +4,13 @@ import pickle
 import sympy
 from io import BytesIO
 from distutils.spawn import find_executable
+import logging
+
+logger = logging.getLogger('YCircuit.drawingitems')
 
 
 class Grid(QtCore.QObject):
     """temp docstring for the Gridclass"""
-
     def __init__(self,
                  parent=None,
                  view=None,
@@ -63,7 +65,6 @@ class Grid(QtCore.QObject):
         painter.drawPoints(self.gridPolygonLarge)
         painter.end()
         self.view.setBackgroundBrush(QtGui.QBrush(pix))
-
 
     def removeGrid(self):
         self.view.setBackgroundBrush(QtGui.QBrush())
@@ -136,10 +137,13 @@ class TextEditor(QtWidgets.QDialog):
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
                 self.textBox.setHtml(htmlString)
+                logger.info('Set latex expression for %s to %s', self.textBox, self.textBox.latexExpression)
             else:
                 self.textBox.setHtml(self.ui.textEdit.toHtml())
+                logger.info('Set HTML for %s to %s', self.textBox, self.textBox.toHtml())
         else:
             self.textBox.setHtml(self.ui.textEdit.toHtml())
+            logger.info('Set HTML for %s to %s', self.textBox, self.textBox.toHtml())
             self.textBox.latexImageHtml = None
             self.textBox.latexExpression = None
             self.textBox.latexImageBinary = None
@@ -285,8 +289,10 @@ class TextEditor(QtWidgets.QDialog):
         fg = 'rgb ' + str(r) + ' ' + str(g) + ' ' + str(b)
         try:
             sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
+            logger.info('Generating latex expression %s', mathTex)
         except RuntimeError:
             self.ui.pushButton_latex.setChecked(False)
+            logger.info('Latex installation not detected (Sympy raised RuntimeError)')
             return None, None
 
         img = QtGui.QImage()

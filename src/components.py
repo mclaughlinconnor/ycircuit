@@ -2,6 +2,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import math
 import pickle
 from src.drawingitems import TextEditor
+import logging
+
+logger = logging.getLogger('YCircuit.components')
 
 
 class drawingElement(object):
@@ -693,6 +696,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         else:
             self.rightAngleMode = 'top'
         self.updateNet(newEnd)
+        logger.info('Changed right angle to %s', self.rightAngleMode)
 
     def mergeNets(self, netList, undoStack):
         # Had to do the import here to avoid circular imports
@@ -727,11 +731,13 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         p1 = self.mapFromScene(QtCore.QPointF(sortedXList[0], y11))
                         p2 = self.mapFromScene(QtCore.QPointF(sortedXList[3], y11))
                     elif x21 >= x11 and x22 <= x12:
+                        logger.info('Merging net %s into net %s', net, self)
                         scene = net.scene()
                         del1 = Delete(None, scene, [net])
                         undoStack.push(del1)
                         mergedNet = self
                     elif x21 < x11 and x22 > x12:
+                        logger.info('Merging net %s into net %s', self, net)
                         scene = self.scene()
                         del1 = Delete(None, scene, [self])
                         undoStack.push(del1)
@@ -741,16 +747,19 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         p1 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[0]))
                         p2 = self.mapFromScene(QtCore.QPointF(x11, sortedYList[3]))
                     elif y21 >= y11 and y22 <= y12:
+                        logger.info('Merging net %s into net %s', net, self)
                         scene = net.scene()
                         del1 = Delete(None, scene, [net])
                         undoStack.push(del1)
                         mergedNet = self
                     elif y21 < y11 and y22 > y12:
+                        logger.info('Merging net %s into net %s', self, net)
                         scene = self.scene()
                         del1 = Delete(None, scene, [self])
                         undoStack.push(del1)
                         mergedNet = net
                 if p1 is not None:
+                    logger.info('Merging nets %s and %s into %s', net, self, self)
                     scene = self.scene()
                     oldLine = self.line()
                     newLine = QtCore.QLineF(p1, p2)
@@ -823,6 +832,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         newNet2Line.setP1(net.mapFromItem(self, self.line().p1()))
                         newNet1.setLine(newNet1Line)
                         newNet2.setLine(newNet2Line)
+                        logger.info('Splitting net %s into nets %s and %s', net, newNet1, newNet2)
                         add = Add(None, scene, newNet1)
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
@@ -843,6 +853,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         newNet2Line.setP1(net.mapFromItem(self, self.line().p2()))
                         newNet1.setLine(newNet1Line)
                         newNet2.setLine(newNet2Line)
+                        logger.info('Splitting net %s into nets %s and %s', net, newNet1, newNet2)
                         add = Add(None, scene, newNet1)
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
@@ -863,6 +874,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         newNet2Line.setP1(self.mapFromItem(net, net.line().p1()))
                         newNet1.setLine(newNet1Line)
                         newNet2.setLine(newNet2Line)
+                        logger.info('Splitting net %s into nets %s and %s', self, newNet1, newNet2)
                         add = Add(None, scene, newNet1)
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
@@ -883,6 +895,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         newNet2Line.setP1(self.mapFromItem(net, net.line().p2()))
                         newNet1.setLine(newNet1Line)
                         newNet2.setLine(newNet2Line)
+                        logger.info('Splitting net %s into nets %s and %s', self, newNet1, newNet2)
                         add = Add(None, scene, newNet1)
                         undoStack.push(add)
                         add = Add(None, scene, newNet2)
@@ -897,11 +910,12 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         for item in allDots:
                             existingDotPos = item.scenePos()
                             # The dot's scenePos is slightly to the left of actual center
-                            existingDotPos += QtCore.QPointF(5, 0)
+                            existingDotPos += QtCore.QPointF(4, 0)
                             if dotPos == item.scenePos():
                                 dotExists = True
                                 break
                         if dotExists is False:
+                            logger.info('Adding dot at %s', dotPos)
                             with open('Resources/Symbols/Standard/Dot.sym', 'rb') as f:
                                 dot1 = pickle.load(f)
                                 dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
@@ -1043,7 +1057,6 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
 
 class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
     """Class responsible for drawing elliptical objects"""
-
     def __init__(self, parent=None, start=None, **kwargs):
         point = QtCore.QPointF(0, 0)
         rect = QtCore.QRectF(point, point)
@@ -1161,7 +1174,6 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
 
 class Circle(Ellipse):
     """This is a special case of the Ellipse class where a = b."""
-
     def __init__(self, parent=None, start=None, **kwargs):
         super().__init__(parent, start, **kwargs)
 
@@ -1226,7 +1238,6 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
     TODO: Fix size issues with rendered LaTeX images
     TODO: Grey out LaTeX images on mouse hover
     """
-
     def __init__(self, parent=None, start=None, text='', **kwargs):
         point = QtCore.QPointF(0, 0)
         # For some reason, checking hasattr(self, 'origin')
@@ -1445,7 +1456,6 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 class Arc(Wire):
     """This is a special case of the Wire class where repeated clicks change the curvature
     of the wire."""
-
     def __init__(self, parent=None, start=None, **kwargs):
         super().__init__(parent=parent, start=start, **kwargs)
         if 'points' in kwargs:
