@@ -497,7 +497,15 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <widget class="QMenu" name="menu_tutorials">
+     <property name="title">
+      <string>Tutorials</string>
+     </property>
+     <addaction name="action_tutorialInverterSchematic"/>
+     <addaction name="action_tutorialCustomSymbols"/>
+    </widget>
     <addaction name="action_updateYCircuit"/>
+    <addaction name="menu_tutorials"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -1782,6 +1790,22 @@
    </property>
    <property name="toolTip">
     <string>Update YCircuit to the latest version</string>
+   </property>
+  </action>
+  <action name="action_tutorialInverterSchematic">
+   <property name="text">
+    <string>Inverter schematic</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a tutorial for creating a schematic in the web browser</string>
+   </property>
+  </action>
+  <action name="action_tutorialCustomSymbols">
+   <property name="text">
+    <string>Custom symbols</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a tutorial for creating custom symbols in the web browser</string>
    </property>
   </action>
  </widget>

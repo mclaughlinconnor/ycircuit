@@ -272,9 +272,17 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_addCCCS.triggered.connect(
             lambda x: self.ui.drawingArea.addSource('CCCS'))
 
-        # About menu
+        # Help menu
         self.ui.action_updateYCircuit.triggered.connect(
             self.updateYCircuit)
+        self.ui.action_tutorialInverterSchematic.triggered.connect(
+            lambda x: QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl(
+                'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/1/tutorial1.html')))
+        self.ui.action_tutorialCustomSymbols.triggered.connect(
+            lambda x: QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl(
+                'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/2/tutorial2.html')))
 
         # Miscellaneous signal and slot connections
         self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)
