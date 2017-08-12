@@ -5,9 +5,20 @@ import sip
 import sys
 from PyQt5 import QtCore, QtWidgets
 from src.mainwindow import myMainWindow
+import logging, logging.handlers
 
+
+logger = logging.getLogger('YCircuit')
+logger.setLevel(logging.INFO)
+
+fh = logging.handlers.RotatingFileHandler('YCircuit.log', maxBytes=1000000, backupCount=1)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+
+logger.addHandler(fh)
 
 if __name__ == "__main__":
+    logger.info('YCircuit started on ' + sys.platform)
     if platform.system() == 'Windows':
         sip.setdestroyonexit(False)
         myappid = u'ycircuit.0.1'
@@ -24,3 +35,4 @@ if __name__ == "__main__":
     form.showMaximized()
     form.ui.drawingArea.fitToViewRoutine()
     app.exec_()
+    logger.info('YCircuit closed normally\n')
