@@ -1,7 +1,7 @@
 import sys
 sys.path.append('./Resources/icons/')
 from .drawingarea import DrawingArea
-from .components import TextBox
+from .components import TextBox, myGraphicsItemGroup
 from .drawingitems import myIconProvider
 from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork
 from .gui.ycircuit_mainWindow import Ui_MainWindow
