@@ -56,7 +56,7 @@ class drawingElement(object):
         # Necessary for objects with modified bounding rects
         # self.prepareGeometryChange()
         if 'pen' in kwargs:
-            self.localPen = kwargs['pen']
+            self.localPen = QtGui.QPen(kwargs['pen'])
             self.localPenWidth = self.localPen.width()
             self.localPenColour = self.localPen.color()
             self.localPenStyle = self.localPen.style()
@@ -84,7 +84,7 @@ class drawingElement(object):
         # Necessary for objects with modified bounding rects
         self.prepareGeometryChange()
         if 'brush' in kwargs:
-            self.localBrush = kwargs['brush']
+            self.localBrush = QtGui.QBrush(kwargs['brush'])
             self.localBrushColour = self.localBrush.color()
             self.localBrushStyle = self.localBrush.style()
         if 'brushColour' in kwargs:
