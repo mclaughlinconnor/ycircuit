@@ -119,6 +119,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.action_setWidth_triggered(8))
         self.ui.action_setWidth10.triggered.connect(
             lambda x: self.action_setWidth_triggered(10))
+        self.ui.action_setWidthCustom.triggered.connect(
+            lambda x: self.action_setWidth_triggered('custom'))
 
         self.ui.action_setPenColourBlack.triggered.connect(
             lambda x: self.action_setPenColour_triggered('black'))
@@ -331,11 +333,13 @@ class myMainWindow(QtWidgets.QMainWindow):
             ret = msgBox.exec_()
             if ret == msgBox.Save:
                 self.ui.drawingArea.saveRoutine(modified)
+                self.logger.info('Deleting autobackup file %s', self.ui.drawingArea.autobackupFile.fileName())
                 self.ui.drawingArea.autobackupFile.close()
                 self.ui.drawingArea.autobackupFile.remove()
                 self.logger.info('Closing with changes saved as %s', modified)
                 event.accept()
             elif ret == msgBox.Discard:
+                self.logger.info('Deleting autobackup file %s', self.ui.drawingArea.autobackupFile.fileName())
                 self.ui.drawingArea.autobackupFile.close()
                 self.ui.drawingArea.autobackupFile.remove()
                 self.logger.info('Closing with unsaved changes')
@@ -434,6 +438,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setWidth6.setChecked(False)
         self.ui.action_setWidth8.setChecked(False)
         self.ui.action_setWidth10.setChecked(False)
+        self.ui.action_setWidthCustom.setChecked(False)
         if width == 2:
             self.ui.action_setWidth2.setChecked(True)
         if width == 4:
@@ -444,6 +449,24 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_setWidth8.setChecked(True)
         if width == 10:
             self.ui.action_setWidth10.setChecked(True)
+        if width == 'custom':
+            selectedItems = self.ui.drawingArea.scene().selectedItems()
+            oldWidth = self.ui.drawingArea.selectedWidth
+            if len(selectedItems) == 1:
+                item = selectedItems[0]
+                if not isinstance(item, myGraphicsItemGroup):
+                    if not isinstance(item, TextBox):
+                        oldWidth = item.localPenWidth
+            width, accept = QtWidgets.QInputDialog.getInt(
+                self,
+                'Set custom pen width',
+                'Width',
+                oldWidth,
+                1,
+                100)
+            if accept is False:
+                return
+            self.ui.action_setWidthCustom.setChecked(True)
         if temporary is False:
             self.logger.info('Set pen width to %d', width)
             self.ui.drawingArea.changeWidthRoutine(width)
