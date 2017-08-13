@@ -19,4 +19,24 @@
     <file>object-flip-horizontal.svg</file>
     <file>object-rotate-right.svg</file>
   </qresource>
+  <qresource prefix="penStyle">
+    <file>penStyle_solid.svg</file>
+    <file>penStyle_dash.svg</file>
+    <file>penStyle_dashDot.svg</file>
+    <file>penStyle_dashDotDot.svg</file>
+    <file>penStyle_dot.svg</file>
+  </qresource>
+  <qresource prefix="brushStyle">
+    <file>brushStyle_noFill.svg</file>
+    <file>brushStyle_solid.svg</file>
+  </qresource>
+  <qresource prefix="colours">
+    <file>colour_blue.svg</file>
+    <file>colour_cyan.svg</file>
+    <file>colour_green.svg</file>
+    <file>colour_magenta.svg</file>
+    <file>colour_red.svg</file>
+    <file>colour_yellow.svg</file>
+    <file>colour_black.svg</file>
+  </qresource>
 </RCC>

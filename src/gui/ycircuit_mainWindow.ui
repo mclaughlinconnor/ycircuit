@@ -91,7 +91,7 @@
         <property name="placeholderText">
          <string>Filter (Ctrl+F)...</string>
         </property>
-        <property name="clearButtonEnabled">
+        <property name="clearButtonEnabled" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -137,14 +137,14 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <addaction name="action_newSchematic"/>
@@ -166,7 +166,7 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_setPenWidth">
@@ -176,7 +176,7 @@
      <property name="title">
       <string>&amp;Width</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setWidth2"/>
@@ -194,7 +194,7 @@
      <property name="title">
       <string>&amp;Colour</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenColourBlack"/>
@@ -214,7 +214,7 @@
      <property name="title">
       <string>&amp;Pen style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenStyleSolid"/>
@@ -230,7 +230,7 @@
      <property name="title">
       <string>Fill colour</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushColourBlack"/>
@@ -250,7 +250,7 @@
      <property name="title">
       <string>Fill style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushStyleNone"/>
@@ -263,7 +263,7 @@
      <property name="title">
       <string>Height</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_heightBringForward"/>
@@ -304,7 +304,7 @@
     <property name="title">
      <string>&amp;Symbol</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Transistor">
@@ -314,7 +314,7 @@
      <property name="title">
       <string>&amp;Transistor</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_N_type_MOSFET">
@@ -324,7 +324,7 @@
       <property name="title">
        <string>&amp;N-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addNMOSWithArrow"/>
@@ -337,7 +337,7 @@
       <property name="title">
        <string>&amp;P-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addPMOSWithArrow"/>
@@ -355,7 +355,7 @@
      <property name="title">
       <string>&amp;Sources</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_DC">
@@ -365,7 +365,7 @@
       <property name="title">
        <string>&amp;DC</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addDCVoltageSource"/>
@@ -378,7 +378,7 @@
       <property name="title">
        <string>&amp;Controlled</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addVCVS"/>
@@ -402,7 +402,7 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menuMajor_grid_point_spacing">
@@ -412,7 +412,7 @@
      <property name="title">
       <string>Major grid point spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_majorGridPointSpacing100"/>
@@ -427,7 +427,7 @@
      <property name="title">
       <string>Minor grid point spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_minorGridPointSpacing1"/>
@@ -445,7 +445,7 @@
      <property name="title">
       <string>Snap to grid spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_snapToGridSpacing1"/>
@@ -471,7 +471,7 @@
     <property name="title">
      <string>Sh&amp;ape</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Arc">
@@ -481,7 +481,7 @@
      <property name="title">
       <string>&amp;Arc</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_addArc3Point"/>
@@ -493,6 +493,7 @@
     <addaction name="action_addCircle"/>
     <addaction name="action_addEllipse"/>
     <addaction name="action_addTextBox"/>
+    <addaction name="separator"/>
     <addaction name="action_editShape"/>
    </widget>
    <widget class="QMenu" name="menu_help">
@@ -822,6 +823,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_red.svg</normaloff>:/colours/colour_red.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Red</string>
    </property>
@@ -833,6 +838,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_blue.svg</normaloff>:/colours/colour_blue.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Blue</string>
    </property>
@@ -843,6 +852,10 @@
   <action name="action_setPenColourGreen">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_green.svg</normaloff>:/colours/colour_green.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Green</string>
@@ -858,6 +871,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_black.svg</normaloff>:/colours/colour_black.svg</iconset>
+   </property>
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
@@ -872,6 +889,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_solid.svg</normaloff>:/penStyle/penStyle_solid.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Solid</string>
    </property>
@@ -882,6 +903,10 @@
   <action name="action_setPenStyleDash">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dash.svg</normaloff>:/penStyle/penStyle_dash.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Dash</string>
@@ -894,6 +919,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dot.svg</normaloff>:/penStyle/penStyle_dot.svg</iconset>
+   </property>
    <property name="text">
     <string>Do&amp;t</string>
    </property>
@@ -905,6 +934,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dashDot.svg</normaloff>:/penStyle/penStyle_dashDot.svg</iconset>
+   </property>
    <property name="text">
     <string>D&amp;ash-Dot</string>
    </property>
@@ -915,6 +948,10 @@
   <action name="action_setPenStyleDashDotDot">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dashDotDot.svg</normaloff>:/penStyle/penStyle_dashDotDot.svg</iconset>
    </property>
    <property name="text">
     <string>Dash-dot-dot</string>
@@ -946,6 +983,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_black.svg</normaloff>:/colours/colour_black.svg</iconset>
+   </property>
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
@@ -956,6 +997,10 @@
   <action name="action_setBrushColourRed">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_red.svg</normaloff>:/colours/colour_red.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Red</string>
@@ -968,6 +1013,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_blue.svg</normaloff>:/colours/colour_blue.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Blue</string>
    </property>
@@ -978,6 +1027,10 @@
   <action name="action_setBrushColourGreen">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_green.svg</normaloff>:/colours/colour_green.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Green</string>
@@ -993,6 +1046,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/brushStyle/brushStyle_noFill.svg</normaloff>:/brushStyle/brushStyle_noFill.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;No fill</string>
    </property>
@@ -1003,6 +1060,10 @@
   <action name="action_setBrushStyleSolid">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/brushStyle/brushStyle_solid.svg</normaloff>:/brushStyle/brushStyle_solid.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Solid</string>
@@ -1196,6 +1257,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_cyan.svg</normaloff>:/colours/colour_cyan.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Cyan</string>
    </property>
@@ -1206,6 +1271,10 @@
   <action name="action_setPenColourMagenta">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_magenta.svg</normaloff>:/colours/colour_magenta.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Magenta</string>
@@ -1218,6 +1287,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_yellow.svg</normaloff>:/colours/colour_yellow.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Yellow</string>
    </property>
@@ -1228,6 +1301,10 @@
   <action name="action_setBrushColourCyan">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_cyan.svg</normaloff>:/colours/colour_cyan.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Cyan</string>
@@ -1240,6 +1317,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_magenta.svg</normaloff>:/colours/colour_magenta.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Magenta</string>
    </property>
@@ -1250,6 +1331,10 @@
   <action name="action_setBrushColourYellow">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_yellow.svg</normaloff>:/colours/colour_yellow.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Yellow</string>
