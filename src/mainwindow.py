@@ -355,6 +355,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             msgBox.setStandardButtons(msgBox.Ok)
             msgBox.exec_()
             return
+        self.form = myMainWindow()
         self.form.showMaximized()
         self.form.ui.drawingArea.fitToViewRoutine()
 
