@@ -1922,7 +1922,7 @@
     <string>Paste</string>
    </property>
    <property name="toolTip">
-    <string>Paste copied items from the clipboard</string>
+    <string>Paste copied item(s) from the clipboard</string>
    </property>
    <property name="shortcut">
     <string>V</string>

@@ -1013,7 +1013,7 @@ class Ui_MainWindow(object):
         self.action_scale.setText(_translate("MainWindow", "Scale"))
         self.action_scale.setToolTip(_translate("MainWindow", "Change the scale of the selected item(s)"))
         self.action_paste.setText(_translate("MainWindow", "Paste"))
-        self.action_paste.setToolTip(_translate("MainWindow", "Paste copied items from the clipboard"))
+        self.action_paste.setToolTip(_translate("MainWindow", "Paste copied item(s) from the clipboard"))
         self.action_paste.setShortcut(_translate("MainWindow", "V"))
 
 from src.drawingarea import DrawingArea
