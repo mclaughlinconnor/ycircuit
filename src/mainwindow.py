@@ -349,7 +349,13 @@ class myMainWindow(QtWidgets.QMainWindow):
 
     def action_newSchematic_triggered(self):
         self.logger.info('Creating a new window')
-        self.form = myMainWindow()
+        if self.ui.drawingArea.schematicFileName is None and self.ui.drawingArea.symbolFileName is None:
+            msgBox = QtWidgets.QMessageBox(self)
+            msgBox.setText("Please save the current window with a new name first")
+            msgBox.setStandardButtons(msgBox.Ok)
+            msgBox.exec_()
+            return
+        self.form = myMainWindow(clipboard=self.clipboard)
         self.form.showMaximized()
         self.form.ui.drawingArea.fitToViewRoutine()
 
