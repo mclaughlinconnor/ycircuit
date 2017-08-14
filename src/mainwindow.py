@@ -11,7 +11,7 @@ import logging
 
 
 class myMainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, clipboard=None):
         self.logger = logging.getLogger('YCircuit.MainWindow')
         self.logger.info('Creating a new schematic window')
 
@@ -29,6 +29,9 @@ class myMainWindow(QtWidgets.QMainWindow):
         if self.downloader.networkAccessible() != self.downloader.NotAccessible:
             self.ui.action_updateYCircuit.setEnabled(True)
         self.logger.info('Accessibility reported to be %d', self.downloader.networkAccessible())
+        if clipboard is not None:
+            self.clipboard = clipboard
+            self.ui.drawingArea.clipboard = clipboard
 
         # Connect actions to relevant slots
         # File menu
@@ -77,18 +80,14 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(
             self.ui.drawingArea.copyRoutine)
+        self.ui.action_paste.triggered.connect(
+            self.ui.drawingArea.pasteRoutine)
         # Add Delete key to shortcuts for deleting
         del_ = [QtGui.QKeySequence('Del')]
         del_.append(self.ui.action_delete.shortcut())
         self.ui.action_delete.setShortcuts(del_)
         self.ui.action_delete.triggered.connect(
             self.ui.drawingArea.deleteRoutine)
-        self.ui.drawingArea.resetToolbarButtons.connect(
-            lambda: self.ui.action_move.setChecked(False))
-        self.ui.drawingArea.resetToolbarButtons.connect(
-            lambda: self.ui.action_copy.setChecked(False))
-        self.ui.drawingArea.resetToolbarButtons.connect(
-            lambda: self.ui.action_delete.setChecked(False))
         self.ui.action_pickFont.triggered.connect(
             self.action_pickFont_triggered)
         self.ui.action_options.triggered.connect(
@@ -355,7 +354,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             msgBox.setStandardButtons(msgBox.Ok)
             msgBox.exec_()
             return
-        self.form = myMainWindow()
+        self.form = myMainWindow(self.clipboard)
         self.form.showMaximized()
         self.form.ui.drawingArea.fitToViewRoutine()
 

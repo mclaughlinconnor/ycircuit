@@ -34,7 +34,7 @@ if __name__ == "__main__":
     QtCore.QCoreApplication.setOrganizationName('YCircuit')
     QtCore.QCoreApplication.setApplicationName('YCircuit')
     app = QtWidgets.QApplication(sys.argv)
-    form = myMainWindow()
+    form = myMainWindow(clipboard=app.clipboard())
     form.showMaximized()
     form.ui.drawingArea.fitToViewRoutine()
     sys.excepthook = logException

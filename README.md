@@ -53,6 +53,7 @@ As of this point in time, the following options are available:
     * Delete (D)
     * Move (M)
     * Copy (C)
+    * Paste copied items from the clipboard (V)
     * Rotate (R)
     * Mirror (Shift+R)
     * Change font (Alt+E->F)
@@ -129,7 +130,7 @@ This is an (incomplete) list of features that I would like to add at some point 
 
   * ~Edit shapes (click and drag to resize rect, for example)~
   * Create projects each with their own config file.
-  * Copying items in one schematic should allow pasting on to another open schematic
+  * ~Copying items in one schematic should allow pasting on to another open schematic~
   * Scale items while keeping their pen width the same.
 
 ## Feedback ##

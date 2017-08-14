@@ -387,9 +387,9 @@ class Group(QtWidgets.QUndoCommand):
         x = min([item.scenePos().x() for item in self.listOfItems])
         y = min([item.scenePos().y() for item in self.listOfItems])
         self.origin = QtCore.QPointF(x, y)
+        self.item = myGraphicsItemGroup(None, self.origin, [])
 
     def redo(self):
-        self.item = myGraphicsItemGroup(None, self.origin, [])
         self.scene.addItem(self.item)
         self.item.origin = self.origin
         # Set relative origins of child items
@@ -426,7 +426,6 @@ class Ungroup(QtWidgets.QUndoCommand):
         logger.info('Destroying group %s containing %s', self.item, self.listOfItems)
 
     def undo(self):
-        self.item = myGraphicsItemGroup(None, self.origin, [])
         self.scene.addItem(self.item)
         self.item.origin = self.origin
         # Set relative origins of child items

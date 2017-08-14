@@ -22,7 +22,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
     """
 
     statusbarMessage = QtCore.pyqtSignal(str, int)
-    resetToolbarButtons = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """Initializes the object and various parameters to default values"""
@@ -37,6 +36,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             'c': False,
             'm': False,
             'r': False,
+            'v': False,
             'w': False,
             'arc': False,
             'rectangle': False,
@@ -582,7 +582,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             logger.info('Loading selected file')
             return loadFile
 
-    def loadRoutine(self, mode='symbol', loadFile=None):
+    def loadRoutine(self, mode='symbol', loadFile=None, loadItem=None):
         """This is the counterpart of the save routine. Used to load both schematics
         and symbols.
         """
@@ -630,7 +630,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     if glob.glob(loadFile + '.*') != []:
                         # Remove the old autobackup file
                         os.remove(glob.glob(loadFile + '.*')[0])
-            else:
+            elif loadItem is None:
                 return False
             if mode == 'schematic' or mode == 'symbolModify':
                 self.schematicFileName = None
@@ -711,7 +711,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.endMacro()
                 # The failed move command still exists in the stack. Not sure how to remove it
                 self.undoStack.undo()
-                self.resetToolbarButtons.emit()
                 # Undo reflection command if items were being moved
                 # if self.reflections == 1:
                 #     self.rotateRoutine(QtCore.Qt.ShiftModifier)
@@ -730,7 +729,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self._keys['c'] is True:
                 for item in self.scene().selectedItems():
                     self.scene().removeItem(item)
-                self.resetToolbarButtons.emit()
             # Remove last wire being drawn
             if self._keys['w'] is True:
                 # self.scene().removeItem(self.currentWire)
@@ -798,15 +796,52 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.updateMoveItems()
         # self.statusbarMessage.emit("Copy (Press ESC to cancel)", 0)
         if self.moveItems == []:
-            self.statusbarMessage.emit(
-                'Select items to copy, then left click to pick the origin for the copy (Press ESC to cancel)',
-                0)
+            self.statusbarMessage.emit('Please select items to copy first', 1000)
+            self.escapeRoutine()
         else:
             self.statusbarMessage.emit("Left click to pick the origin for the copy (Press ESC to cancel)", 0)
+            self.copyItemsToClipboard(self.scene().selectedItems())
+
+    def pasteRoutine(self):
+        """Paste items from the clipboard"""
+        self.escapeRoutine()
+        self._keys['v'] = True
+        try:
+            loadItem = pickle.loads(self.clipboard.mimeData().data('YCircuit'))
+            self.loadRoutine(mode='symbol', loadFile='', loadItem=loadItem)
+        except:
+            self._keys['v'] = False
+            self.statusbarMessage.emit('Nothing to paste', 1000)
+
+    def copyItemsToClipboard(self, copiedItems):
+        """Copy items to the clipboard"""
+        listOfItems = []
+        for item in copiedItems:
+            listOfItems.append(item.createCopy())
+            item.setSelected(False)
+        x = min([item.scenePos().x() for item in listOfItems])
+        y = min([item.scenePos().y() for item in listOfItems])
+        origin = QtCore.QPointF(x, y)
+        saveObject = myGraphicsItemGroup(None, origin, [])
+        # self.scene().addItem(saveObject)
+        saveObject.origin = origin
+        # Set relative origins of child items
+        for item in listOfItems:
+            item.origin = item.pos() - saveObject.origin
+            logger.info('Setting origin for item %s to %s', item, item.origin)
+            self.scene().removeItem(item)
+        saveObject.setItems(listOfItems)
+        mimeData = QtCore.QMimeData()
+        mimeData.setData('YCircuit', pickle.dumps(saveObject))
+        self.clipboard.setMimeData(mimeData)
+        # Reselect original items
+        for item in copiedItems:
+            item.setSelected(True)
 
     def deleteRoutine(self):
         """Delete selected items"""
         if self.scene().selectedItems() == []:
+            self.statusbarMessage.emit('Please select item(s) to delete first', 1000)
             return
         self.undoStack.beginMacro('')
         for item2 in self.scene().selectedItems():
@@ -1102,6 +1137,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     item.createCopy()
                 # Save a copy locally so that items don't disappear
                 self.items = self.scene().items()
+                # self.copyItemsToClipboard(self.scene().selectedItems())
             # Start moving after creating copy
             self._keys['m'] = True
         # If move mode is on
@@ -1170,7 +1206,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self._keys['c'] = False
                 self.statusbarMessage.emit("", 0)
                 self.undoStack.endMacro()
-                self.resetToolbarButtons.emit()
                 for item in self.moveItems:
                     item.setSelected(False)
                 self.updateMoveItems()
@@ -1184,7 +1219,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     symbol=True,
                     origin=self.mapToGrid(event.pos()),
                     transform=self.loadItem.transform())
+                self.undoStack.beginMacro('')
                 self.undoStack.push(add)
+                if self._keys['v'] is True:
+                    logger.info('Ungrouping pasted items')
+                    ungroup = Ungroup(None, self.scene(), add.item)
+                    self.undoStack.push(ungroup)
+                self.undoStack.endMacro()
         if self._keys['edit'] is True:
             item = self.scene().selectedItems()[0]
             # Also accounts for arcs because they are subclassed from Wire
