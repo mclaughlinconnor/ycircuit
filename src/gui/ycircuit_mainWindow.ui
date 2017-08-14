@@ -565,6 +565,7 @@
    <addaction name="action_delete"/>
    <addaction name="action_move"/>
    <addaction name="action_copy"/>
+   <addaction name="action_paste"/>
    <addaction name="action_rotate"/>
    <addaction name="action_mirror"/>
    <addaction name="separator"/>
@@ -1913,6 +1914,10 @@
    </property>
   </action>
   <action name="action_paste">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/edit-paste.svg</normaloff>:/icons/edit-paste.svg</iconset>
+   </property>
    <property name="text">
     <string>Paste</string>
    </property>
@@ -1921,6 +1926,9 @@
    </property>
    <property name="shortcut">
     <string>V</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

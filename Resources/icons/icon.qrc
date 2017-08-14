@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file>edit-paste.svg</file>
     <file>edit-clear.svg</file>
     <file>gtk-edit.svg</file>
     <file>insert-line.svg</file>
