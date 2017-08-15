@@ -192,6 +192,8 @@ class drawingElement(object):
         # Select item
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
+        if hasattr(self, 'origin'):
+            newItem.origin = self.origin
         return newItem
 
     def opaqueArea(self):
@@ -314,6 +316,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
 
     def setItems(self, listOfItems):
         """Add all items in listOfItems as children"""
+        self.prepareGeometryChange()
         for item in listOfItems:
             item.setParentItem(self)
             # For when children are being loaded from a file
@@ -536,8 +539,6 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         newWire = super().createCopy(parent)
         newWire.setPath(self.path())
         newWire.oldPath = newWire.path()
-        if hasattr(self, 'origin'):
-            newWire.origin = self.origin
         return newWire
 
     def undoDraw(self):
@@ -685,8 +686,6 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         newNet = super().createCopy(parent)
         newNet.setLine(self.line())
         newNet.oldLine = newNet.line()
-        if hasattr(self, 'origin'):
-            newNet.origin = self.origin
         return newNet
 
     def changeRightAngleMode(self, newEnd):
@@ -1009,8 +1008,6 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         newRectangle = super().createCopy(parent)
         newRectangle.setRect(self.rect())
         newRectangle.oldRect = newRectangle.rect()
-        if hasattr(self, 'origin'):
-            newRectangle.origin = self.origin
         return newRectangle
 
     def mouseReleaseEvent(self, event):
@@ -1124,8 +1121,6 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         newEllipse = super().createCopy(parent)
         newEllipse.setRect(self.rect())
         newEllipse.oldRect = newEllipse.rect()
-        if hasattr(self, 'origin'):
-            newEllipse.origin = self.origin
         return newEllipse
 
     def mouseReleaseEvent(self, event):
@@ -1433,8 +1428,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 text=self.toHtml(),
                 pen=pen,
                 brush=brush,
-                penColour = self.localPenColour,
-                brushColour = self.localBrushColour)
+                penColour=self.localPenColour,
+                brushColour=self.localBrushColour)
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
         else:
@@ -1444,19 +1439,22 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 text=self.toHtml(),
                 pen=pen,
                 brush=brush,
-                penColour = self.localPenColour,
-                brushColour = self.localBrushColour)
+                penColour=self.localPenColour,
+                brushColour=self.localBrushColour)
             newItem.localPenWidth = self.localPenWidth
             newItem.setFont(self.font())
+        newItem.setTransform(self.transform())
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
         if hasattr(self, 'height'):
             newItem.height = self.height
             newItem.setZValue(newItem.height)
-        newItem.setTransform(self.transform())
-        self.scene().addItem(newItem)
+        if parent is None:
+            self.scene().addItem(newItem)
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
+        if hasattr(self, 'origin'):
+            newItem.origin = self.origin
         return newItem
 
 
