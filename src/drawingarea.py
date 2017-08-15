@@ -1224,6 +1224,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self._keys['c'] = False
                 self.statusbarMessage.emit("", 0)
                 self.undoStack.endMacro()
+                # Undo action if nothing was moved
+                if point == self.moveStartPoint:
+                    self.undoStack.undo()
                 # for item in self.moveItems:
                 #     item.setSelected(False)
                 self.updateMoveItems()
@@ -1570,6 +1573,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)
                 self._keys['textBox'] = False
+                self._mouse['1'] = False
                 self.statusbarMessage.emit('', 0)
                 # Change cursor shape to a text editing style
                 cursor = self.cursor()
