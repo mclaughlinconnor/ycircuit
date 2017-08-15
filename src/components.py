@@ -1315,6 +1315,13 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def paint(self, painter, option, widget):
         if self.latexImageBinary is None:
+            if self.isSelected() is True:
+                pen = QtGui.QPen()
+                pen.setWidth(0.5)
+                pen.setStyle(2)
+                painter.setPen(pen)
+                painter.drawRect(self.boundingRect())
+            option.state &= not QtWidgets.QStyle.State_Selected
             super().paint(painter, option, widget)
         else:
             if self.isSelected() is True:
