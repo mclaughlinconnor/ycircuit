@@ -845,16 +845,17 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.statusbarMessage.emit('Please select item(s) to delete first', 1000)
             return
         self.undoStack.beginMacro('')
+        itemsToDelete = self.scene().selectedItems()
         for item2 in self.scene().selectedItems():
             if isinstance(item2, Net):
-                netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
                 if item2 in netList:
                     netList.remove(item2)
                 for item in netList[:]:
-                    mergedNet = item.mergeNets(netList, self.undoStack)
+                    mergedNet = item.mergeNets(netList[:], self.undoStack)
                     if mergedNet is not None:
-                        mergedNet.splitNets(netList, self.undoStack)
-        del1 = Delete(None, self.scene(), self.scene().selectedItems())
+                        mergedNet.splitNets(netList[:], self.undoStack)
+        del1 = Delete(None, self.scene(), itemsToDelete)
         self.undoStack.push(del1)
         self.undoStack.endMacro()
         self.statusbarMessage.emit("Delete", 1000)
@@ -1183,7 +1184,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['c'] is False:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
                             if item2 in netList:
                                 netList.remove(item2)
                             for item in netList[:]:
@@ -1215,7 +1216,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if True:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
                             mergedNet = item2.mergeNets(netList, self.undoStack)
                             if mergedNet is not None:
                                 mergedNet.splitNets(netList, self.undoStack)
