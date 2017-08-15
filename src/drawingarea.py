@@ -1667,22 +1667,37 @@ class DrawingArea(QtWidgets.QGraphicsView):
             delta = min(-120, eventDelta)
         scaleFactor = -delta / 240.
         modifiers = QtWidgets.QApplication.keyboardModifiers()
+        timeline = QtCore.QTimeLine(300, self)
+        timeline.setFrameRange(0, 100)
+        timeline.setUpdateInterval(20)
         if modifiers == QtCore.Qt.ControlModifier:
-            self.translate(0, -scaleFactor * 100)
-            logger.info('Move viewport in the Y direction by %d', -scaleFactor*100)
+            # self.translate(0, -scaleFactor * 100)
+            self.setTransformationAnchor(self.NoAnchor)
+            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='vertical'))
+            logger.info('Move viewport in the Y direction by %d', -scaleFactor*150)
         elif modifiers == QtCore.Qt.ShiftModifier:
-            self.translate(-scaleFactor * 100, 0)
-            logger.info('Move viewport in the X direction by %d', -scaleFactor*100)
+            # self.translate(-scaleFactor * 100, 0)
+            self.setTransformationAnchor(self.NoAnchor)
+            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='horizontal'))
+            logger.info('Move viewport in the X direction by %d', -scaleFactor*150)
         else:
             if scaleFactor < 0:
                 scaleFactor = -1 / scaleFactor
             scaleFactor = 1 + (scaleFactor - 1) / 2.5
-            oldPos = self.mapToScene(event.pos())
-            self.scale(scaleFactor, scaleFactor)
-            newPos = self.mapToScene(event.pos())
-            delta = newPos - oldPos
-            self.translate(delta.x(), delta.y())
+            scaleFactor = scaleFactor**(1/5)
+            timeline.setDuration(100)
+            self.setTransformationAnchor(self.AnchorUnderMouse)
+            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='zoom'))
             logger.info('Viewport scaled by %.2f', scaleFactor)
+        timeline.start()
+
+    def modifyView(self, scaleFactor, panZoom='vertical'):
+        if panZoom == 'vertical':
+            self.translate(0, -scaleFactor * 10)
+        elif panZoom == 'horizontal':
+            self.translate(-scaleFactor*10, 0)
+        elif panZoom == 'zoom':
+            self.scale(scaleFactor, scaleFactor)
 
     def editShape(self):
         # Only process this if edit mode is not already active
