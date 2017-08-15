@@ -57,6 +57,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.defaultSchematicSaveFolder = './'
         self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
         self.defaultExportFolder = './'
+        self.dragMove = False
 
         # Set up the autobackup timer
         self.autobackupTimer = QtCore.QTimer()
@@ -1128,6 +1129,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.currentPos = event.pos()
         self.currentX = self.currentPos.x()
         self.currentY = self.currentPos.y()
+        # Disable drag by default
+        self.dragMove = False
+        # If item under cursor
+        if self.itemAt(self.currentPos) is not None:
+            # If no other items are selected, select item under cursor
+            if self.scene().selectedItems() == []:
+                self.itemAt(self.currentPos).setSelected(True)
+            # If item under cursor in selected items
+            if self.itemAt(self.currentPos) in self.scene().selectedItems():
+                # If no other mode is active
+                if all(value == False for value in self._keys.values()):
+                    logger.info('Beginning moving by dragging')
+                    self.dragMove = True
+                    self._keys['m'] = True
         # If copy mode is on
         if self._keys['c'] is True:
             # Check to make sure this is the first click
@@ -1153,6 +1168,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
                 self.statusbarMessage.emit('Left click to place item(s) (press ESC to cancel)', 0)
+                if self.dragMove is True:
+                    self.statusbarMessage.emit('Move mouse to desired location and release to place the item(s)', 0)
                 self.moveStartPoint = self.mapToGrid(event.pos())
                 logger.info('Beginning move from %s', self.moveStartPoint)
                 for i in self.moveItems:
@@ -1182,14 +1199,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Cancel the move and add the move to undo stack properly
                     for item in self.moveItems:
                         item.moveTo(None, 'cancel')
-                    move = Move(
-                        None,
-                        self.scene(),
-                        self.moveItems,
-                        startPoint=self.moveStartPoint,
-                        stopPoint=point)
-                    self.undoStack.push(move)
-                    logger.info('Finishing move')
+                    if self.moveStartPoint != point:
+                        move = Move(
+                            None,
+                            self.scene(),
+                            self.moveItems,
+                            startPoint=self.moveStartPoint,
+                            stopPoint=point)
+                        self.undoStack.push(move)
+                        logger.info('Finishing move')
                 # Evaluate if any new nets need to be split/merged
                 # if self._keys['c'] is False:
                 if True:
@@ -1206,8 +1224,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self._keys['c'] = False
                 self.statusbarMessage.emit("", 0)
                 self.undoStack.endMacro()
-                for item in self.moveItems:
-                    item.setSelected(False)
+                # for item in self.moveItems:
+                #     item.setSelected(False)
                 self.updateMoveItems()
         if self._keys['add'] is True:
             if (event.button() == QtCore.Qt.LeftButton):
@@ -1318,6 +1336,18 @@ class DrawingArea(QtWidgets.QGraphicsView):
             super().mouseReleaseEvent(event)
         elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False:
             super().mouseReleaseEvent(event)
+        # If drag move is on, generate a press event and turn it off
+        if self.dragMove is True:
+            self.dragMove = False
+            mouseEvent = QtGui.QMouseEvent(
+                event.MouseButtonPress,
+                event.localPos(),
+                event.screenPos(),
+                QtCore.Qt.LeftButton,
+                QtCore.Qt.LeftButton,
+                QtCore.Qt.NoModifier)
+            self.mousePressEvent(mouseEvent)
+            logger.info('Finishing moving by dragging')
         # If wire or arc mode are on
         if self._keys['w'] is True or self._keys['arc'] is True:
             # Keep drawing new wire segments
