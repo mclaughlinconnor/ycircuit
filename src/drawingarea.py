@@ -1131,18 +1131,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.currentY = self.currentPos.y()
         # Disable drag by default
         self.dragMove = False
-        # If item under cursor
-        if self.itemAt(self.currentPos) is not None:
-            # If no other items are selected, select item under cursor
-            if self.scene().selectedItems() == []:
-                self.itemAt(self.currentPos).setSelected(True)
-            # If item under cursor in selected items
-            if self.itemAt(self.currentPos) in self.scene().selectedItems():
-                # If no other mode is active
-                if all(value == False for value in self._keys.values()):
-                    logger.info('Beginning moving by dragging')
-                    self.dragMove = True
-                    self._keys['m'] = True
+        # If no modifiers are enabled
+        if event.modifiers() == QtCore.Qt.NoModifier:
+            # If item under cursor
+            if self.itemAt(self.currentPos) is not None:
+                # If no other items are selected, select item under cursor
+                if self.scene().selectedItems() == []:
+                    self.itemAt(self.currentPos).setSelected(True)
+                # If item under cursor in selected items
+                if self.itemAt(self.currentPos) in self.scene().selectedItems():
+                    # If no other mode is active
+                    if all(value == False for value in self._keys.values()):
+                        logger.info('Beginning moving by dragging')
+                        self.dragMove = True
+                        self._keys['m'] = True
         # If copy mode is on
         if self._keys['c'] is True:
             # Check to make sure this is the first click
