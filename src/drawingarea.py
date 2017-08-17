@@ -100,63 +100,63 @@ class DrawingArea(QtWidgets.QGraphicsView):
         logger.info('Applying settings from file %s', fileName)
 
         # Font settings
-        fontFamily = settings.value('Painting/Font/Family')
-        fontPointSize = settings.value('Painting/Font/Point size', type=int)
+        fontFamily = settings.value('Painting/Font/Family', 'Arial')
+        fontPointSize = settings.value('Painting/Font/Point size', '10', type=int)
         self.selectedFont = QtGui.QFont()
         self.selectedFont.setFamily(fontFamily)
         self.selectedFont.setPointSize(fontPointSize)
         # Painting settings
-        self.selectedWidth = settings.value('Painting/Pen/Width', type=int)
-        self.selectedPenColour = settings.value('Painting/Pen/Colour')
+        self.selectedWidth = settings.value('Painting/Pen/Width', '4', type=int)
+        self.selectedPenColour = settings.value('Painting/Pen/Colour', 'Black')
         penStyles = {'Solid': 1, 'Dash': 2, 'Dot': 3, 'Dash-dot': 4, 'Dash-dot-dot': 5}
-        self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style')]
-        self.selectedBrushColour = settings.value('Painting/Brush/Colour')
+        self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style', 'Solid')]
+        self.selectedBrushColour = settings.value('Painting/Brush/Colour', 'Black')
         brushStyles = {'No fill': 0, 'Solid': 1}
-        self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
-        self.rotateDirection = settings.value('Painting/Rotation/Direction')
-        self.rotateAngle = settings.value('Painting/Rotation/Angle', type=float)
+        self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style', 'No fill')]
+        self.rotateDirection = settings.value('Painting/Rotation/Direction', 'Clockwise')
+        self.rotateAngle = settings.value('Painting/Rotation/Angle', '45', type=float)
         if self.rotateDirection == 'Counter-clockwise':
             self.rotateAngle *= -1
 
         # Grid settings
-        self._grid.enableGrid = settings.value('Grid/Visibility', type=bool)
-        self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
-        self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', type=int)
-        self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', type=bool)
-        self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', type=int)
-        self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool)
-        self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', type=int)
+        self._grid.enableGrid = settings.value('Grid/Visibility', True, type=bool)
+        self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', True, type=bool)
+        self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', '10', type=int)
+        self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', True, type=bool)
+        self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', '100', type=int)
+        self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', True, type=bool)
+        self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', '20', type=int)
         if self._grid.enableGrid:
             self._grid.createGrid()
         else:
             self._grid.removeGrid()
 
         # Save/export settings
-        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', type=bool)
+        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', True, type=bool)
         # Set autobackup timer interval in ms
-        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', type=int)*1000
+        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', '10', type=int)*1000
         self.autobackupTimer.setInterval(self.autobackupTimerInterval)
-        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
-        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
+        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', True, type=bool)
+        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder', './')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSchematicSaveFolder):
             os.mkdir(self.defaultSchematicSaveFolder)
-        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', type=bool)
-        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder')
-        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder')
+        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', True, type=bool)
+        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/')
+        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/')
         # When the program is starting, myMainWindow will not have fileSystemModel
         if hasattr(self.window(), 'fileSystemModel'):
             self.window().pickSymbolViewerDirectory(self.defaultSymbolPreviewFolder)
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSymbolSaveFolder):
             os.mkdir(self.defaultSymbolSaveFolder)
-        self.defaultExportFormat = settings.value('SaveExport/Export/Default format').lower()
-        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder')
+        self.defaultExportFormat = settings.value('SaveExport/Export/Default format', 'pdf').lower()
+        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder', './')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultExportFolder):
             os.mkdir(self.defaultExportFolder)
-        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', type=float)
-        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', type=float)
+        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float)
+        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', '2.0', type=float)
 
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
