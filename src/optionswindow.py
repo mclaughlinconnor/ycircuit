@@ -42,43 +42,43 @@ class MyOptionsWindow(QtWidgets.QDialog):
             self.createSettingsFile()
         # Read from the newly created settings file
         # Font settings
-        self.ui.fontComboBox_fontFamily.setCurrentText(self.settings.value('Painting/Font/Family'))
-        self.ui.comboBox_fontPointSize.setCurrentText(self.settings.value('Painting/Font/Point size'))
+        self.ui.fontComboBox_fontFamily.setCurrentText(self.settings.value('Painting/Font/Family', 'Arial'))
+        self.ui.comboBox_fontPointSize.setCurrentText(self.settings.value('Painting/Font/Point size', '10'))
         # Painting pen settings
-        self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width'))
-        self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour'))
-        self.ui.comboBox_penStyle.setCurrentText(self.settings.value('Painting/Pen/Style'))
+        self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width', '4'))
+        self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour', 'Black'))
+        self.ui.comboBox_penStyle.setCurrentText(self.settings.value('Painting/Pen/Style', 'Solid'))
         # Painting brush settings
-        self.ui.comboBox_brushColour.setCurrentText(self.settings.value('Painting/Brush/Colour'))
-        self.ui.comboBox_brushStyle.setCurrentText(self.settings.value('Painting/Brush/Style'))
+        self.ui.comboBox_brushColour.setCurrentText(self.settings.value('Painting/Brush/Colour', 'Black'))
+        self.ui.comboBox_brushStyle.setCurrentText(self.settings.value('Painting/Brush/Style', 'No fill'))
         # Rotation settings
-        self.ui.comboBox_rotationDirection.setCurrentText(self.settings.value('Painting/Rotation/Direction'))
-        self.ui.spinBox_rotationAngle.setValue(self.settings.value('Painting/Rotation/Angle', type=int))
+        self.ui.comboBox_rotationDirection.setCurrentText(self.settings.value('Painting/Rotation/Direction', 'Clockwise'))
+        self.ui.spinBox_rotationAngle.setValue(self.settings.value('Painting/Rotation/Angle', '45', type=int))
 
         # Grid settings
-        self.ui.checkBox_gridVisibility.setChecked(self.settings.value('Grid/Visibility', type=bool))
+        self.ui.checkBox_gridVisibility.setChecked(self.settings.value('Grid/Visibility', True, type=bool))
         # Snap settings
-        self.ui.checkBox_gridSnapToGrid.setChecked(self.settings.value('Grid/Snapping/Snap to grid', type=bool))
-        self.ui.comboBox_gridSnapToGridSpacing.setCurrentText(self.settings.value('Grid/Snapping/Snap to grid spacing', type=str))
+        self.ui.checkBox_gridSnapToGrid.setChecked(self.settings.value('Grid/Snapping/Snap to grid', True, type=bool))
+        self.ui.comboBox_gridSnapToGridSpacing.setCurrentText(self.settings.value('Grid/Snapping/Snap to grid spacing', '10', type=str))
         # Major grid point settings
-        self.ui.checkBox_gridShowMajorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Major grid points visibility', type=bool))
-        self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Major grid points spacing'))
+        self.ui.checkBox_gridShowMajorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Major grid points visibility', True, type=bool))
+        self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Major grid points spacing', '100'))
         # Minor grid point settings
-        self.ui.checkBox_gridShowMinorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool))
-        self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing'))
+        self.ui.checkBox_gridShowMinorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Minor grid points visibility', True, type=bool))
+        self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing', '20'))
 
         # Save/export settings
-        self.ui.checkBox_autobackupEnable.setChecked(self.settings.value('SaveExport/Autobackup/Enable', type=bool))
-        self.ui.spinBox_autobackupTimerInterval.setValue(self.settings.value('SaveExport/Autobackup/Timer interval', type=int))
-        self.ui.checkBox_showSchematicPreview.setChecked(self.settings.value('SaveExport/Schematic/Show preview', type=bool))
-        self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default save folder'))
-        self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show preview', type=bool))
-        self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default save folder'))
-        self.ui.lineEdit_defaultSymbolPreviewFolder.setText(self.settings.value('SaveExport/Symbol/Default preview folder'))
-        self.ui.comboBox_defaultExportFormat.setCurrentText(self.settings.value('SaveExport/Export/Default format'))
-        self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default folder'))
-        self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(self.settings.value('SaveExport/Export/Whitespace padding', type=float))
-        self.ui.doubleSpinBox_exportImageScaleFactor.setValue(self.settings.value('SaveExport/Export/Image scale factor', type=float))
+        self.ui.checkBox_autobackupEnable.setChecked(self.settings.value('SaveExport/Autobackup/Enable', True, type=bool))
+        self.ui.spinBox_autobackupTimerInterval.setValue(self.settings.value('SaveExport/Autobackup/Timer interval', '10', type=int))
+        self.ui.checkBox_showSchematicPreview.setChecked(self.settings.value('SaveExport/Schematic/Show preview', True, type=bool))
+        self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default save folder', './'))
+        self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show preview', True, type=bool))
+        self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/'))
+        self.ui.lineEdit_defaultSymbolPreviewFolder.setText(self.settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/'))
+        self.ui.comboBox_defaultExportFormat.setCurrentText(self.settings.value('SaveExport/Export/Default format', 'pdf'))
+        self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default folder', './'))
+        self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(self.settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float))
+        self.ui.doubleSpinBox_exportImageScaleFactor.setValue(self.settings.value('SaveExport/Export/Image scale factor', '2.0', type=float))
 
     def writeValues(self):
         # Font settings
