@@ -24,7 +24,7 @@ if __name__ == "__main__":
     logger.info('YCircuit started on ' + sys.platform)
     if platform.system() == 'Windows':
         sip.setdestroyonexit(False)
-        myappid = u'ycircuit.0.1'
+        myappid = u'ycircuit.0.2'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
         QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
