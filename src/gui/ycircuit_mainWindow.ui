@@ -15,10 +15,89 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../../Resources/icon.jpg</normaloff>../../Resources/icon.jpg</iconset>
+    <normaloff>../../../../../Resources/icon.jpg</normaloff>../../../../../Resources/icon.jpg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
+      <item>
+       <widget class="QPushButton" name="pushButton_symbolPreviewDirectory">
+        <property name="text">
+         <string>Symbol directory</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListView" name="listView_symbolPreview">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>110</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="autoScroll">
+         <bool>true</bool>
+        </property>
+        <property name="verticalScrollMode">
+         <enum>QAbstractItemView::ScrollPerItem</enum>
+        </property>
+        <property name="flow">
+         <enum>QListView::TopToBottom</enum>
+        </property>
+        <property name="isWrapping" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <property name="viewMode">
+         <enum>QListView::IconMode</enum>
+        </property>
+        <property name="uniformItemSizes">
+         <bool>true</bool>
+        </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit_symbolPreviewFilter">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="placeholderText">
+         <string>Filter (Ctrl+F)...</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item>
      <widget class="DrawingArea" name="drawingArea">
       <property name="verticalScrollBarPolicy">
@@ -105,6 +184,8 @@
      <addaction name="action_setWidth6"/>
      <addaction name="action_setWidth8"/>
      <addaction name="action_setWidth10"/>
+     <addaction name="separator"/>
+     <addaction name="action_setWidthCustom"/>
     </widget>
     <widget class="QMenu" name="menu_setPenColour">
      <property name="toolTip">
@@ -190,18 +271,27 @@
      <addaction name="separator"/>
      <addaction name="action_heightReset"/>
     </widget>
+    <widget class="QMenu" name="menuGroup">
+     <property name="title">
+      <string>Group</string>
+     </property>
+     <addaction name="action_group"/>
+     <addaction name="action_ungroup"/>
+    </widget>
     <addaction name="action_undo"/>
     <addaction name="action_redo"/>
     <addaction name="separator"/>
     <addaction name="action_delete"/>
     <addaction name="action_move"/>
     <addaction name="action_copy"/>
+    <addaction name="action_paste"/>
     <addaction name="action_rotate"/>
     <addaction name="action_mirror"/>
     <addaction name="separator"/>
     <addaction name="action_pickFont"/>
     <addaction name="separator"/>
     <addaction name="menuHeight"/>
+    <addaction name="menuGroup"/>
     <addaction name="separator"/>
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
@@ -404,13 +494,29 @@
     <addaction name="action_addCircle"/>
     <addaction name="action_addEllipse"/>
     <addaction name="action_addTextBox"/>
+    <addaction name="separator"/>
     <addaction name="action_editShape"/>
+   </widget>
+   <widget class="QMenu" name="menu_help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <widget class="QMenu" name="menu_tutorials">
+     <property name="title">
+      <string>Tutorials</string>
+     </property>
+     <addaction name="action_tutorialInverterSchematic"/>
+     <addaction name="action_tutorialCustomSymbols"/>
+    </widget>
+    <addaction name="action_updateYCircuit"/>
+    <addaction name="menu_tutorials"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuSh_ape"/>
    <addaction name="menu_AddSymbol"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="maximumSize">
@@ -430,22 +536,52 @@
    <property name="movable">
     <bool>false</bool>
    </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action_newSchematic"/>
+   <addaction name="action_saveSchematic"/>
+   <addaction name="action_loadSchematic"/>
+   <addaction name="action_exportFile"/>
+   <addaction name="separator"/>
    <addaction name="action_undo"/>
    <addaction name="action_redo"/>
    <addaction name="separator"/>
-   <addaction name="action_move"/>
    <addaction name="action_delete"/>
+   <addaction name="action_move"/>
    <addaction name="action_copy"/>
+   <addaction name="action_paste"/>
    <addaction name="action_rotate"/>
    <addaction name="action_mirror"/>
+   <addaction name="separator"/>
+   <addaction name="action_addLine"/>
+   <addaction name="action_addRectangle"/>
+   <addaction name="action_addTextBox"/>
+   <addaction name="action_editShape"/>
+   <addaction name="separator"/>
+   <addaction name="action_options"/>
+   <addaction name="action_escape"/>
   </widget>
   <action name="action_exportFile">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/document-export.svg</normaloff>:/icons/document-export.svg</iconset>
+   </property>
    <property name="text">
     <string>Export file</string>
    </property>
@@ -454,6 +590,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_quit">
@@ -469,7 +608,7 @@
   </action>
   <action name="action_move">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="../../Resources/icons/icon.qrc">
@@ -490,7 +629,7 @@
   </action>
   <action name="action_copy">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="../../Resources/icons/icon.qrc">
@@ -686,6 +825,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_red.svg</normaloff>:/colours/colour_red.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Red</string>
    </property>
@@ -697,6 +840,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_blue.svg</normaloff>:/colours/colour_blue.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Blue</string>
    </property>
@@ -707,6 +854,10 @@
   <action name="action_setPenColourGreen">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_green.svg</normaloff>:/colours/colour_green.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Green</string>
@@ -722,6 +873,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_black.svg</normaloff>:/colours/colour_black.svg</iconset>
+   </property>
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
@@ -736,6 +891,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_solid.svg</normaloff>:/penStyle/penStyle_solid.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Solid</string>
    </property>
@@ -746,6 +905,10 @@
   <action name="action_setPenStyleDash">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dash.svg</normaloff>:/penStyle/penStyle_dash.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Dash</string>
@@ -758,6 +921,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dot.svg</normaloff>:/penStyle/penStyle_dot.svg</iconset>
+   </property>
    <property name="text">
     <string>Do&amp;t</string>
    </property>
@@ -769,6 +936,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dashDot.svg</normaloff>:/penStyle/penStyle_dashDot.svg</iconset>
+   </property>
    <property name="text">
     <string>D&amp;ash-Dot</string>
    </property>
@@ -779,6 +950,10 @@
   <action name="action_setPenStyleDashDotDot">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penStyle/penStyle_dashDotDot.svg</normaloff>:/penStyle/penStyle_dashDotDot.svg</iconset>
    </property>
    <property name="text">
     <string>Dash-dot-dot</string>
@@ -810,6 +985,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_black.svg</normaloff>:/colours/colour_black.svg</iconset>
+   </property>
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
@@ -820,6 +999,10 @@
   <action name="action_setBrushColourRed">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_red.svg</normaloff>:/colours/colour_red.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Red</string>
@@ -832,6 +1015,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_blue.svg</normaloff>:/colours/colour_blue.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Blue</string>
    </property>
@@ -842,6 +1029,10 @@
   <action name="action_setBrushColourGreen">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_green.svg</normaloff>:/colours/colour_green.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Green</string>
@@ -857,6 +1048,10 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/brushStyle/brushStyle_noFill.svg</normaloff>:/brushStyle/brushStyle_noFill.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;No fill</string>
    </property>
@@ -867,6 +1062,10 @@
   <action name="action_setBrushStyleSolid">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/brushStyle/brushStyle_solid.svg</normaloff>:/brushStyle/brushStyle_solid.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Solid</string>
@@ -946,6 +1145,10 @@
    </property>
   </action>
   <action name="action_saveSchematic">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/document-save.svg</normaloff>:/icons/document-save.svg</iconset>
+   </property>
    <property name="text">
     <string>Save schematic</string>
    </property>
@@ -955,8 +1158,15 @@
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="action_loadSchematic">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/document-open.svg</normaloff>:/icons/document-open.svg</iconset>
+   </property>
    <property name="text">
     <string>Load schematic</string>
    </property>
@@ -966,21 +1176,38 @@
    <property name="shortcut">
     <string>Ctrl+L</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="action_addLine">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/insert-line.svg</normaloff>:/icons/insert-line.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Line</string>
    </property>
    <property name="toolTip">
     <string>Draw a polyline</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="action_addRectangle">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/insert-object.svg</normaloff>:/icons/insert-object.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Rectangle</string>
    </property>
    <property name="toolTip">
     <string>Draw a rectangle</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_addCircle">
@@ -1014,16 +1241,27 @@
    </property>
   </action>
   <action name="action_addTextBox">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/insert-text.svg</normaloff>:/icons/insert-text.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Text box</string>
    </property>
    <property name="toolTip">
     <string>Create a text box</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="action_setPenColourCyan">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_cyan.svg</normaloff>:/colours/colour_cyan.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Cyan</string>
@@ -1036,6 +1274,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_magenta.svg</normaloff>:/colours/colour_magenta.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Magenta</string>
    </property>
@@ -1046,6 +1288,10 @@
   <action name="action_setPenColourYellow">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_yellow.svg</normaloff>:/colours/colour_yellow.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Yellow</string>
@@ -1058,6 +1304,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_cyan.svg</normaloff>:/colours/colour_cyan.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Cyan</string>
    </property>
@@ -1069,6 +1319,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_magenta.svg</normaloff>:/colours/colour_magenta.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Magenta</string>
    </property>
@@ -1079,6 +1333,10 @@
   <action name="action_setBrushColourYellow">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/colours/colour_yellow.svg</normaloff>:/colours/colour_yellow.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Yellow</string>
@@ -1202,11 +1460,18 @@
    </property>
   </action>
   <action name="action_saveSchematicAs">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/document-save-as.svg</normaloff>:/icons/document-save-as.svg</iconset>
+   </property>
    <property name="text">
     <string>Save s&amp;chematic as</string>
    </property>
    <property name="toolTip">
     <string>Save current schematic with a new file name</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_saveSymbolAs">
@@ -1226,6 +1491,10 @@
    </property>
   </action>
   <action name="action_editShape">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/gtk-edit.svg</normaloff>:/icons/gtk-edit.svg</iconset>
+   </property>
    <property name="text">
     <string>Edit shape</string>
    </property>
@@ -1235,8 +1504,15 @@
    <property name="shortcut">
     <string>E</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="action_newSchematic">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/document-new.svg</normaloff>:/icons/document-new.svg</iconset>
+   </property>
    <property name="text">
     <string>New Schematic</string>
    </property>
@@ -1246,13 +1522,23 @@
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="action_options">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/system-run.svg</normaloff>:/icons/system-run.svg</iconset>
+   </property>
    <property name="text">
     <string>Options</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_showMajorGridPoints">
@@ -1539,6 +1825,110 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+0</string>
+   </property>
+  </action>
+  <action name="action_escape">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/edit-clear.svg</normaloff>:/icons/edit-clear.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Cancel action</string>
+   </property>
+   <property name="iconText">
+    <string>Cancel action</string>
+   </property>
+   <property name="toolTip">
+    <string>Cancels any action being performed</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_group">
+   <property name="text">
+    <string>Group</string>
+   </property>
+   <property name="toolTip">
+    <string>Group selected items together</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="action_ungroup">
+   <property name="text">
+    <string>Ungroup</string>
+   </property>
+   <property name="toolTip">
+    <string>Disband the current group</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+G</string>
+   </property>
+  </action>
+  <action name="action_updateYCircuit">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Up&amp;date</string>
+   </property>
+   <property name="toolTip">
+    <string>Update YCircuit to the latest version</string>
+   </property>
+  </action>
+  <action name="action_tutorialInverterSchematic">
+   <property name="text">
+    <string>Inverter schematic</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a tutorial for creating a schematic in the web browser</string>
+   </property>
+  </action>
+  <action name="action_tutorialCustomSymbols">
+   <property name="text">
+    <string>Custom symbols</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a tutorial for creating custom symbols in the web browser</string>
+   </property>
+  </action>
+  <action name="action_setWidthCustom">
+   <property name="text">
+    <string>Cu&amp;stom</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the pen width to a custom integer value</string>
+   </property>
+  </action>
+  <action name="action_scale">
+   <property name="text">
+    <string>Scale</string>
+   </property>
+   <property name="toolTip">
+    <string>Change the scale of the selected item(s)</string>
+   </property>
+  </action>
+  <action name="action_paste">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/edit-paste.svg</normaloff>:/icons/edit-paste.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="toolTip">
+    <string>Paste copied item(s) from the clipboard</string>
+   </property>
+   <property name="shortcut">
+    <string>V</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

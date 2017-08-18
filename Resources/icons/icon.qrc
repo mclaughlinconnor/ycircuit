@@ -1,11 +1,43 @@
 <RCC>
   <qresource prefix="icons">
+    <file>edit-paste.svg</file>
+    <file>edit-clear.svg</file>
+    <file>gtk-edit.svg</file>
+    <file>insert-line.svg</file>
+    <file>insert-object.svg</file>
+    <file>document-open.svg</file>
+    <file>insert-text.svg</file>
+    <file>document-export.svg</file>
+    <file>document-new.svg</file>
+    <file>document-save.svg</file>
+    <file>document-save-as.svg</file>
     <file>view-fullscreen.svg</file>
     <file>edit-copy.svg</file>
+    <file>system-run.svg</file>
     <file>edit-redo.svg</file>
     <file>edit-undo.svg</file>
     <file>list-remove.svg</file>
     <file>object-flip-horizontal.svg</file>
     <file>object-rotate-right.svg</file>
+  </qresource>
+  <qresource prefix="penStyle">
+    <file>penStyle_solid.svg</file>
+    <file>penStyle_dash.svg</file>
+    <file>penStyle_dashDot.svg</file>
+    <file>penStyle_dashDotDot.svg</file>
+    <file>penStyle_dot.svg</file>
+  </qresource>
+  <qresource prefix="brushStyle">
+    <file>brushStyle_noFill.svg</file>
+    <file>brushStyle_solid.svg</file>
+  </qresource>
+  <qresource prefix="colours">
+    <file>colour_blue.svg</file>
+    <file>colour_cyan.svg</file>
+    <file>colour_green.svg</file>
+    <file>colour_magenta.svg</file>
+    <file>colour_red.svg</file>
+    <file>colour_yellow.svg</file>
+    <file>colour_black.svg</file>
   </qresource>
 </RCC>

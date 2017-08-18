@@ -1,6 +1,9 @@
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from .components import myGraphicsItemGroup, TextBox
 import copy
+import logging
+
+logger = logging.getLogger('YCircuit.commands')
 
 
 class Delete(QtWidgets.QUndoCommand):
@@ -12,15 +15,21 @@ class Delete(QtWidgets.QUndoCommand):
         else:
             self.listOfItems = listOfItems
         for item in self.listOfItems:
-            item.changeColourToGray(False)
+            item.lightenColour(False)
+            # Need to remember where exactly the item was deleted in case
+            # its parent is moved in the future
+            item.deletePos = item.pos()
 
     def redo(self):
+        logger.info('Deleting items: %s', self.listOfItems)
         for item in self.listOfItems:
             self.scene.removeItem(item)
 
     def undo(self):
+        logger.info('Undoing delete of items: %s', self.listOfItems)
         for item in self.listOfItems:
             self.scene.addItem(item)
+            item.setPos(item.deletePos)
 
 
 class AddMulti(QtWidgets.QUndoCommand):
@@ -69,6 +78,7 @@ class Add(QtWidgets.QUndoCommand):
         if self.symbol is False:
             """If item is a regular item"""
             self.scene.addItem(self.item)
+            logger.info('Adding item %s as a regular item', self.item)
         else:
             """Or if item is a symbol to be loaded"""
             self.item.__init__(None, self.origin, self.item.listOfItems, mode='symbol')
@@ -81,9 +91,11 @@ class Add(QtWidgets.QUndoCommand):
             #     self.item.rotateBy(moving=False, origin=self.origin, angle=self.rotateAngle)
             if hasattr(self, 'transform_'):
                 self.item.setTransform(self.transform_)
+            logger.info('Adding item %s as a symbol', self.item)
         self.scene.update(self.scene.sceneRect())
 
     def undo(self):
+        logger.info('Undoing addition of item %s', self.item)
         self.scene.removeItem(self.item)
 
 
@@ -97,15 +109,16 @@ class Draw(QtWidgets.QUndoCommand):
         self.point = point
 
     def redo(self):
+        logger.info('Drawing the next vertex of %s at %s', self.item, self.point)
         self.item.redoDraw(self.point)
 
     def undo(self):
+        logger.info('Undoing vertex drawn at %s for %s', self.point, self.item)
         self.item.undoDraw()
 
 
 class Edit(QtWidgets.QUndoCommand):
     """Used for editing item shapes"""
-
     def __init__(self,
                  parent=None,
                  scene=None,
@@ -123,14 +136,17 @@ class Edit(QtWidgets.QUndoCommand):
 
     def redo(self):
         self.item.redoEdit(self.point, clicked=self.clicked)
+        if self.clicked is True:
+            logger.info('Editing vertex of %s to be at %s', self.item, self.point)
 
     def undo(self):
         self.item.undoEdit()
+        if self.clicked is True:
+            logger.info('Undoing edit of %s\'s vertex at %s', self.item, self.point)
 
 
 class EditNet(QtWidgets.QUndoCommand):
     """Used for editing net lengths"""
-
     def __init__(self,
                  parent=None,
                  scene=None,
@@ -145,9 +161,11 @@ class EditNet(QtWidgets.QUndoCommand):
 
     def redo(self):
         self.item.setLine(self.newLine)
+        logger.info('Changed line for %s from %s to %s', self.item, self.oldLine, self.newLine)
 
     def undo(self):
         self.item.setLine(self.oldLine)
+        logger.info('Changed line for %s from %s to %s', self.item, self.newLine, self.oldLine)
 
 
 class Move(QtWidgets.QUndoCommand):
@@ -164,11 +182,21 @@ class Move(QtWidgets.QUndoCommand):
         self.stopPoint = stopPoint
 
     def redo(self):
+        logger.info(
+            'Moving items %s from %s to %s',
+            self.listOfItems,
+            self.startPoint,
+            self.stopPoint)
         for item in self.listOfItems:
             item.moveTo(self.startPoint, 'start')
             item.moveTo(self.stopPoint, 'done')
 
     def undo(self):
+        logger.info(
+            'Undoing move. Moving items %s from %s to %s',
+            self.listOfItems,
+            self.stopPoint,
+            self.startPoint)
         for item in self.listOfItems:
             item.moveTo(self.stopPoint, 'start')
             item.moveTo(self.startPoint, 'done')
@@ -182,6 +210,10 @@ class Copy(QtWidgets.QUndoCommand):
         self.point = point
 
     def redo(self):
+        logger.info(
+            'Copying items %s to %s',
+            self.listOfItems,
+            self.point)
         for item in self.listOfItems:
             if item not in self.scene.items():
                 self.scene.addItem(item)
@@ -189,6 +221,7 @@ class Copy(QtWidgets.QUndoCommand):
                 item.moveTo(self.point, 'done')
 
     def undo(self):
+        logger.info('Undoing copy of items %s', self.listOfItems)
         for item in self.listOfItems:
             self.scene.removeItem(item)
 
@@ -212,10 +245,16 @@ class Rotate(QtWidgets.QUndoCommand):
             self.listOfPoints[str(item)] = item.mapFromScene(self.point)
 
     def redo(self):
+        logger.info(
+            'Rotating items %s by %d around %s',
+            self.listOfItems,
+            self.angle,
+            self.listOfPoints)
         for item in self.listOfItems:
             item.rotateBy(self.moving, self.listOfPoints[str(item)], self.angle)
 
     def undo(self):
+        logger.info('Undoing rotation of %s', self.listOfItems)
         for item in self.listOfItems:
             item.rotateBy(self.moving, self.listOfPoints[str(item)], -self.angle)
 
@@ -237,10 +276,15 @@ class Mirror(QtWidgets.QUndoCommand):
             self.listOfPoints[str(item)] = item.mapFromScene(self.point)
 
     def redo(self):
+        logger.info(
+            'Mirroring items %s around %s',
+            self.listOfItems,
+            self.listOfPoints)
         for item in self.listOfItems:
             item.reflect(self.moving, self.listOfPoints[str(item)])
 
     def undo(self):
+        logger.info('Undoing mirroring of %s', self.listOfItems)
         for item in self.listOfItems:
             item.reflect(self.moving, self.listOfPoints[str(item)])
 
@@ -264,12 +308,22 @@ class ChangeFont(QtWidgets.QUndoCommand):
     def redo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.changeFont(self.newFont)
+            logger.info(
+                'Changing font of %s to %s %d',
+                self.item,
+                self.newFont.family(),
+                self.newFont.pointSize())
         else:
             super().redo()
 
     def undo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.changeFont(self.oldFont)
+            logger.info(
+                'Undoing font change. Changing font of %s to %s %d',
+                self.item,
+                self.oldFont.family(),
+                self.oldFont.pointSize())
         else:
             super().undo()
 
@@ -292,25 +346,93 @@ class ChangeHeight(QtWidgets.QUndoCommand):
 
     def redo(self):
         if not hasattr(self, 'listOfItems'):
+            oldValue = self.item.zValue()
             if self.mode == 'forward':
                 self.item.setZValue(self.item.zValue() + 1)
             elif self.mode == 'back':
                 self.item.setZValue(self.item.zValue() - 1)
             elif self.mode == 'reset':
                 self.item.setZValue(0)
+            newValue = self.item.zValue()
+            logger.info('Changed height of %s from %d to %d', self.item, oldValue, newValue)
         else:
             super().redo()
 
     def undo(self):
         if not hasattr(self, 'listOfItems'):
+            oldValue = self.item.zValue()
             if self.mode == 'forward':
                 self.item.setZValue(self.item.zValue() - 1)
             elif self.mode == 'back':
                 self.item.setZValue(self.item.zValue() + 1)
             elif self.mode == 'reset':
                 self.item.setZValue(self.oldHeight)
+            newValue = self.item.zValue()
+            logger.info('Undoing height change. Changed height of %s from %d to %d', self.item, oldValue, newValue)
         else:
             super().undo()
+
+
+class Group(QtWidgets.QUndoCommand):
+    def __init__(
+            self,
+            parent=None,
+            scene=None,
+            listOfItems=None,
+            **kwargs):
+        super().__init__(parent)
+        self.scene = scene
+        self.listOfItems = listOfItems
+
+        x = min([item.scenePos().x() for item in self.listOfItems])
+        y = min([item.scenePos().y() for item in self.listOfItems])
+        self.origin = QtCore.QPointF(x, y)
+        self.item = myGraphicsItemGroup(None, self.origin, [])
+
+    def redo(self):
+        self.scene.addItem(self.item)
+        self.item.origin = self.origin
+        # Set relative origins of child items
+        for item in self.listOfItems:
+            item.origin = item.pos() - self.item.origin
+        self.item.setItems(self.listOfItems)
+        logger.info('Grouping items %s together under %s', self.listOfItems, self.item)
+
+    def undo(self):
+        self.item.reparentItems()
+        self.scene.removeItem(self.item)
+        logger.info('Undoing group. Ungrouping %s from under %s', self.listOfItems, self.item)
+
+
+class Ungroup(QtWidgets.QUndoCommand):
+    def __init__(
+            self,
+            parent=None,
+            scene=None,
+            item=None,
+            **kwargs):
+        super().__init__(parent)
+        self.scene = scene
+        self.item = item
+        self.listOfItems = item.listOfItems
+
+        x = min([item.scenePos().x() for item in self.listOfItems])
+        y = min([item.scenePos().y() for item in self.listOfItems])
+        self.origin = QtCore.QPointF(x, y)
+
+    def redo(self):
+        self.item.reparentItems()
+        self.scene.removeItem(self.item)
+        logger.info('Destroying group %s containing %s', self.item, self.listOfItems)
+
+    def undo(self):
+        self.scene.addItem(self.item)
+        self.item.origin = self.origin
+        # Set relative origins of child items
+        for item in self.listOfItems:
+            item.origin = item.pos() - self.item.origin
+        self.item.setItems(self.listOfItems)
+        logger.info('Undoing destruction of group %s containing items %s', self.item, self.listOfItems)
 
 
 class ChangePen(QtWidgets.QUndoCommand):
@@ -356,10 +478,12 @@ class ChangePenWidth(QtWidgets.QUndoCommand):
     def redo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(width=self.newLocalPenWidth)
+            logger.info('Changing pen width of %s to %d', self.item, self.newLocalPenWidth)
 
     def undo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(width=self.oldLocalPenWidth)
+            logger.info('Undoing pen width change. Changing pen width of %s back to %d', self.item, self.oldLocalPenWidth)
 
 
 class ChangePenColour(QtWidgets.QUndoCommand):
@@ -383,6 +507,10 @@ class ChangePenColour(QtWidgets.QUndoCommand):
             self.oldLatexExpression = self.item.latexExpression
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penColour=self.newLocalPenColour)
+            logger.info(
+                'Changing pen colour of %s to %s',
+                self.item,
+                QtGui.QColor(self.newLocalPenColour).name())
 
     def undo(self):
         if isinstance(self.item, TextBox):
@@ -394,6 +522,10 @@ class ChangePenColour(QtWidgets.QUndoCommand):
                 return
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penColour=self.oldLocalPenColour)
+            logger.info(
+                'Undoing pen colour change. Changing pen colour of %s back to %s',
+                self.item,
+                QtGui.QColor(self.oldLocalPenColour).name())
 
 
 class ChangePenStyle(QtWidgets.QUndoCommand):
@@ -407,10 +539,18 @@ class ChangePenStyle(QtWidgets.QUndoCommand):
     def redo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penStyle=self.newLocalPenStyle)
+            logger.info(
+                'Changing pen style of %s to %d',
+                self.item,
+                self.newLocalPenStyle)
 
     def undo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalPenOptions(penStyle=self.oldLocalPenStyle)
+            logger.info(
+                'Undoing pen style change. Changing pen style of %s back to %d',
+                self.item,
+                self.oldLocalPenStyle)
 
 
 class ChangeBrush(QtWidgets.QUndoCommand):
@@ -447,10 +587,18 @@ class ChangeBrushColour(QtWidgets.QUndoCommand):
     def redo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalBrushOptions(brushColour=self.newLocalBrushColour)
+            logger.info(
+                'Changing brush colour of %s to %s',
+                self.item,
+                QtGui.QColor(self.newLocalBrushColour).name())
 
     def undo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalBrushOptions(brushColour=self.oldLocalBrushColour)
+            logger.info(
+                'Undoing brush colour change. Changing brush colour of %s back to %s',
+                self.item,
+                QtGui.QColor(self.oldLocalBrushColour).name())
 
 
 class ChangeBrushStyle(QtWidgets.QUndoCommand):
@@ -464,7 +612,15 @@ class ChangeBrushStyle(QtWidgets.QUndoCommand):
     def redo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalBrushOptions(brushStyle=self.newLocalBrushStyle)
+            logger.info(
+                'Changing brush style of %s to %d',
+                self.item,
+                self.newLocalBrushStyle)
 
     def undo(self):
         if not hasattr(self, 'listOfItems'):
             self.item.setLocalBrushOptions(brushStyle=self.oldLocalBrushStyle)
+            logger.info(
+                'Undoing brush style change. Changing brush style of %s back to %d',
+                self.item,
+                self.oldLocalBrushStyle)

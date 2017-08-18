@@ -6,6 +6,9 @@ from .optionswindow import MyOptionsWindow
 import pickle
 import os
 import glob
+import logging
+
+logger = logging.getLogger('YCircuit.drawingarea')
 
 # from src import components
 # import sys
@@ -19,7 +22,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
     """
 
     statusbarMessage = QtCore.pyqtSignal(str, int)
-    resetToolbarButtons = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """Initializes the object and various parameters to default values"""
@@ -34,6 +36,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             'c': False,
             'm': False,
             'r': False,
+            'v': False,
             'w': False,
             'arc': False,
             'rectangle': False,
@@ -54,6 +57,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.defaultSchematicSaveFolder = './'
         self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
         self.defaultExportFolder = './'
+        self.dragMove = False
 
         # Set up the autobackup timer
         self.autobackupTimer = QtCore.QTimer()
@@ -87,79 +91,79 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.autobackupFile = QtCore.QTemporaryFile(autobackupFileNameTemplate)
             self.autobackupFile.open()
             self.autobackupFile.setAutoRemove(False)
+            logger.info('Creating autobackup file %s', self.autobackupFile.fileName())
         self.autobackupTimer.start()
 
     def applySettingsFromFile(self, fileName=None):
         # Load settings file
         settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
+        logger.info('Applying settings from file %s', fileName)
 
         # Font settings
-        fontFamily = settings.value('Painting/Font/Family')
-        fontPointSize = settings.value('Painting/Font/Point size', type=int)
+        fontFamily = settings.value('Painting/Font/Family', 'Arial')
+        fontPointSize = settings.value('Painting/Font/Point size', '10', type=int)
         self.selectedFont = QtGui.QFont()
         self.selectedFont.setFamily(fontFamily)
         self.selectedFont.setPointSize(fontPointSize)
         # Painting settings
-        self.selectedWidth = settings.value('Painting/Pen/Width', type=int)
-        self.selectedPenColour = settings.value('Painting/Pen/Colour')
+        self.selectedWidth = settings.value('Painting/Pen/Width', '4', type=int)
+        self.selectedPenColour = settings.value('Painting/Pen/Colour', 'Black')
         penStyles = {'Solid': 1, 'Dash': 2, 'Dot': 3, 'Dash-dot': 4, 'Dash-dot-dot': 5}
-        self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style')]
-        self.selectedBrushColour = settings.value('Painting/Brush/Colour')
+        self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style', 'Solid')]
+        self.selectedBrushColour = settings.value('Painting/Brush/Colour', 'Black')
         brushStyles = {'No fill': 0, 'Solid': 1}
-        self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
-        self.rotateDirection = settings.value('Painting/Rotation/Direction')
-        self.rotateAngle = settings.value('Painting/Rotation/Angle', type=float)
+        self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style', 'No fill')]
+        self.rotateDirection = settings.value('Painting/Rotation/Direction', 'Clockwise')
+        self.rotateAngle = settings.value('Painting/Rotation/Angle', '45', type=float)
         if self.rotateDirection == 'Counter-clockwise':
             self.rotateAngle *= -1
 
         # Grid settings
-        self._grid.enableGrid = settings.value('Grid/Visibility', type=bool)
-        self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
-        self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', type=int)
-        self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', type=bool)
-        self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', type=int)
-        self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool)
-        self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', type=int)
+        self._grid.enableGrid = settings.value('Grid/Visibility', True, type=bool)
+        self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', True, type=bool)
+        self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', '10', type=int)
+        self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', True, type=bool)
+        self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', '100', type=int)
+        self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', True, type=bool)
+        self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', '20', type=int)
         if self._grid.enableGrid:
             self._grid.createGrid()
         else:
             self._grid.removeGrid()
 
         # Save/export settings
-        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', type=bool)
+        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', True, type=bool)
         # Set autobackup timer interval in ms
-        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', type=int)*1000
+        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', '10', type=int)*1000
         self.autobackupTimer.setInterval(self.autobackupTimerInterval)
-        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
-        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
+        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', True, type=bool)
+        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder', './')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSchematicSaveFolder):
             os.mkdir(self.defaultSchematicSaveFolder)
-        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', type=bool)
-        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder')
+        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', True, type=bool)
+        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/')
+        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/')
+        # When the program is starting, myMainWindow will not have fileSystemModel
+        if hasattr(self.window(), 'fileSystemModel'):
+            self.window().pickSymbolViewerDirectory(self.defaultSymbolPreviewFolder)
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSymbolSaveFolder):
             os.mkdir(self.defaultSymbolSaveFolder)
-        self.defaultExportFormat = settings.value('SaveExport/Export/Default format').lower()
-        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder')
+        self.defaultExportFormat = settings.value('SaveExport/Export/Default format', 'pdf').lower()
+        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder', './')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultExportFolder):
             os.mkdir(self.defaultExportFolder)
-        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', type=float)
-        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', type=float)
-
-    def keyReleaseEvent(self, event):
-        """Run escapeRoutine when the escape button is pressed"""
-        super().keyReleaseEvent(event)
-        keyPressed = event.key()
-        if (keyPressed == QtCore.Qt.Key_Escape):
-            self.escapeRoutine()
+        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float)
+        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', '2.0', type=float)
 
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['w'] = True
         self.currentWire = None
+        self.statusbarMessage.emit('Left click to begin drawing a new line (press ESC to cancel)', 0)
 
     def addArc(self, points=3):
         """Set _key to arc mode so that an arc is added when LMB is pressed"""
@@ -167,24 +171,28 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._keys['arc'] = True
         self.arcPoints = points
         self.currentArc = None
+        self.statusbarMessage.emit('Left click to begin drawing a new arc (press ESC to cancel)', 0)
 
     def addRectangle(self):
         """Set _key to rectangle mode so that a rectangle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['rectangle'] = True
         self.currentRectangle = None
+        self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
 
     def addCircle(self):
         """Set _key to circle mode so that a circle is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['circle'] = True
         self.currentCircle = None
+        self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
 
     def addEllipse(self):
         """Set _key to ellipse mode so that an ellipse is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['ellipse'] = True
         self.currentEllipse = None
+        self.statusbarMessage.emit('Left click to begin drawing a new ellipse (press ESC to cancel)', 0)
 
     def addTextBox(self):
         """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
@@ -194,36 +202,38 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.setCursor(cursor)
         self._keys['textBox'] = True
         self.currentTextBox = None
+        self.statusbarMessage.emit('Left click to pick the location of the new text box (press ESC to cancel)', 0)
 
     def addNet(self):
         """Set _key to net mode so that a net is added when LMB is pressed"""
         self.escapeRoutine()
         self._keys['net'] = True
         self.currentNet = None
+        self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
 
     def addResistor(self):
         """Load the standard resistor"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/resistor.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Resistor.sym')
 
     def addCapacitor(self):
         """Load the standard capacitor"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/capacitor.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Capacitor.sym')
 
     def addGround(self):
         """Load the standard ground symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/ground.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Ground.sym')
 
     def addDot(self):
         """Load the standard dot symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/dot.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Dot.sym')
 
     def addTransistor(self, kind='MOS', polarity='N', arrow=False):
         """Load the standard transistor symbol based on its kind and polarity"""
@@ -232,37 +242,37 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if kind == 'MOS':
             if polarity == 'N':
                 if arrow is True:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/nfetArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/NFET_arrow.sym')
                 else:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/nfetNoArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/NFET_noArrow.sym')
             else:
                 if arrow is True:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/pfetArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/PFET_arrow.sym')
                 else:
-                    self.loadRoutine('symbol', './Resources/Symbols/Standard/pfetNoArrow.sym')
+                    self.loadRoutine('symbol', './Resources/Symbols/Standard/PFET_noArrow.sym')
         elif kind == 'BJT':
             if polarity == 'N':
-                self.loadRoutine('symbol', './Resources/Symbols/Standard/npnbjt.sym')
+                self.loadRoutine('symbol', './Resources/Symbols/Standard/BJT_NPN.sym')
             if polarity == 'P':
-                self.loadRoutine('symbol', './Resources/Symbols/Standard/pnpbjt.sym')
+                self.loadRoutine('symbol', './Resources/Symbols/Standard/BJT_PNP.sym')
 
     def addSource(self, kind='DCV'):
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 'DCV':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcVoltageSource.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_DCV.sym')
         elif kind == 'DCI':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/dcCurrentSource.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_DCI.sym')
         elif kind == 'AC':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/acSource.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_AC.sym')
         elif kind == 'VCVS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/vcvs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_VCVS.sym')
         elif kind == 'VCCS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/vccs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_VCCS.sym')
         elif kind == 'CCVS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/ccvs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCVS.sym')
         elif kind == 'CCCS':
-            self.loadRoutine('symbol', './Resources/Symbols/Standard/cccs.sym')
+            self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCCS.sym')
 
     def autobackupRoutine(self):
         if self.autobackupEnable is True:
@@ -276,6 +286,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         removeItems = []
         if self._keys['m'] is True or self._keys['add'] is True:
             removeItems = self.moveItems
+        if self._keys['rectangle'] is True:
+            removeItems = [self.currentRectangle]
+        if self._keys['circle'] is True:
+            removeItems = [self.currentCircle]
+        if self._keys['ellipse'] is True:
+            removeItems = [self.currentEllipse]
         if self._keys['w'] is True:
             removeItems = [self.currentWire]
         if self._keys['arc'] is True:
@@ -297,11 +313,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.escapeRoutine()
         else:
             selectedItems = self.scene().selectedItems()
+            logger.info('Starting autobackup')
         possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
         # Create list of items
         listOfItems = self.listOfItemsToSave(mode)
         # Return if no items are present
         if len(listOfItems) == 0:
+            logger.info('Nothing to save')
             return
         if mode in possibleModes:
             x = min([item.scenePos().x() for item in listOfItems])
@@ -326,6 +344,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 # Pressing escape sets selectOrigin to None
                 if self.selectOrigin is None:
                     return
+                logger.info('Setting origin for symbol at %s', origin)
 
             saveObject = myGraphicsItemGroup(None, origin, [])
             self.scene().addItem(saveObject)
@@ -334,6 +353,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
+                logger.info('Setting origin for item %s to %s', item, item.origin)
             saveObject.setItems(listOfItems)
 
             saveFile = ''
@@ -396,11 +416,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
             if saveFile[:-4] != '':
                 with open(saveFile, 'wb') as file:
+                    logger.info('Saving to file %s', saveFile)
                     pickle.dump(saveObject, file, -1)
                 # Delete old autobackup file
                 if mode != 'autobackup':
                     self.autobackupFile.close()
                     self.autobackupFile.remove()
+                    logger.info('Closing old autobackup file')
                 if mode == 'symbol' or mode == 'symbolAs':
                     self.symbolFileName = saveFile
                     self.schematicFileName = None
@@ -414,7 +436,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.autobackupFile.setAutoRemove(False)
                     with open(self.autobackupFile.fileName(), 'wb') as file:
                         pickle.dump(saveObject, file, -1)
+                    logger.info('New autobackup file created at %s', self.autobackupFile.fileName())
                     self.undoStack.setClean()
+                    logger.info('Setting undo stack to clean')
             # Always reparent items
             saveObject.reparentItems()
             self.scene().removeItem(saveObject)
@@ -428,11 +452,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
         created. This rect is then projected onto a QPixmap at a higher resolution to
         create the final image.
         """
+        logger.info('Beginning export')
         # Remove grid from the scene to avoid saving it
         self._grid.removeGrid()
         # Return if no items are present
         if len(self.scene().items()) == 0:
             self._grid.createGrid()
+            logger.info('Nothing to export')
             return
         # Deselect items before exporting
         selectedItems = self.scene().selectedItems()
@@ -457,13 +483,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
             saveFilter = 'bmp'
         elif '*.tiff' in saveFilter:
             saveFilter = 'tiff'
-        if not saveFile.endswith('.' + saveFilter):
-            saveFile = str(saveFile) + '.' + saveFilter
         # Check that file is valid
-        if saveFile == '':
+        if saveFile != '':
+            if not saveFile.endswith('.' + saveFilter):
+                saveFile = str(saveFile) + '.' + saveFilter
+        else:
             # Add the grid back to the scene
             self._grid.createGrid()
             return
+        logger.info('Exporting to file %s', saveFile)
         if saveFilter == 'pdf':
             mode = 'pdf'
         elif saveFilter == 'svg':
@@ -488,6 +516,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if padding > 1:
             sourceRect.translate(-width * (padding - 1) / (padding * 2.),
                                  -height * (padding - 1) / (padding * 2.))
+        logger.info('Source rectangle set to %s', sourceRect)
         if mode == 'pdf':
             # Initialize printer
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
@@ -499,6 +528,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
             self.scene().render(painter, source=sourceRect)
+            logger.info('Rendering SVG')
         elif mode == 'svg':
             svgGenerator = QtSvg.QSvgGenerator()
             svgGenerator.setFileName(saveFile)
@@ -507,6 +537,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
+            logger.info('Rendering PDF')
         elif mode == 'image':
             # Create an image object
             img = QtGui.QImage(
@@ -520,6 +551,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
             img.save(saveFile, saveFilter, quality=quality)
+            logger.info('Rendering PNG to target rectangle %s', targetRect)
 
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
@@ -528,6 +560,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
+        logger.info('Finishing export')
 
     def loadAutobackupRoutine(self, loadFile=None):
         # Ask if you would like to recover the autobackup
@@ -535,19 +568,31 @@ class DrawingArea(QtWidgets.QGraphicsView):
         msgBox.setWindowTitle("Recover file")
         msgBox.setText("An autobackup file was detected.")
         msgBox.setInformativeText("Do you wish to recover from the autobackup file?")
+        msgBox.setDetailedText(("Selecting No will automatically delete the "
+        "autobackup file. The safest option is to answer Yes and then opening "
+        "the manually saved schematic later if the autobackup save was not "
+        "something you wanted to use."))
         msgBox.setStandardButtons(msgBox.Yes | msgBox.No)
         msgBox.setDefaultButton(msgBox.Yes)
         msgBox.setIcon(msgBox.Information)
         ret = msgBox.exec_()
         if ret == msgBox.Yes:
+            logger.info('Loading autobackup file')
             return glob.glob(loadFile + '.*')[0]
         elif ret == msgBox.No:
+            logger.info('Loading selected file')
             return loadFile
 
-    def loadRoutine(self, mode='symbol', loadFile=None):
+    def loadRoutine(self, mode='symbol', loadFile=None, loadItem=None):
         """This is the counterpart of the save routine. Used to load both schematics
         and symbols.
         """
+        # It is possible that loadFile may be a folder, when clicked through
+        # the symbol preview on the left. If so, return
+        if loadFile is not None:
+            if os.path.isdir(loadFile):
+                return
+        logger.info('Beginning load routine')
         possibleModes = ['schematic', 'symbol', 'symbolModify']
         if mode in possibleModes:
             if loadFile is None:
@@ -573,6 +618,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if loadFile != '':
                 # Check to see if an autobackup file exists if the mode is
                 # schematic or symbolModify
+                logger.info('Loading file %s', loadFile)
                 if mode == 'schematic' or mode == 'symbolModify':
                     if glob.glob(loadFile + '.*') != []:
                         loadFile = self.loadAutobackupRoutine(loadFile)
@@ -585,7 +631,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     if glob.glob(loadFile + '.*') != []:
                         # Remove the old autobackup file
                         os.remove(glob.glob(loadFile + '.*')[0])
-            else:
+            elif loadItem is None:
                 return False
             if mode == 'schematic' or mode == 'symbolModify':
                 self.schematicFileName = None
@@ -595,6 +641,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if hasattr(self, 'autobackupFile'):
                     self.autobackupFile.close()
                     self.autobackupFile.remove()
+                    logger.info('Closing old autobackup file')
                 if mode == 'schematic':
                     self.schematicFileName = loadFile
                     self.autobackupFile = QtCore.QTemporaryFile(self.schematicFileName)
@@ -603,6 +650,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.autobackupFile = QtCore.QTemporaryFile(self.symbolFileName)
                 self.autobackupFile.open()
                 self.autobackupFile.setAutoRemove(False)
+                logger.info('Creating new autobackup file %s', self.autobackupFile.fileName())
                 # Clear the scene
                 self.scene().clear()
                 loadItem.__init__(
@@ -613,6 +661,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().addItem(loadItem)
                 # loadItem.loadItems(mode)
             elif mode == 'symbol':
+                logger.info('Loading item %s as a symbol', loadItem)
                 self.loadItem = loadItem
                 loadItem.__init__(
                     None,
@@ -627,6 +676,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().removeItem(loadItem)
                 self.fitToViewRoutine()
                 self.undoStack.clear()
+                logger.info('Clearing the undo stack')
                 # Run an autobackup once items are loaded completely
                 self.autobackupRoutine()
             elif mode == 'symbol':
@@ -640,12 +690,19 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.moveStartPoint = self.mapToGrid(self.currentPos)
                 self._keys['add'], self._mouse['1'] = True, True
                 loadItem.moveTo(self.moveStartPoint, 'start')
+                self.statusbarMessage.emit(
+                    'Left click to place the symbol (press ESC to cancel)',
+                    0)
                 self.updateMoveItems()
         # Save a copy locally so that items don't disappear
         self.items = self.scene().items()
+        # Capture focus
+        self.setFocus(True)
+        logger.info('Load routine complete')
 
     def escapeRoutine(self):
         """Resets all variables to the default state"""
+        logger.info('Cancelling previous operation')
         # If mouse had been clicked
         if self._mouse['1'] is True:
             # Unclick mouse
@@ -655,7 +712,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.endMacro()
                 # The failed move command still exists in the stack. Not sure how to remove it
                 self.undoStack.undo()
-                self.resetToolbarButtons.emit()
                 # Undo reflection command if items were being moved
                 # if self.reflections == 1:
                 #     self.rotateRoutine(QtCore.Qt.ShiftModifier)
@@ -674,7 +730,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self._keys['c'] is True:
                 for item in self.scene().selectedItems():
                     self.scene().removeItem(item)
-                self.resetToolbarButtons.emit()
             # Remove last wire being drawn
             if self._keys['w'] is True:
                 # self.scene().removeItem(self.currentWire)
@@ -728,32 +783,82 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.escapeRoutine()
         self.updateMoveItems()
         self._keys['m'] = True
-        self.statusbarMessage.emit("Move (Press ESC to cancel)", 0)
+        if self.moveItems == []:
+            self.statusbarMessage.emit(
+                'Select items to move, then left click to pick the origin for the move (Press ESC to cancel)',
+                0)
+        else:
+            self.statusbarMessage.emit("Left click to pick the origin for the move (Press ESC to cancel)", 0)
 
     def copyRoutine(self):
         """Preps to begin copying items"""
         self.escapeRoutine()
         self._keys['c'] = True
-        self.statusbarMessage.emit("Copy (Press ESC to cancel)", 0)
+        self.updateMoveItems()
+        # self.statusbarMessage.emit("Copy (Press ESC to cancel)", 0)
+        if self.moveItems == []:
+            self.statusbarMessage.emit('Please select items to copy first', 2000)
+            self.escapeRoutine()
+        else:
+            self.statusbarMessage.emit("Left click to pick the origin for the copy (Press ESC to cancel)", 0)
+            self.copyItemsToClipboard(self.scene().selectedItems())
+
+    def pasteRoutine(self):
+        """Paste items from the clipboard"""
+        self.escapeRoutine()
+        self._keys['v'] = True
+        try:
+            loadItem = pickle.loads(self.clipboard.mimeData().data('YCircuit'))
+            self.loadRoutine(mode='symbol', loadFile='', loadItem=loadItem)
+        except:
+            self._keys['v'] = False
+            self.statusbarMessage.emit('Nothing to paste', 2000)
+
+    def copyItemsToClipboard(self, copiedItems):
+        """Copy items to the clipboard"""
+        listOfItems = []
+        for item in copiedItems:
+            listOfItems.append(item.createCopy())
+            item.setSelected(False)
+        x = min([item.scenePos().x() for item in listOfItems])
+        y = min([item.scenePos().y() for item in listOfItems])
+        origin = QtCore.QPointF(x, y)
+        saveObject = myGraphicsItemGroup(None, origin, [])
+        # self.scene().addItem(saveObject)
+        saveObject.origin = origin
+        # Set relative origins of child items
+        for item in listOfItems:
+            item.origin = item.pos() - saveObject.origin
+            logger.info('Setting origin for item %s to %s', item, item.origin)
+            self.scene().removeItem(item)
+        saveObject.setItems(listOfItems)
+        mimeData = QtCore.QMimeData()
+        mimeData.setData('YCircuit', pickle.dumps(saveObject))
+        self.clipboard.setMimeData(mimeData)
+        # Reselect original items
+        for item in copiedItems:
+            item.setSelected(True)
 
     def deleteRoutine(self):
         """Delete selected items"""
         if self.scene().selectedItems() == []:
+            self.statusbarMessage.emit('Please select item(s) to delete first', 2000)
             return
         self.undoStack.beginMacro('')
+        itemsToDelete = self.scene().selectedItems()
         for item2 in self.scene().selectedItems():
             if isinstance(item2, Net):
-                netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
                 if item2 in netList:
                     netList.remove(item2)
-                for item in netList:
-                    mergedNet = item.mergeNets(netList, self.undoStack)
+                for item in netList[:]:
+                    mergedNet = item.mergeNets(netList[:], self.undoStack)
                     if mergedNet is not None:
-                        mergedNet.splitNets(netList, self.undoStack)
-        del1 = Delete(None, self.scene(), self.scene().selectedItems())
+                        mergedNet.splitNets(netList[:], self.undoStack)
+        del1 = Delete(None, self.scene(), itemsToDelete)
         self.undoStack.push(del1)
         self.undoStack.endMacro()
-        self.statusbarMessage.emit("Delete", 1000)
+        self.statusbarMessage.emit("Delete", 2000)
 
     def fitToViewRoutine(self):
         """Resizes viewport so that all items drawn are visible"""
@@ -761,45 +866,74 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Fit to (0, 0, 800, 800) if nothing is present
             rect = QtCore.QRectF(0, 0, 800, 800)
             self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+            logger.info('Set viewport to %s', rect)
         else:
             self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+            logger.info('Set viewport to %s', self.scene().itemsBoundingRect())
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
         self._grid.enableGrid = not self._grid.enableGrid
         if self._grid.enableGrid is True:
             self._grid.createGrid()
+            self.statusbarMessage.emit('The grid is now visible', 2000)
+            logger.info('Grid set to visible')
         else:
             self.setBackgroundBrush(QtGui.QBrush())
+            self.statusbarMessage.emit('The grid is no longer visible', 2000)
+            logger.info('Grid set to invisible')
 
     def toggleSnapToGridRoutine(self, state):
         """Toggles drawings snapping to grid"""
         self._grid.snapToGrid = state
+        if state is True:
+            self.statusbarMessage.emit('Snap to grid is enabled', 2000)
+            logger.info('Snap to grid is enabled')
+        else:
+            self.statusbarMessage.emit('Snap to grid is disabled', 2000)
+            logger.info('Snap to grid is disabled')
 
     def changeSnapToGridSpacing(self, spacing):
-        self._grid.snapToGridSpacing = spacing
+        if spacing != self._grid.snapToGridSpacing:
+            self._grid.snapToGridSpacing = spacing
 
     def toggleMajorGridPointsRoutine(self, state):
         """Toggles major grid points on and off"""
         self._grid.majorSpacingVisibility = state
+        if state is True:
+            self.statusbarMessage.emit('Major grid points are now visible', 2000)
+            logger.info('Major grid points set to visible')
+        else:
+            self.statusbarMessage.emit('Major grid points are no longer visible', 2000)
+            logger.info('Major grid points set to invisible')
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
     def changeMajorGridPointSpacing(self, spacing):
-        self._grid.majorSpacing = spacing
-        if self._grid.enableGrid is True:
-            self._grid.createGrid()
+        if spacing != self._grid.majorSpacing:
+            self._grid.majorSpacing = spacing
+            self.statusbarMessage.emit('Major grid point spacing changed to ' + str(spacing), 2000)
+            if self._grid.enableGrid is True:
+                self._grid.createGrid()
 
     def toggleMinorGridPointsRoutine(self, state):
         """Toggles minor grid points on and off"""
         self._grid.minorSpacingVisibility = state
+        if state is True:
+            self.statusbarMessage.emit('Minor grid points are now visible', 2000)
+            logger.info('Minor grid points set to visible')
+        else:
+            self.statusbarMessage.emit('Minor grid points are no longer visible', 2000)
+            logger.info('Minor grid points set to invisible')
         if self._grid.enableGrid is True:
             self._grid.createGrid()
 
     def changeMinorGridPointSpacing(self, spacing):
-        self._grid.minorSpacing = spacing
-        if self._grid.enableGrid is True:
-            self._grid.createGrid()
+        if spacing != self._grid.minorSpacing:
+            self._grid.minorSpacing = spacing
+            self.statusbarMessage.emit('Minor grid point spacing changed to ' + str(spacing), 2000)
+            if self._grid.enableGrid is True:
+                self._grid.createGrid()
 
     def changeFontRoutine(self, selectedFont):
         if self.scene().selectedItems() != []:
@@ -819,7 +953,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.selectedFont = selectedFont
         self.statusbarMessage.emit("Changed font to %s %s" %
                                    (selectedFont.family(), selectedFont.pointSize()),
-                                   1000)
+                                   2000)
 
     def changeHeightRoutine(self, mode='reset'):
         if self.scene().selectedItems == []:
@@ -837,15 +971,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if mode == 'forward':
             self.statusbarMessage.emit(
                 "Brought selected item(s) forward" + info,
-                1000)
+                2000)
         elif mode == 'back':
             self.statusbarMessage.emit(
                 "Sent selected item(s) back" + info,
-                1000)
+                2000)
         elif mode == 'reset':
             self.statusbarMessage.emit(
                 "Reset the height(s) of the selected item(s)",
-                1000)
+                2000)
 
     def changeWidthRoutine(self, selectedWidth):
         if self.scene().selectedItems() != []:
@@ -866,10 +1000,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     width=selectedWidth)
                 self.undoStack.push(changePen)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed pen width of the selected item(s) to %d" %(selectedWidth),
+                    2000)
+        elif selectedWidth != self.selectedWidth:
             self.selectedWidth = selectedWidth
-        self.statusbarMessage.emit("Changed pen width to %d" %
-                                   (selectedWidth), 1000)
+            self.statusbarMessage.emit(
+                "Changed pen width to %d" %(selectedWidth),
+                2000)
 
     def changePenColourRoutine(self, selectedPenColour):
         selectedPenColour = QtGui.QColor(selectedPenColour)
@@ -889,12 +1027,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     penColour=selectedPenColour)
                 self.undoStack.push(changePen)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed pen colour of the selected item(s) to %s" %(selectedPenColour.name()),
+                    2000)
+        elif selectedPenColour != QtGui.QColor(self.selectedPenColour):
             self.selectedPenColour = selectedPenColour
-        self.statusbarMessage.emit("Changed pen colour to %s" %
-                                   (selectedPenColour.name()), 1000)
+            self.statusbarMessage.emit(
+                "Changed pen colour to %s" %(selectedPenColour.name()),
+                2000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
+        styles = {
+            1: 'solid',
+            2: 'dash',
+            3: 'dot',
+            4: 'dash-dot',
+            5: 'dash-dot-dot'
+        }
         if self.scene().selectedItems() != []:
             samePenStyle = True
             for item in self.scene().selectedItems():
@@ -911,10 +1060,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     penStyle=selectedPenStyle)
                 self.undoStack.push(changePen)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed the pen style of the selected item(s) to %s" %(styles[selectedPenStyle]),
+                    2000)
+        elif selectedPenStyle != self.selectedPenStyle:
             self.selectedPenStyle = selectedPenStyle
-        self.statusbarMessage.emit("Changed pen style to %s" %
-                                   (selectedPenStyle), 1000)
+            self.statusbarMessage.emit(
+                "Changed pen style to %s" %(styles[selectedPenStyle]),
+                2000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
         selectedBrushColour = QtGui.QColor(selectedBrushColour)
@@ -934,12 +1087,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     brushColour=selectedBrushColour)
                 self.undoStack.push(changeBrush)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed the brush colour of the selected item(s) to %s" %(selectedBrushColour.name()),
+                    2000)
+        elif selectedBrushColour != QtGui.QColor(self.selectedBrushColour):
             self.selectedBrushColour = selectedBrushColour
-        self.statusbarMessage.emit("Changed brush colour to %s" %
-                                   (selectedBrushColour.name()), 1000)
+            self.statusbarMessage.emit(
+                "Changed brush colour to %s" %(selectedBrushColour.name()),
+                2000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
+        styles = {
+            0: 'no fill',
+            1: 'solid',
+        }
         if self.scene().selectedItems() != []:
             sameBrushStyle = True
             for item in self.scene().selectedItems():
@@ -956,23 +1117,45 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().selectedItems(),
                     brushStyle=selectedBrushStyle)
                 self.undoStack.push(changeBrush)
-        else:
+                self.statusbarMessage.emit(
+                    "Changed the brush style of the selected item(s) to %s" %(styles[selectedBrushStyle]),
+                    2000)
+        elif selectedBrushStyle != self.selectedBrushStyle:
             self.selectedBrushStyle = selectedBrushStyle
-        self.statusbarMessage.emit("Changed brush style to %s" %
-                                   (selectedBrushStyle), 1000)
+            self.statusbarMessage.emit(
+                "Changed brush style to %s" %(styles[selectedBrushStyle]),
+                2000)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
         self.currentX = self.currentPos.x()
         self.currentY = self.currentPos.y()
+        # Disable drag by default
+        self.dragMove = False
+        # If no modifiers are enabled
+        if event.modifiers() == QtCore.Qt.NoModifier:
+            # If item under cursor
+            if self.itemAt(self.currentPos) is not None:
+                # If no other items are selected, select item under cursor
+                if self.scene().selectedItems() == []:
+                    self.itemAt(self.currentPos).setSelected(True)
+                # If item under cursor in selected items
+                if self.itemAt(self.currentPos) in self.scene().selectedItems():
+                    # If no other mode is active
+                    if all(value == False for value in self._keys.values()):
+                        logger.info('Beginning moving by dragging')
+                        self.dragMove = True
+                        self._keys['m'] = True
         # If copy mode is on
         if self._keys['c'] is True:
             # Check to make sure this is the first click
             if self._mouse['1'] is False:
+                logger.info('Creating copies of items %s', self.scene().selectedItems())
                 for item in self.scene().selectedItems():
                     item.createCopy()
                 # Save a copy locally so that items don't disappear
                 self.items = self.scene().items()
+                # self.copyItemsToClipboard(self.scene().selectedItems())
             # Start moving after creating copy
             self._keys['m'] = True
         # If move mode is on
@@ -987,7 +1170,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self._mouse['1'] = False
             # Begin moving if LMB is clicked
             if (self._mouse['1'] is True):
+                self.statusbarMessage.emit('Left click to place item(s) (press ESC to cancel)', 0)
+                if self.dragMove is True:
+                    self.statusbarMessage.emit('Move mouse to desired location and release to place the item(s)', 0)
                 self.moveStartPoint = self.mapToGrid(event.pos())
+                logger.info('Beginning move from %s', self.moveStartPoint)
                 for i in self.moveItems:
                     i.moveTo(self.moveStartPoint, 'start')
                 # Create a macro and save all rotate/mirror commands
@@ -997,10 +1184,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['c'] is False:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
                             if item2 in netList:
                                 netList.remove(item2)
-                            for item in netList:
+                            for item in netList[:]:
                                 mergedNet = item.mergeNets(netList, self.undoStack)
                                 if mergedNet is not None:
                                     mergedNet.splitNets(netList, self.undoStack)
@@ -1010,23 +1197,26 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['c'] is True:
                     copy_ = Copy(None, self.scene(), self.moveItems, point=point)
                     self.undoStack.push(copy_)
+                    logger.info('Finishing copy')
                 else:
                     # Cancel the move and add the move to undo stack properly
                     for item in self.moveItems:
                         item.moveTo(None, 'cancel')
-                    move = Move(
-                        None,
-                        self.scene(),
-                        self.moveItems,
-                        startPoint=self.moveStartPoint,
-                        stopPoint=point)
-                    self.undoStack.push(move)
+                    if self.moveStartPoint != point:
+                        move = Move(
+                            None,
+                            self.scene(),
+                            self.moveItems,
+                            startPoint=self.moveStartPoint,
+                            stopPoint=point)
+                        self.undoStack.push(move)
+                        logger.info('Finishing move')
                 # Evaluate if any new nets need to be split/merged
                 # if self._keys['c'] is False:
                 if True:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2))]
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
                             mergedNet = item2.mergeNets(netList, self.undoStack)
                             if mergedNet is not None:
                                 mergedNet.splitNets(netList, self.undoStack)
@@ -1037,9 +1227,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self._keys['c'] = False
                 self.statusbarMessage.emit("", 0)
                 self.undoStack.endMacro()
-                self.resetToolbarButtons.emit()
-                for item in self.moveItems:
-                    item.setSelected(False)
+                # Undo action if nothing was moved
+                if point == self.moveStartPoint:
+                    self.undoStack.undo()
+                # for item in self.moveItems:
+                #     item.setSelected(False)
                 self.updateMoveItems()
         if self._keys['add'] is True:
             if (event.button() == QtCore.Qt.LeftButton):
@@ -1051,12 +1243,19 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     symbol=True,
                     origin=self.mapToGrid(event.pos()),
                     transform=self.loadItem.transform())
+                self.undoStack.beginMacro('')
                 self.undoStack.push(add)
+                if self._keys['v'] is True:
+                    logger.info('Ungrouping pasted items')
+                    ungroup = Ungroup(None, self.scene(), add.item)
+                    self.undoStack.push(ungroup)
+                self.undoStack.endMacro()
         if self._keys['edit'] is True:
             item = self.scene().selectedItems()[0]
             # Also accounts for arcs because they are subclassed from Wire
             if isinstance(item, Wire):
                 if (event.button() == QtCore.Qt.LeftButton):
+                    self.statusbarMessage.emit('Left click to place the current vertex here and move to the next one (press ESC when done)', 0)
                     edit = Edit(
                         None,
                         self.scene(),
@@ -1081,6 +1280,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                 self.scene(), item,
                                 self.mapToGrid(event.pos()))
                     self.undoStack.push(edit)
+                    self.statusbarMessage.emit('', 0)
             if self._mouse['1'] is False:
                 self.undoStack.endMacro()
         # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
@@ -1092,6 +1292,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def updateMoveItems(self):
         """Simple function that generates a list of selected items"""
         self.moveItems = self.scene().selectedItems()
+        logger.debug('Updating move items list to %s', self.moveItems)
 
     def rotateRoutine(self, modifier=None):
         """Handles rotation and reflection of selected items"""
@@ -1114,7 +1315,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(mirror)
                 else:
                     mirror.redo()
-                self.statusbarMessage.emit("Mirrored item(s)", 1000)
+                self.statusbarMessage.emit("Mirrored item(s)", 2000)
                 # for item in self.moveItems:
                 #     item.reflect(self._keys['m'], point)
             else:
@@ -1131,7 +1332,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(rotate)
                 else:
                     rotate.redo()
-                self.statusbarMessage.emit("Rotated item(s) by %d degrees" %(self.rotateAngle), 1000)
+                self.statusbarMessage.emit("Rotated item(s) by %d degrees" %(self.rotateAngle), 2000)
                 # for item in self.moveItems:
                 #     item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
@@ -1141,6 +1342,18 @@ class DrawingArea(QtWidgets.QGraphicsView):
             super().mouseReleaseEvent(event)
         elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False:
             super().mouseReleaseEvent(event)
+        # If drag move is on, generate a press event and turn it off
+        if self.dragMove is True:
+            self.dragMove = False
+            mouseEvent = QtGui.QMouseEvent(
+                event.MouseButtonPress,
+                event.localPos(),
+                event.screenPos(),
+                QtCore.Qt.LeftButton,
+                QtCore.Qt.LeftButton,
+                QtCore.Qt.NoModifier)
+            self.mousePressEvent(mouseEvent)
+            logger.info('Finishing moving by dragging')
         # If wire or arc mode are on
         if self._keys['w'] is True or self._keys['arc'] is True:
             # Keep drawing new wire segments
@@ -1153,6 +1366,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.currentY = self.currentPos.y()
                 start = self.mapToGrid(self.currentPos)
                 if self._keys['w'] is True:
+                    self.statusbarMessage.emit('Left click to place the next vertex (Right click to end this line and start a new line or press ESC to cancel)', 0)
                     # If it is a right click, cancel this wire
                     # and wait for another LMB
                     if event.button() == QtCore.Qt.RightButton:
@@ -1160,8 +1374,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             self._mouse['1'] = False
                             self.currentWire.cancelSegment()
                             self.currentWire = None
+                        logger.info('End drawing wire')
                     # Create new wire if none exists
                     elif self.currentWire is None:
+                        logger.info('Begin drawing a wire at %s', start)
                         self.currentWire = Wire(
                             None,
                             start,
@@ -1176,8 +1392,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         draw = Draw(None, self.scene(), self.currentWire, start)
                         self.undoStack.push(draw)
                 elif self._keys['arc'] is True:
+                    self.statusbarMessage.emit('Left click to place the next vertex (press ESC to cancel)', 0)
                     # Create new arc if none exists
                     if self.currentArc is None:
+                        logger.info('Begin drawing arc')
                         self.currentArc = Arc(
                             None,
                             start,
@@ -1191,6 +1409,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         self.undoStack.push(add)
                     # If arc exists, add segments
                     else:
+                        logger.info('Setting arc point %d to %s', self.currentArc.clicks, start)
                         self.currentArc.updateArc(start, click=True)
                         if self.currentArc.clicks == self.currentArc.points:
                             self.currentArc = None
@@ -1200,10 +1419,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation or press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 # Create new net if none exists
                 if self.currentNet is None:
+                    logger.info('Begin drawing net at %s', start)
                     self.currentNet = Net(
                         None,
                         start,
@@ -1215,35 +1436,39 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Add the original net
                     self.scene().addItem(self.currentNet)
             else:
+                self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
                 if self.currentNet is not None:
                     netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet))]
                     netList.remove(self.currentNet)
                     self.scene().removeItem(self.currentNet)
-                    self.undoStack.beginMacro('')
-                    add = Add(None, self.scene(), self.currentNet)
-                    self.undoStack.push(add)
-                    mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
-                    self.currentNet.splitNets(netList, self.undoStack)
-                    # Add the perpendicular line properly, if it exists
-                    if self.currentNet.perpLine is not None:
-                        netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
-                        netList.remove(self.currentNet.perpLine)
-                        perpLineObscured = False
-                        for net in netList:
-                            p1 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p1())
-                            p2 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p2())
-                            if (net.contains(p1) and net.contains(p2)) and net != self.currentNet.perpLine:
-                                perpLineObscured = True
-                        self.scene().removeItem(self.currentNet.perpLine)
-                        if perpLineObscured is False:
-                            self.undoStack.endMacro()
-                            self.undoStack.beginMacro('')
-                            add = Add(None, self.scene(), self.currentNet.perpLine)
-                            self.undoStack.push(add)
-                            mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
-                            self.currentNet.perpLine.splitNets(netList, self.undoStack)
-                    self.undoStack.endMacro()
+                    # Only do this if current net is not 0 length
+                    if self.currentNet.line().length() > 0.01:
+                        self.undoStack.beginMacro('')
+                        add = Add(None, self.scene(), self.currentNet)
+                        self.undoStack.push(add)
+                        mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
+                        self.currentNet.splitNets(netList, self.undoStack)
+                        # Add the perpendicular line properly, if it exists
+                        if self.currentNet.perpLine is not None:
+                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
+                            netList.remove(self.currentNet.perpLine)
+                            perpLineObscured = False
+                            for net in netList:
+                                p1 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p1())
+                                p2 = self.currentNet.perpLine.mapToItem(net, self.currentNet.perpLine.line().p2())
+                                if (net.contains(p1) and net.contains(p2)) and net != self.currentNet.perpLine:
+                                    perpLineObscured = True
+                            self.scene().removeItem(self.currentNet.perpLine)
+                            if perpLineObscured is False:
+                                self.undoStack.endMacro()
+                                self.undoStack.beginMacro('')
+                                add = Add(None, self.scene(), self.currentNet.perpLine)
+                                self.undoStack.push(add)
+                                mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
+                                self.currentNet.perpLine.splitNets(netList, self.undoStack)
+                        self.undoStack.endMacro()
                     self.currentNet = None
+                    logger.info('Finish drawing net')
             if event.button() == QtCore.Qt.RightButton:
                 if self.currentNet is not None:
                     self.currentNet.changeRightAngleMode(self.mapToGrid(event.pos()))
@@ -1254,9 +1479,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to finish drawing the rectangle (press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentRectangle is None:
+                    logger.info('Start drawing rectangle at %s', start)
                     self.currentRectangle = Rectangle(
                         None,
                         start=start,
@@ -1267,7 +1494,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentRectangle)
                     self.undoStack.push(add)
-                    # self.scene().addItem(self.currentRectangle)
+            else:
+                logger.info('Finish drawing rectangle')
+                self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
+                self.currentRectangle = None
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If circle mode is on, add a new circle
@@ -1275,9 +1505,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to finish drawing the circle (press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentCircle is None:
+                    logger.info('Start drawing circle at %s', start)
                     self.currentCircle = Circle(
                         None,
                         start=start,
@@ -1289,6 +1521,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     add = Add(None, self.scene(), self.currentCircle)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentCircle)
+            else:
+                logger.info('Finish drawing circle')
+                self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
+                self.currentCircle = None
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If ellipse mode is on, add a new ellipse
@@ -1296,9 +1532,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
+                self.statusbarMessage.emit('Left click to finish drawing the ellipse (press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
                 if self.currentEllipse is None:
+                    logger.info('Start drawing ellipse at %s', start)
                     self.currentEllipse = Ellipse(
                         None,
                         start=start,
@@ -1310,6 +1548,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     add = Add(None, self.scene(), self.currentEllipse)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentEllipse)
+            else:
+                logger.info('Finish drawing ellipse')
+                self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
+                self.currentEllipse = None
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         # If textbox mode is on, add a new textbox
@@ -1319,6 +1561,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self._mouse['1'] is True:
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos)
+                logger.info('Draw text box at %s', start)
                 if self.currentTextBox is None:
                     self.currentTextBox = TextBox(
                         None,
@@ -1333,6 +1576,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)
                 self._keys['textBox'] = False
+                self._mouse['1'] = False
+                self.statusbarMessage.emit('', 0)
                 # Change cursor shape to a text editing style
                 cursor = self.cursor()
                 cursor.setShape(QtCore.Qt.ArrowCursor)
@@ -1412,42 +1657,72 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Pan or zoom depending on keyboard modifiers
         eventDelta = event.angleDelta().y()
         if eventDelta >= 0:
+            # Ignore event for fast scrolls where delta > 240
+            if eventDelta > 240:
+                event.ignore()
+                return
             delta = max(120, eventDelta)
         elif eventDelta < 0:
+            # Ignore event for fast scrolls where delta < -240
+            if eventDelta < -240:
+                event.ignore()
+                return
             delta = min(-120, eventDelta)
         scaleFactor = -delta / 240.
         modifiers = QtWidgets.QApplication.keyboardModifiers()
+        timeline = QtCore.QTimeLine(300, self)
+        timeline.setFrameRange(0, 100)
+        timeline.setUpdateInterval(20)
         if modifiers == QtCore.Qt.ControlModifier:
-            self.translate(0, -scaleFactor * 100)
+            # self.translate(0, -scaleFactor * 100)
+            self.setTransformationAnchor(self.NoAnchor)
+            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='vertical'))
+            logger.info('Move viewport in the Y direction by %d', -scaleFactor*150)
         elif modifiers == QtCore.Qt.ShiftModifier:
-            self.translate(-scaleFactor * 100, 0)
+            # self.translate(-scaleFactor * 100, 0)
+            self.setTransformationAnchor(self.NoAnchor)
+            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='horizontal'))
+            logger.info('Move viewport in the X direction by %d', -scaleFactor*150)
         else:
             if scaleFactor < 0:
                 scaleFactor = -1 / scaleFactor
-            scaleFactor = 1 + (scaleFactor - 1) / 5.
-            oldPos = self.mapToScene(event.pos())
+            scaleFactor = 1 + (scaleFactor - 1) / 2.5
+            scaleFactor = scaleFactor**(1/5)
+            timeline.setDuration(100)
+            self.setTransformationAnchor(self.AnchorUnderMouse)
+            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='zoom'))
+            logger.info('Viewport scaled by %.2f', scaleFactor)
+        timeline.start()
+
+    def modifyView(self, scaleFactor, panZoom='vertical'):
+        if panZoom == 'vertical':
+            self.translate(0, -scaleFactor * 10)
+        elif panZoom == 'horizontal':
+            self.translate(-scaleFactor*10, 0)
+        elif panZoom == 'zoom':
             self.scale(scaleFactor, scaleFactor)
-            newPos = self.mapToScene(event.pos())
-            delta = newPos - oldPos
-            self.translate(delta.x(), delta.y())
 
     def editShape(self):
         # Only process this if edit mode is not already active
         if self._keys['edit'] is False:
             if len(self.scene().selectedItems()) == 1:
+                logger.info('Begin editing')
                 item = self.scene().selectedItems()[0]
                 cursor = self.cursor()
                 if isinstance(item, Circle):
                     sceneP = item.end.toPoint()
+                    self.statusbarMessage.emit('Left click to place the current vertex here and finish editing (press ESC to cancel)', 0)
                 elif isinstance(item, Rectangle) or isinstance(item, Ellipse):
                     sceneP = item.mapToScene(item.p2).toPoint()
+                    self.statusbarMessage.emit('Left click to place the current vertex here and finish editing (press ESC to cancel)', 0)
                 elif isinstance(item, Wire):
                     # poly = item.oldPath.toSubpathPolygons(item.transform())[0]
                     # item.editPointNumber = poly.size() - 1
                     item.editPointNumber = 0
                     sceneP = item.mapToScene(item.editPointLocation(item.editPointNumber))
+                    self.statusbarMessage.emit('Left click to place the current vertex here and move to the next vertex (press ESC to cancel)', 0)
                 else:
-                    self.statusbarMessage.emit("The selected item cannot be edited", 1000)
+                    self.statusbarMessage.emit("The selected item cannot be edited", 2000)
                     return
                 viewP = self.mapFromScene(sceneP)
                 cursor.setPos(self.viewport().mapToGlobal(viewP))
@@ -1461,7 +1736,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     viewP = self.mapFromScene(item.mapToScene(item.editPointLocation(item.editPointNumber)))
                     cursor.setPos(self.viewport().mapToGlobal(viewP))
             else:
-                self.statusbarMessage.emit("Please select an item to edit", 1000)
+                self.statusbarMessage.emit("Please select an item to edit", 2000)
 
     def optionsRoutine(self):
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -1476,3 +1751,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
         text = "Current position: "
         text += str('(') + str(pos.x()) + ', ' + str(pos.y()) + str(')')
         self.mousePosLabel.setText(text)
+
+    def groupItems(self, mode='group'):
+        listOfItems = self.scene().selectedItems()
+        if listOfItems == []:
+            return
+        if mode == 'ungroup' and len(listOfItems) > 1:
+            self.statusbarMessage.emit('Please select only one item to ungroup', 2000)
+            return
+        if mode == 'group' and len(listOfItems) == 1:
+            self.statusbarMessage.emit('Please select at least two items to group', 2000)
+            return
+        if mode == 'group':
+            group = Group(None, self.scene(), listOfItems)
+            self.undoStack.push(group)
+        if mode == 'ungroup':
+            if isinstance(listOfItems[0], myGraphicsItemGroup):
+                ungroup = Ungroup(None, self.scene(), listOfItems[0])
+                self.undoStack.push(ungroup)
+            else:
+                self.statusbarMessage.emit('Selected instance needs to be a group/symbol', 2000)

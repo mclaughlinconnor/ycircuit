@@ -1,13 +1,20 @@
 import sys
 sys.path.append('./Resources/icons/')
 from .drawingarea import DrawingArea
-from .components import TextBox
-from PyQt5 import QtCore, QtGui, QtWidgets
+from .components import TextBox, myGraphicsItemGroup
+from .drawingitems import myIconProvider
+from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork
 from .gui.ycircuit_mainWindow import Ui_MainWindow
+import zipfile
+import os
+import logging
 
 
 class myMainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, clipboard=None):
+        self.logger = logging.getLogger('YCircuit.MainWindow')
+        self.logger.info('Creating a new schematic window')
+
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -17,6 +24,14 @@ class myMainWindow(QtWidgets.QMainWindow):
 
         self.ui.drawingArea.mousePosLabel = QtWidgets.QLabel()
         self.ui.statusbar.addPermanentWidget(self.ui.drawingArea.mousePosLabel)
+        self.downloader = QtNetwork.QNetworkAccessManager()
+        self.downloader.setConfiguration(QtNetwork.QNetworkConfigurationManager().defaultConfiguration())
+        if self.downloader.networkAccessible() != self.downloader.NotAccessible:
+            self.ui.action_updateYCircuit.setEnabled(True)
+        self.logger.info('Accessibility reported to be %d', self.downloader.networkAccessible())
+        if clipboard is not None:
+            self.clipboard = clipboard
+            self.ui.drawingArea.clipboard = clipboard
 
         # Connect actions to relevant slots
         # File menu
@@ -65,22 +80,20 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(
             self.ui.drawingArea.copyRoutine)
+        self.ui.action_paste.triggered.connect(
+            self.ui.drawingArea.pasteRoutine)
         # Add Delete key to shortcuts for deleting
         del_ = [QtGui.QKeySequence('Del')]
         del_.append(self.ui.action_delete.shortcut())
         self.ui.action_delete.setShortcuts(del_)
         self.ui.action_delete.triggered.connect(
             self.ui.drawingArea.deleteRoutine)
-        self.ui.drawingArea.resetToolbarButtons.connect(
-            lambda: self.ui.action_move.setChecked(False))
-        self.ui.drawingArea.resetToolbarButtons.connect(
-            lambda: self.ui.action_copy.setChecked(False))
-        self.ui.drawingArea.resetToolbarButtons.connect(
-            lambda: self.ui.action_delete.setChecked(False))
         self.ui.action_pickFont.triggered.connect(
             self.action_pickFont_triggered)
         self.ui.action_options.triggered.connect(
             self.ui.drawingArea.optionsRoutine)
+        self.ui.action_escape.triggered.connect(
+            self.ui.drawingArea.escapeRoutine)
 
         self.ui.action_heightBringForward.triggered.connect(
             lambda x: self.ui.drawingArea.changeHeightRoutine('forward'))
@@ -88,6 +101,11 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.changeHeightRoutine('back'))
         self.ui.action_heightReset.triggered.connect(
             lambda x: self.ui.drawingArea.changeHeightRoutine('reset'))
+
+        self.ui.action_group.triggered.connect(
+            lambda x: self.ui.drawingArea.groupItems('group'))
+        self.ui.action_ungroup.triggered.connect(
+            lambda x: self.ui.drawingArea.groupItems('ungroup'))
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setWidth2.triggered.connect(
@@ -100,6 +118,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.action_setWidth_triggered(8))
         self.ui.action_setWidth10.triggered.connect(
             lambda x: self.action_setWidth_triggered(10))
+        self.ui.action_setWidthCustom.triggered.connect(
+            lambda x: self.action_setWidth_triggered('custom'))
 
         self.ui.action_setPenColourBlack.triggered.connect(
             lambda x: self.action_setPenColour_triggered('black'))
@@ -253,9 +273,25 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_addCCCS.triggered.connect(
             lambda x: self.ui.drawingArea.addSource('CCCS'))
 
+        # Help menu
+        self.ui.action_updateYCircuit.triggered.connect(
+            self.updateYCircuit)
+        self.ui.action_tutorialInverterSchematic.triggered.connect(
+            lambda x: QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl(
+                'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/1/tutorial1.html')))
+        self.ui.action_tutorialCustomSymbols.triggered.connect(
+            lambda x: QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl(
+                'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/2/tutorial2.html')))
+
         # Miscellaneous signal and slot connections
         self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)
         self.ui.drawingArea.statusbarMessage.connect(self.ui.statusbar.showMessage)
+
+        # Initialize the symbol viewer
+        self.initialiseSymbolViewer()
+        self.logger.info('Successfully created a new window')
 
     def changeWindowTitle(self, clean=True):
         if self.ui.drawingArea.schematicFileName is not None:
@@ -268,12 +304,16 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.setWindowTitle('YCircuit - ' + fileName)
             if clean is False:
                 self.setWindowTitle(self.windowTitle() + '*')
+        self.logger.info('Window title set to %s', self.windowTitle())
 
     def closeEvent(self, event):
         modified = ''
+        if sys.exc_info()[0] != None:
+            self.logger.error(exc_info=sys.exc_info())
         if self.ui.drawingArea.undoStack.isClean():
             self.ui.drawingArea.autobackupFile.close()
             self.ui.drawingArea.autobackupFile.remove()
+            self.logger.info('Closing with a clean undo stack')
             event.accept()
         elif self.ui.drawingArea.schematicFileName is not None:
             modified = 'schematic'
@@ -292,18 +332,29 @@ class myMainWindow(QtWidgets.QMainWindow):
             ret = msgBox.exec_()
             if ret == msgBox.Save:
                 self.ui.drawingArea.saveRoutine(modified)
+                self.logger.info('Deleting autobackup file %s', self.ui.drawingArea.autobackupFile.fileName())
                 self.ui.drawingArea.autobackupFile.close()
                 self.ui.drawingArea.autobackupFile.remove()
+                self.logger.info('Closing with changes saved as %s', modified)
                 event.accept()
             elif ret == msgBox.Discard:
+                self.logger.info('Deleting autobackup file %s', self.ui.drawingArea.autobackupFile.fileName())
                 self.ui.drawingArea.autobackupFile.close()
                 self.ui.drawingArea.autobackupFile.remove()
+                self.logger.info('Closing with unsaved changes')
                 event.accept()
             else:
                 event.ignore()
 
     def action_newSchematic_triggered(self):
-        self.form = myMainWindow()
+        self.logger.info('Creating a new window')
+        if self.ui.drawingArea.schematicFileName is None and self.ui.drawingArea.symbolFileName is None:
+            msgBox = QtWidgets.QMessageBox(self)
+            msgBox.setText("Please save the current window with a new name first")
+            msgBox.setStandardButtons(msgBox.Ok)
+            msgBox.exec_()
+            return
+        self.form = myMainWindow(self.clipboard)
         self.form.showMaximized()
         self.form.ui.drawingArea.fitToViewRoutine()
 
@@ -324,6 +375,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             initialFont = QtGui.QFont('Arial', 10)
         (font, accept) = QtWidgets.QFontDialog.getFont(initialFont, parent=self)
         if accept is True:
+            self.logger.info('Changing font to %s %d', font.family(), font.pointSize())
             self.ui.drawingArea.changeFontRoutine(font)
 
     def menu_Edit_hovered(self):
@@ -355,35 +407,35 @@ class myMainWindow(QtWidgets.QMainWindow):
         elif len(set(widthList)) > 1:
             self.action_setWidth_triggered(-1, temporary=True)
         elif len(set(widthList)) == 0:
-            self.action_setWidth_triggered(self.ui.drawingArea.selectedWidth)
+            self.action_setWidth_triggered(self.ui.drawingArea.selectedWidth, temporary=True)
 
         if len(set(penColourList)) == 1:
             self.action_setPenColour_triggered(penColourList[0], temporary=True)
         elif len(set(penColourList)) > 1:
             self.action_setPenColour_triggered(-1, temporary=True)
         elif len(set(penColourList)) == 0:
-            self.action_setPenColour_triggered(self.ui.drawingArea.selectedPenColour)
+            self.action_setPenColour_triggered(self.ui.drawingArea.selectedPenColour, temporary=True)
 
         if len(set(penStyleList)) == 1:
             self.action_setPenStyle_triggered(penStyleList[0], temporary=True)
         elif len(set(penStyleList)) > 1:
             self.action_setPenStyle_triggered(-1, temporary=True)
         elif len(set(penStyleList)) == 0:
-            self.action_setPenStyle_triggered(self.ui.drawingArea.selectedPenStyle)
+            self.action_setPenStyle_triggered(self.ui.drawingArea.selectedPenStyle, temporary=True)
 
         if len(set(brushColourList)) == 1:
             self.action_setBrushColour_triggered(brushColourList[0], temporary=True)
         elif len(set(brushColourList)) > 1:
             self.action_setBrushColour_triggered(-1, temporary=True)
         elif len(set(brushColourList)) == 0:
-            self.action_setBrushColour_triggered(self.ui.drawingArea.selectedBrushColour)
+            self.action_setBrushColour_triggered(self.ui.drawingArea.selectedBrushColour, temporary=True)
 
         if len(set(brushStyleList)) == 1:
             self.action_setBrushStyle_triggered(brushStyleList[0], temporary=True)
         elif len(set(brushStyleList)) > 1:
             self.action_setBrushStyle_triggered(-1, temporary=True)
         elif len(set(brushStyleList)) == 0:
-            self.action_setBrushStyle_triggered(self.ui.drawingArea.selectedBrushStyle)
+            self.action_setBrushStyle_triggered(self.ui.drawingArea.selectedBrushStyle, temporary=True)
 
     def action_setWidth_triggered(self, width, temporary=False):
         self.ui.action_setWidth2.setChecked(False)
@@ -391,6 +443,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setWidth6.setChecked(False)
         self.ui.action_setWidth8.setChecked(False)
         self.ui.action_setWidth10.setChecked(False)
+        self.ui.action_setWidthCustom.setChecked(False)
         if width == 2:
             self.ui.action_setWidth2.setChecked(True)
         if width == 4:
@@ -401,7 +454,26 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_setWidth8.setChecked(True)
         if width == 10:
             self.ui.action_setWidth10.setChecked(True)
+        if width == 'custom':
+            selectedItems = self.ui.drawingArea.scene().selectedItems()
+            oldWidth = self.ui.drawingArea.selectedWidth
+            if len(selectedItems) == 1:
+                item = selectedItems[0]
+                if not isinstance(item, myGraphicsItemGroup):
+                    if not isinstance(item, TextBox):
+                        oldWidth = item.localPenWidth
+            width, accept = QtWidgets.QInputDialog.getInt(
+                self,
+                'Set custom pen width',
+                'Width',
+                oldWidth,
+                1,
+                100)
+            if accept is False:
+                return
+            self.ui.action_setWidthCustom.setChecked(True)
         if temporary is False:
+            self.logger.info('Set pen width to %d', width)
             self.ui.drawingArea.changeWidthRoutine(width)
 
     def action_setPenColour_triggered(self, penColour, temporary=False):
@@ -437,6 +509,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_setPenColourCustom.setChecked(True)
         if temporary is False:
             if QtGui.QColor(penColour).isValid():
+                self.logger.info('Set pen colour to %s', QtGui.QColor(penColour).name())
                 self.ui.drawingArea.changePenColourRoutine(penColour)
 
     def action_setPenStyle_triggered(self, penStyle, temporary=False):
@@ -456,6 +529,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         if penStyle == 5:
             self.ui.action_setPenStyleDashDotDot.setChecked(True)
         if temporary is False:
+            self.logger.info('Set pen style to %d', penStyle)
             self.ui.drawingArea.changePenStyleRoutine(penStyle)
 
     def action_setBrushColour_triggered(self, brushColour, temporary=False):
@@ -491,6 +565,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_setBrushColourCustom.setChecked(True)
         if temporary is False:
             if QtGui.QColor(brushColour).isValid():
+                self.logger.info('Set brush colour to %s', QtGui.QColor(brushColour).name())
                 self.ui.drawingArea.changeBrushColourRoutine(brushColour)
 
     def action_setBrushStyle_triggered(self, brushStyle, temporary=False):
@@ -501,6 +576,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         if brushStyle == 1:
             self.ui.action_setBrushStyleSolid.setChecked(True)
         if temporary is False:
+            self.logger.info('Set brush style to %d', brushStyle)
             self.ui.drawingArea.changeBrushStyleRoutine(brushStyle)
 
     def menu_View_hovered(self):
@@ -515,12 +591,12 @@ class myMainWindow(QtWidgets.QMainWindow):
 
         # Set the snap to grid spacing check appropriately
         snapToGridSpacing = self.ui.drawingArea._grid.snapToGridSpacing
-        self.action_snapToGridSpacing(snapToGridSpacing)
+        self.action_snapToGridSpacing(snapToGridSpacing, temporary=True)
         # Set the major and minor grid point checks appropriately
         majorSpacing = self.ui.drawingArea._grid.majorSpacing
         minorSpacing = self.ui.drawingArea._grid.minorSpacing
-        self.action_majorGridPointSpacing(majorSpacing)
-        self.action_minorGridPointSpacing(minorSpacing)
+        self.action_majorGridPointSpacing(majorSpacing, temporary=True)
+        self.action_minorGridPointSpacing(minorSpacing, temporary=True)
 
     def action_snapToGridSpacing(self, spacing, temporary=False):
         self.ui.action_snapToGridSpacing1.setChecked(False)
@@ -545,6 +621,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         if spacing == 40:
             self.ui.action_snapToGridSpacing40.setChecked(True)
         if temporary is False:
+            self.logger.info('Set snap to grid spacing to %d', spacing)
             self.ui.drawingArea.changeSnapToGridSpacing(spacing)
 
     def action_majorGridPointSpacing(self, spacing, temporary=False):
@@ -561,6 +638,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         if spacing == 400:
             self.ui.action_majorGridPointSpacing400.setChecked(True)
         if temporary is False:
+            self.logger.info('Set major grid point spacing to %d', spacing)
             self.ui.drawingArea.changeMajorGridPointSpacing(spacing)
 
     def action_minorGridPointSpacing(self, spacing, temporary=False):
@@ -586,4 +664,122 @@ class myMainWindow(QtWidgets.QMainWindow):
         if spacing == 40:
             self.ui.action_minorGridPointSpacing40.setChecked(True)
         if temporary is False:
+            self.logger.info('Set minor grid point spacing to %d', spacing)
             self.ui.drawingArea.changeMinorGridPointSpacing(spacing)
+
+    def initialiseSymbolViewer(self):
+        # Create a new file picker when the symbol directory pushbutton
+        # is triggered
+        self.ui.pushButton_symbolPreviewDirectory.clicked.connect(
+            lambda x: self.pickSymbolViewerDirectory())
+        # Connecting the symbol viewer to the appropriate model
+        self.fileSystemModel = QtWidgets.QFileSystemModel()
+        if hasattr(self.ui.drawingArea, 'defaultSymbolPreviewFolder'):
+            index = self.fileSystemModel.setRootPath(self.ui.drawingArea.defaultSymbolPreviewFolder)
+        else:
+            index = self.fileSystemModel.setRootPath('./Resources/Symbols/Standard/')
+        self.logger.info('Initialising symbol viewer directory to %s', self.fileSystemModel.rootPath())
+        self.fileSystemModel.setIconProvider(myIconProvider())
+        self.fileSystemModel.setNameFilterDisables(False)
+        self.fileSystemModel.setNameFilters(['*.sym'])
+        self.ui.listView_symbolPreview.setModel(self.fileSystemModel)
+        self.ui.listView_symbolPreview.setRootIndex(index)
+        self.ui.listView_symbolPreview.setIconSize(QtCore.QSize(100, 100))
+        # Set double click behaviour in the list view
+        self.ui.listView_symbolPreview.doubleClicked.connect(
+            self.ui.drawingArea.escapeRoutine)
+        self.ui.listView_symbolPreview.doubleClicked.connect(
+            self.ui.drawingArea.setFocus)
+        self.ui.listView_symbolPreview.doubleClicked.connect(
+            lambda x: self.ui.drawingArea.loadRoutine(
+                mode='symbol',
+                loadFile=self.fileSystemModel.filePath(x)))
+        # Set shortcut for the search filter
+        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence('Ctrl+F'), self)
+        shortcut.activated.connect(self.ui.lineEdit_symbolPreviewFilter.selectAll)
+        shortcut.activated.connect(self.ui.lineEdit_symbolPreviewFilter.setFocus)
+        self.ui.lineEdit_symbolPreviewFilter.textChanged.connect(
+            lambda: self.fileSystemModel.setNameFilters(
+                ['*' + self.ui.lineEdit_symbolPreviewFilter.text() + '*.sym']
+            )
+        )
+
+    def pickSymbolViewerDirectory(self, dir_=None):
+        if dir_ is None:
+            dir_ = QtWidgets.QFileDialog().getExistingDirectory(
+                self,
+                'Pick directory for symbol preview',
+                self.fileSystemModel.rootPath())
+        if dir_ != '':
+            index = self.fileSystemModel.setRootPath(dir_)
+            self.ui.listView_symbolPreview.setRootIndex(index)
+            self.logger.info('Set symbol viewer directory to %s', dir_)
+
+    def updateYCircuit(self):
+        # For some reason, when building on Windows, networkAccessible returns
+        # unknown accessibility. Hence, instead of explicitly checking for
+        # accessibility, we instead check for lack thereof
+        if self.downloader.networkAccessible() == self.downloader.NotAccessible:
+            self.ui.statusbar.showMessage('Please make sure you are connected to the internet', 1000)
+            self.logger.info('Did not download update becase of lack of network access')
+            return
+        branch, accept = QtWidgets.QInputDialog.getItem(
+            self,
+            'Update',
+            'Select branch to update from',
+            ['master', 'develop'],
+            1,
+            False)
+        if accept is False:
+            return
+        url = 'https://bitbucket.org/siddharthshekar/ycircuit/downloads/'
+        if sys.platform == 'linux':
+            updateFile = 'ycircuit-' + branch + '_linux64_update.zip'
+        elif sys.platform == 'win32':
+            updateFile = 'ycircuit-' + branch + '_win64_update.zip'
+        url += updateFile
+        loop = QtCore.QEventLoop()
+        request = QtNetwork.QNetworkRequest(QtCore.QUrl(url))
+        data = self.downloader.get(request)
+        self.downloader.finished.connect(self.processDownloadedUpdate)
+        self.downloader.finished.connect(loop.exit)
+        self.ui.statusbar.showMessage('Downloading update', 0)
+        self.logger.info('Downloading update from %s', branch)
+        loop.exec_()
+
+    def processDownloadedUpdate(self, data):
+        statusCode = data.attribute(QtNetwork.QNetworkRequest.HttpStatusCodeAttribute)
+        print(statusCode)
+        # Handle redirects
+        if statusCode == 302:
+            url = data.attribute((QtNetwork.QNetworkRequest.RedirectionTargetAttribute))
+            print('Redirecting to', url)
+            self.logger.info('Redirected to %s', url.toDisplayString())
+            request = QtNetwork.QNetworkRequest(url)
+            data = self.downloader.get(request)
+            return
+        # Handle file not found error
+        elif statusCode == 404:
+            self.ui.statusbar.showMessage('Could not download the update', 1000)
+            self.logger.info('Could not download the update')
+            print('Update could not be downloaded')
+            self.downloader.disconnect()
+            return
+        self.ui.statusbar.showMessage('Installing update', 0)
+        self.logger.info('Installing update')
+        if sys.platform == 'linux':
+            updateFile = 'ycircuit-develop_linux64_update.zip'
+            self.logger.info('Renaming current executable to YCircuit_old')
+            os.replace('./YCircuit', './YCircuit_old')
+        elif sys.platform == 'win32':
+            updateFile = 'ycircuit-develop_win64_update.zip'
+            self.logger.info('Renaming current executable to YCircuit_old.exe')
+            os.replace('./YCircuit.exe', './YCircuit_old.exe')
+        with open(updateFile, 'wb') as f:
+            f.write(data.readAll())
+        with zipfile.ZipFile(updateFile, 'r', zipfile.ZIP_DEFLATED) as zip:
+            self.logger.info('Unzipping update files')
+            zip.extractall('./')
+        self.ui.statusbar.showMessage('Update completed', 1000)
+        self.logger.info('Update completed')
+        self.downloader.disconnect()

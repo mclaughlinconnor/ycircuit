@@ -3,11 +3,11 @@
 
 In my experience with drawing pretty schematics that could create publication quality exports, I was told about [XCircuit](www.opencircuitdesign.com/xcircuit/). And while it is true that XCircuit produces beautiful schematics, its UI and UX left a lot to be desired (in my opinion). I decided to start working on an alternative whose output could rival that of XCircuit's in my spare time and as a result, YCircuit was born.
 
-Just to be clear, this tool is intended to be used only for drawing circuit schematics. This is not intended to be a circuit simulator or anything more than a drawing program. This might change in the future, but I think it is useful to spell out exactly what YCircuit is intended to do.
+Just to be clear, this tool is intended to be used only for drawing circuit schematics. This is not intended to be a circuit simulator or anything more than a drawing program. This might change in the future, but I think it is useful to spell out exactly what YCircuit is designed to do.
 
 YCircuit is written in [Python 3](https://www.python.org) and uses [PyQt5](https://www.riverbankcomputing.com/software/pyqt/download) as the GUI framework. The move from PyQt4 to PyQt5 makes this a little more future-proof but it comes with some tradeoffs, the worst of which is the inability to export to EPS.
 
-Please check out the [YCircuit website](https://siddharthshekar.bitbucket.io/YCircuit) for further details, binary files and some tutorials!
+Please check out the [YCircuit website](https://siddharthshekar.bitbucket.io/YCircuit) for further details and some tutorials! Binary files for Windows and Linux are available for download in the [downloads section](https://bitbucket.org/siddharthshekar/ycircuit/downloads).
 
 ## Installation ##
 -------------------------------------------------------------------------------
@@ -42,9 +42,10 @@ As of this point in time, the following options are available:
 
   * File operations (Alt+F)
     * Create a new schematic (Ctrl+N)
-    * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
     * Save and load schematics (.sch files) (Ctrl+S, Ctrl+L)
-    * Export symbol or schematic as a PDF, SVG, JPG, PNG or BMP file (Ctrl+E)
+    * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
+    * Modify existing symbol (Alt+F->M)
+    * Export symbol or schematic as a PDF, SVG, JPG, PNG, BMP or TIFF file (Ctrl+E)
         * While exporting to EPS was natively supported by PyQt4, the Qt team decided to drop this during the transition to Qt5. As a result, EPS is no longer supported by YCircuit. If you need a vector-based exporting option, use the PDF or SVG options.
   * Editing (Alt+E)
     * Undo (Ctrl+Z)
@@ -52,9 +53,12 @@ As of this point in time, the following options are available:
     * Delete (D)
     * Move (M)
     * Copy (C)
+    * Paste copied items from the clipboard (V)
     * Rotate (R)
     * Mirror (Shift+R)
     * Change font (Alt+E->F)
+    * Change heights of items to bring them forward or send them back (Ctrl++/-/0)
+    * Group/ungroup items for easy manipulation (Ctrl+G/Ctrl+Shift+G)
     * Change pen colour, style and width (Alt+E->C,P,W)
     * Change fill colour and style
     * Options (Ctrl+P)
@@ -67,6 +71,7 @@ As of this point in time, the following options are available:
     * Text box (with support for bold, italics, underline, overline, subscript and superscript) (Alt+A->T)
         * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed. Check [here](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.png) or [here for an SVG version](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.svg) in order to get an idea of what the LaTeX output looks like.
         * An option for a more coherent look would be to use the symbols button in the text editor.
+    * Edit selected shape (E)
   * Symbols (Alt+S)
     * Wire (Right click to change the angle of the wire!) (W)
     * [Resistor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/resistor.png) (Alt+S->R)
@@ -104,8 +109,11 @@ Currently, the files have the following uses:
   * top.py: Used for launching the GUI.
   * src/
     * gui/
-        * ycircuit_mainWindow.*: The UI file contains the output of Qt Designer while the py file is the exported version of the same.
-    * drawingitems.py: Contains the Grid class for creating the background grid in the GUI and the TextEditor class for handling editing of TextBox objects.
+        * The UI file contains the output of Qt Designer while the py file is the exported version of the same.
+        * ycircuit_mainWindow.*: This defines the main editing interface.
+        * ycircuit_optionsWindow.*: Defines the UI for the options window.
+        * textEditor_gui.*: Defines the UI for the text editor that pops up while editing text items.
+    * drawingitems.py: Contains the Grid class for creating the background grid in the GUI, the TextEditor class for handling editing of TextBox objects, and custom file dialog and icon provider classes.
     * drawingarea.py: Handles implementations of functions for responding to UI callbacks. Captures and processes all keyboard and mouse events.
     * mainwindow.py: Contains mappings from UI callbacks to actual functions in the drawing area.
     * components.py: Defines item classes for creating and manipulating shapes.
@@ -113,7 +121,7 @@ Currently, the files have the following uses:
   * Resources/Symbols/
     * Standard/*.sym: Contains various commonly used standard symbols.
     * Custom/*.sym: Contains user defined symbols.
-  * Schematics are currently saved as a .sch file. Try loading inverter.sch from the Resources/Examples directory for an example inverter schematic.
+  * Schematics are currently saved as a .sch file while symbols are saved as a .sym file. The difference between the two is purely cosmetic. Symbols are loaded with the top-level items grouped together whereas schematics are loaded with top-level items existing without a parent group. Try loading schematics from the Resources/Examples directory for examples on how to use the program.
 
 ## TODOs ##
 -------------------------------------------------------------------------------
@@ -121,8 +129,9 @@ Currently, the files have the following uses:
 This is an (incomplete) list of features that I would like to add at some point (in no particular order):
 
   * ~Edit shapes (click and drag to resize rect, for example)~
-  * Create projects (so each schematic has its own folder to dump LaTeX images in)
-  * Copying items in one schematic should allow pasting on to another open schematic
+  * Create projects each with their own config file.
+  * ~Copying items in one schematic should allow pasting on to another open schematic~
+  * Scale items while keeping their pen width the same.
 
 ## Feedback ##
 -------------------------------------------------------------------------------
