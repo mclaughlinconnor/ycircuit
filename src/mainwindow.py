@@ -734,10 +734,10 @@ class myMainWindow(QtWidgets.QMainWindow):
             return
         url = 'https://bitbucket.org/siddharthshekar/ycircuit/downloads/'
         if sys.platform == 'linux':
-            updateFile = 'ycircuit-' + branch + '_linux64_update.zip'
+            self.updateFile = 'ycircuit-' + branch + '_linux64_update.zip'
         elif sys.platform == 'win32':
-            updateFile = 'ycircuit-' + branch + '_win64_update.zip'
-        url += updateFile
+            self.updateFile = 'ycircuit-' + branch + '_win64_update.zip'
+        url += self.updateFile
         loop = QtCore.QEventLoop()
         request = QtNetwork.QNetworkRequest(QtCore.QUrl(url))
         data = self.downloader.get(request)
@@ -768,16 +768,14 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.statusbar.showMessage('Installing update', 0)
         self.logger.info('Installing update')
         if sys.platform == 'linux':
-            updateFile = 'ycircuit-develop_linux64_update.zip'
             self.logger.info('Renaming current executable to YCircuit_old')
             os.replace('./YCircuit', './YCircuit_old')
         elif sys.platform == 'win32':
-            updateFile = 'ycircuit-develop_win64_update.zip'
             self.logger.info('Renaming current executable to YCircuit_old.exe')
             os.replace('./YCircuit.exe', './YCircuit_old.exe')
-        with open(updateFile, 'wb') as f:
+        with open(self.updateFile, 'wb') as f:
             f.write(data.readAll())
-        with zipfile.ZipFile(updateFile, 'r', zipfile.ZIP_DEFLATED) as zip:
+        with zipfile.ZipFile(self.updateFile, 'r', zipfile.ZIP_DEFLATED) as zip:
             self.logger.info('Unzipping update files')
             zip.extractall('./')
         self.ui.statusbar.showMessage('Update completed', 1000)
