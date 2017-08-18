@@ -723,11 +723,20 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage('Please make sure you are connected to the internet', 1000)
             self.logger.info('Did not download update becase of lack of network access')
             return
+        branch, accept = QtWidgets.QInputDialog.getItem(
+            self,
+            'Branch',
+            'Select branch to update from',
+            ['master', 'develop'],
+            1,
+            False)
+        if accept is False:
+            return
         url = 'https://bitbucket.org/siddharthshekar/ycircuit/downloads/'
         if sys.platform == 'linux':
-            updateFile = 'ycircuit-develop_linux64_update.zip'
+            updateFile = 'ycircuit-' + branch + '_linux64_update.zip'
         elif sys.platform == 'win32':
-            updateFile = 'ycircuit-develop_win64_update.zip'
+            updateFile = 'ycircuit-' + branch + '_win64_update.zip'
         url += updateFile
         loop = QtCore.QEventLoop()
         request = QtNetwork.QNetworkRequest(QtCore.QUrl(url))
@@ -735,7 +744,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.downloader.finished.connect(self.processDownloadedUpdate)
         self.downloader.finished.connect(loop.exit)
         self.ui.statusbar.showMessage('Downloading update', 0)
-        self.logger.info('Downloading update')
+        self.logger.info('Downloading update from %s', branch)
         loop.exec_()
 
     def processDownloadedUpdate(self, data):
