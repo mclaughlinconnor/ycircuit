@@ -100,63 +100,63 @@ class DrawingArea(QtWidgets.QGraphicsView):
         logger.info('Applying settings from file %s', fileName)
 
         # Font settings
-        fontFamily = settings.value('Painting/Font/Family')
-        fontPointSize = settings.value('Painting/Font/Point size', type=int)
+        fontFamily = settings.value('Painting/Font/Family', 'Arial')
+        fontPointSize = settings.value('Painting/Font/Point size', '10', type=int)
         self.selectedFont = QtGui.QFont()
         self.selectedFont.setFamily(fontFamily)
         self.selectedFont.setPointSize(fontPointSize)
         # Painting settings
-        self.selectedWidth = settings.value('Painting/Pen/Width', type=int)
-        self.selectedPenColour = settings.value('Painting/Pen/Colour')
+        self.selectedWidth = settings.value('Painting/Pen/Width', '4', type=int)
+        self.selectedPenColour = settings.value('Painting/Pen/Colour', 'Black')
         penStyles = {'Solid': 1, 'Dash': 2, 'Dot': 3, 'Dash-dot': 4, 'Dash-dot-dot': 5}
-        self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style')]
-        self.selectedBrushColour = settings.value('Painting/Brush/Colour')
+        self.selectedPenStyle = penStyles[settings.value('Painting/Pen/Style', 'Solid')]
+        self.selectedBrushColour = settings.value('Painting/Brush/Colour', 'Black')
         brushStyles = {'No fill': 0, 'Solid': 1}
-        self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style')]
-        self.rotateDirection = settings.value('Painting/Rotation/Direction')
-        self.rotateAngle = settings.value('Painting/Rotation/Angle', type=float)
+        self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style', 'No fill')]
+        self.rotateDirection = settings.value('Painting/Rotation/Direction', 'Clockwise')
+        self.rotateAngle = settings.value('Painting/Rotation/Angle', '45', type=float)
         if self.rotateDirection == 'Counter-clockwise':
             self.rotateAngle *= -1
 
         # Grid settings
-        self._grid.enableGrid = settings.value('Grid/Visibility', type=bool)
-        self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', type=bool)
-        self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', type=int)
-        self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', type=bool)
-        self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', type=int)
-        self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', type=bool)
-        self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', type=int)
+        self._grid.enableGrid = settings.value('Grid/Visibility', True, type=bool)
+        self._grid.snapToGrid = settings.value('Grid/Snapping/Snap to grid', True, type=bool)
+        self._grid.snapToGridSpacing = settings.value('Grid/Snapping/Snap to grid spacing', '10', type=int)
+        self._grid.majorSpacingVisibility = settings.value('Grid/Major and minor grid points/Major grid points visibility', True, type=bool)
+        self._grid.majorSpacing = settings.value('Grid/Major and minor grid points/Major grid points spacing', '100', type=int)
+        self._grid.minorSpacingVisibility = settings.value('Grid/Major and minor grid points/Minor grid points visibility', True, type=bool)
+        self._grid.minorSpacing = settings.value('Grid/Major and minor grid points/Minor grid points spacing', '20', type=int)
         if self._grid.enableGrid:
             self._grid.createGrid()
         else:
             self._grid.removeGrid()
 
         # Save/export settings
-        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', type=bool)
+        self.autobackupEnable = settings.value('SaveExport/Autobackup/Enable', True, type=bool)
         # Set autobackup timer interval in ms
-        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', type=int)*1000
+        self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', '10', type=int)*1000
         self.autobackupTimer.setInterval(self.autobackupTimerInterval)
-        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', type=bool)
-        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder')
+        self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', True, type=bool)
+        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder', './')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSchematicSaveFolder):
             os.mkdir(self.defaultSchematicSaveFolder)
-        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', type=bool)
-        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder')
-        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder')
+        self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', True, type=bool)
+        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/')
+        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/')
         # When the program is starting, myMainWindow will not have fileSystemModel
         if hasattr(self.window(), 'fileSystemModel'):
             self.window().pickSymbolViewerDirectory(self.defaultSymbolPreviewFolder)
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultSymbolSaveFolder):
             os.mkdir(self.defaultSymbolSaveFolder)
-        self.defaultExportFormat = settings.value('SaveExport/Export/Default format').lower()
-        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder')
+        self.defaultExportFormat = settings.value('SaveExport/Export/Default format', 'pdf').lower()
+        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder', './')
         # Create default directory if it does not exist
         if not os.path.isdir(self.defaultExportFolder):
             os.mkdir(self.defaultExportFolder)
-        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', type=float)
-        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', type=float)
+        self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float)
+        self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', '2.0', type=float)
 
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
@@ -797,7 +797,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.updateMoveItems()
         # self.statusbarMessage.emit("Copy (Press ESC to cancel)", 0)
         if self.moveItems == []:
-            self.statusbarMessage.emit('Please select items to copy first', 1000)
+            self.statusbarMessage.emit('Please select items to copy first', 2000)
             self.escapeRoutine()
         else:
             self.statusbarMessage.emit("Left click to pick the origin for the copy (Press ESC to cancel)", 0)
@@ -812,7 +812,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.loadRoutine(mode='symbol', loadFile='', loadItem=loadItem)
         except:
             self._keys['v'] = False
-            self.statusbarMessage.emit('Nothing to paste', 1000)
+            self.statusbarMessage.emit('Nothing to paste', 2000)
 
     def copyItemsToClipboard(self, copiedItems):
         """Copy items to the clipboard"""
@@ -842,7 +842,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def deleteRoutine(self):
         """Delete selected items"""
         if self.scene().selectedItems() == []:
-            self.statusbarMessage.emit('Please select item(s) to delete first', 1000)
+            self.statusbarMessage.emit('Please select item(s) to delete first', 2000)
             return
         self.undoStack.beginMacro('')
         itemsToDelete = self.scene().selectedItems()
@@ -858,7 +858,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         del1 = Delete(None, self.scene(), itemsToDelete)
         self.undoStack.push(del1)
         self.undoStack.endMacro()
-        self.statusbarMessage.emit("Delete", 1000)
+        self.statusbarMessage.emit("Delete", 2000)
 
     def fitToViewRoutine(self):
         """Resizes viewport so that all items drawn are visible"""
@@ -876,21 +876,21 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._grid.enableGrid = not self._grid.enableGrid
         if self._grid.enableGrid is True:
             self._grid.createGrid()
-            self.statusbarMessage.emit('The grid is now visible', 1000)
+            self.statusbarMessage.emit('The grid is now visible', 2000)
             logger.info('Grid set to visible')
         else:
             self.setBackgroundBrush(QtGui.QBrush())
-            self.statusbarMessage.emit('The grid is no longer visible', 1000)
+            self.statusbarMessage.emit('The grid is no longer visible', 2000)
             logger.info('Grid set to invisible')
 
     def toggleSnapToGridRoutine(self, state):
         """Toggles drawings snapping to grid"""
         self._grid.snapToGrid = state
         if state is True:
-            self.statusbarMessage.emit('Snap to grid is enabled', 1000)
+            self.statusbarMessage.emit('Snap to grid is enabled', 2000)
             logger.info('Snap to grid is enabled')
         else:
-            self.statusbarMessage.emit('Snap to grid is disabled', 1000)
+            self.statusbarMessage.emit('Snap to grid is disabled', 2000)
             logger.info('Snap to grid is disabled')
 
     def changeSnapToGridSpacing(self, spacing):
@@ -901,10 +901,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Toggles major grid points on and off"""
         self._grid.majorSpacingVisibility = state
         if state is True:
-            self.statusbarMessage.emit('Major grid points are now visible', 1000)
+            self.statusbarMessage.emit('Major grid points are now visible', 2000)
             logger.info('Major grid points set to visible')
         else:
-            self.statusbarMessage.emit('Major grid points are no longer visible', 1000)
+            self.statusbarMessage.emit('Major grid points are no longer visible', 2000)
             logger.info('Major grid points set to invisible')
         if self._grid.enableGrid is True:
             self._grid.createGrid()
@@ -912,7 +912,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def changeMajorGridPointSpacing(self, spacing):
         if spacing != self._grid.majorSpacing:
             self._grid.majorSpacing = spacing
-            self.statusbarMessage.emit('Major grid point spacing changed to ' + str(spacing), 1000)
+            self.statusbarMessage.emit('Major grid point spacing changed to ' + str(spacing), 2000)
             if self._grid.enableGrid is True:
                 self._grid.createGrid()
 
@@ -920,10 +920,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Toggles minor grid points on and off"""
         self._grid.minorSpacingVisibility = state
         if state is True:
-            self.statusbarMessage.emit('Minor grid points are now visible', 1000)
+            self.statusbarMessage.emit('Minor grid points are now visible', 2000)
             logger.info('Minor grid points set to visible')
         else:
-            self.statusbarMessage.emit('Minor grid points are no longer visible', 1000)
+            self.statusbarMessage.emit('Minor grid points are no longer visible', 2000)
             logger.info('Minor grid points set to invisible')
         if self._grid.enableGrid is True:
             self._grid.createGrid()
@@ -931,7 +931,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def changeMinorGridPointSpacing(self, spacing):
         if spacing != self._grid.minorSpacing:
             self._grid.minorSpacing = spacing
-            self.statusbarMessage.emit('Minor grid point spacing changed to ' + str(spacing), 1000)
+            self.statusbarMessage.emit('Minor grid point spacing changed to ' + str(spacing), 2000)
             if self._grid.enableGrid is True:
                 self._grid.createGrid()
 
@@ -953,7 +953,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.selectedFont = selectedFont
         self.statusbarMessage.emit("Changed font to %s %s" %
                                    (selectedFont.family(), selectedFont.pointSize()),
-                                   1000)
+                                   2000)
 
     def changeHeightRoutine(self, mode='reset'):
         if self.scene().selectedItems == []:
@@ -971,15 +971,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if mode == 'forward':
             self.statusbarMessage.emit(
                 "Brought selected item(s) forward" + info,
-                1000)
+                2000)
         elif mode == 'back':
             self.statusbarMessage.emit(
                 "Sent selected item(s) back" + info,
-                1000)
+                2000)
         elif mode == 'reset':
             self.statusbarMessage.emit(
                 "Reset the height(s) of the selected item(s)",
-                1000)
+                2000)
 
     def changeWidthRoutine(self, selectedWidth):
         if self.scene().selectedItems() != []:
@@ -1002,12 +1002,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.push(changePen)
                 self.statusbarMessage.emit(
                     "Changed pen width of the selected item(s) to %d" %(selectedWidth),
-                    1000)
+                    2000)
         elif selectedWidth != self.selectedWidth:
             self.selectedWidth = selectedWidth
             self.statusbarMessage.emit(
                 "Changed pen width to %d" %(selectedWidth),
-                1000)
+                2000)
 
     def changePenColourRoutine(self, selectedPenColour):
         selectedPenColour = QtGui.QColor(selectedPenColour)
@@ -1029,12 +1029,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.push(changePen)
                 self.statusbarMessage.emit(
                     "Changed pen colour of the selected item(s) to %s" %(selectedPenColour.name()),
-                    1000)
+                    2000)
         elif selectedPenColour != QtGui.QColor(self.selectedPenColour):
             self.selectedPenColour = selectedPenColour
             self.statusbarMessage.emit(
                 "Changed pen colour to %s" %(selectedPenColour.name()),
-                1000)
+                2000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
         styles = {
@@ -1062,12 +1062,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.push(changePen)
                 self.statusbarMessage.emit(
                     "Changed the pen style of the selected item(s) to %s" %(styles[selectedPenStyle]),
-                    1000)
+                    2000)
         elif selectedPenStyle != self.selectedPenStyle:
             self.selectedPenStyle = selectedPenStyle
             self.statusbarMessage.emit(
                 "Changed pen style to %s" %(styles[selectedPenStyle]),
-                1000)
+                2000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
         selectedBrushColour = QtGui.QColor(selectedBrushColour)
@@ -1089,12 +1089,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.push(changeBrush)
                 self.statusbarMessage.emit(
                     "Changed the brush colour of the selected item(s) to %s" %(selectedBrushColour.name()),
-                    1000)
+                    2000)
         elif selectedBrushColour != QtGui.QColor(self.selectedBrushColour):
             self.selectedBrushColour = selectedBrushColour
             self.statusbarMessage.emit(
                 "Changed brush colour to %s" %(selectedBrushColour.name()),
-                1000)
+                2000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
         styles = {
@@ -1119,12 +1119,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.push(changeBrush)
                 self.statusbarMessage.emit(
                     "Changed the brush style of the selected item(s) to %s" %(styles[selectedBrushStyle]),
-                    1000)
+                    2000)
         elif selectedBrushStyle != self.selectedBrushStyle:
             self.selectedBrushStyle = selectedBrushStyle
             self.statusbarMessage.emit(
                 "Changed brush style to %s" %(styles[selectedBrushStyle]),
-                1000)
+                2000)
 
     def mousePressEvent(self, event):
         self.currentPos = event.pos()
@@ -1315,7 +1315,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(mirror)
                 else:
                     mirror.redo()
-                self.statusbarMessage.emit("Mirrored item(s)", 1000)
+                self.statusbarMessage.emit("Mirrored item(s)", 2000)
                 # for item in self.moveItems:
                 #     item.reflect(self._keys['m'], point)
             else:
@@ -1332,7 +1332,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(rotate)
                 else:
                     rotate.redo()
-                self.statusbarMessage.emit("Rotated item(s) by %d degrees" %(self.rotateAngle), 1000)
+                self.statusbarMessage.emit("Rotated item(s) by %d degrees" %(self.rotateAngle), 2000)
                 # for item in self.moveItems:
                 #     item.rotateBy(self._keys['m'], point, self.rotateAngle)
 
@@ -1722,7 +1722,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     sceneP = item.mapToScene(item.editPointLocation(item.editPointNumber))
                     self.statusbarMessage.emit('Left click to place the current vertex here and move to the next vertex (press ESC to cancel)', 0)
                 else:
-                    self.statusbarMessage.emit("The selected item cannot be edited", 1000)
+                    self.statusbarMessage.emit("The selected item cannot be edited", 2000)
                     return
                 viewP = self.mapFromScene(sceneP)
                 cursor.setPos(self.viewport().mapToGlobal(viewP))
@@ -1736,7 +1736,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     viewP = self.mapFromScene(item.mapToScene(item.editPointLocation(item.editPointNumber)))
                     cursor.setPos(self.viewport().mapToGlobal(viewP))
             else:
-                self.statusbarMessage.emit("Please select an item to edit", 1000)
+                self.statusbarMessage.emit("Please select an item to edit", 2000)
 
     def optionsRoutine(self):
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
@@ -1757,10 +1757,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if listOfItems == []:
             return
         if mode == 'ungroup' and len(listOfItems) > 1:
-            self.statusbarMessage.emit('Please select only one item to ungroup', 1000)
+            self.statusbarMessage.emit('Please select only one item to ungroup', 2000)
             return
         if mode == 'group' and len(listOfItems) == 1:
-            self.statusbarMessage.emit('Please select at least two items to group', 1000)
+            self.statusbarMessage.emit('Please select at least two items to group', 2000)
             return
         if mode == 'group':
             group = Group(None, self.scene(), listOfItems)
@@ -1770,4 +1770,4 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ungroup = Ungroup(None, self.scene(), listOfItems[0])
                 self.undoStack.push(ungroup)
             else:
-                self.statusbarMessage.emit('Selected instance needs to be a group/symbol', 1000)
+                self.statusbarMessage.emit('Selected instance needs to be a group/symbol', 2000)
