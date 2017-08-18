@@ -725,7 +725,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             return
         branch, accept = QtWidgets.QInputDialog.getItem(
             self,
-            'Branch',
+            'Update',
             'Select branch to update from',
             ['master', 'develop'],
             1,
