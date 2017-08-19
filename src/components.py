@@ -496,22 +496,25 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             self.oldPath2.addPolygon(poly)
         self.oldPath = self.__dict__.pop('oldPath2', None)
 
-    def boundingRect(self):
-        rect = super().boundingRect()
-        return rect
-
     def shape(self):
         padding = 10
         if self.parentItem() is not None:
             return super().shape()
         if self.path().toSubpathPolygons(QtGui.QTransform()) == []:
             return QtGui.QPainterPath()
-        path = self.path()
-        path.translate(padding, padding)
-        otherPath = self.path().toReversed()
-        otherPath.translate(-padding, -padding)
-        path.connectPath(otherPath)
-        return path
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(padding)
+        return stroker.createStroke(self.path()).simplified()
+
+    def paint(self, painter, option, widget):
+        if self.isSelected() is True:
+            pen = QtGui.QPen()
+            pen.setWidth(0.5)
+            pen.setStyle(2)
+            painter.setPen(pen)
+            painter.drawPath(self.shape())
+        option.state &= not QtWidgets.QStyle.State_Selected
+        super().paint(painter, option, widget)
 
     def updateWire(self, newEnd, edit=False):
         # Update existing segment to end at newEnd
@@ -646,16 +649,18 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         super().__setstate__(state)
         self.oldLine = state['oldLine']
 
-    def boundingRect(self):
-        rect = super().boundingRect()
-        pad = 10
-        if rect.width() < pad:
-            rect.setWidth(pad)
-            rect.moveLeft(-pad / 2)
-        elif rect.height() < pad:
-            rect.setHeight(pad)
-            rect.moveTop(-pad / 2)
-        return rect
+    def shape(self):
+        padding = 10
+        if self.parentItem() is not None:
+            return super().shape()
+        if self.line().length() < 0.1:
+            return QtGui.QPainterPath()
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(padding)
+        poly = QtGui.QPolygonF([self.line().p1(), self.line().p2()])
+        path = QtGui.QPainterPath()
+        path.addPolygon(poly)
+        return stroker.createStroke(path).simplified()
 
     def updateNet(self, newEnd):
         newEnd = self.mapFromScene(newEnd)
