@@ -649,6 +649,14 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         super().__setstate__(state)
         self.oldLine = state['oldLine']
 
+    def boundingRect(self):
+        padding = 10
+        rect = QtCore.QRectF(self.line().p1(), self.line().p2())
+        topLeft = rect.normalized().topLeft() + QtCore.QPointF(-padding/2, -padding/2)
+        bottomRight = rect.normalized().bottomRight() + QtCore.QPointF(padding/2, padding/2)
+        rect = QtCore.QRectF(topLeft, bottomRight)
+        return rect
+
     def shape(self):
         padding = 10
         if self.parentItem() is not None:
@@ -974,38 +982,32 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         self.setLocalBrushOptions(**kwargs)
 
     def boundingRect(self):
-        # Make the bounding rect a little bigger so it is easier to see
-        pad = 10
-        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-pad, -pad)
-        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(pad, pad)
+        padding = 10
+        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-padding/2, -padding/2)
+        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(padding/2, padding/2)
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
     def shape(self):
+        padding = 10
+        if self.parentItem() is not None:
+            return super().shape()
         path = QtGui.QPainterPath()
-        path.addRect(self.boundingRect())
-        hollowRect = self.boundingRect()
-        pad = 10
-        hollowRect.setWidth(hollowRect.width() - 4 * pad)
-        hollowRect.setHeight(hollowRect.height() - 4 * pad)
-        hollowRect.moveLeft(hollowRect.left() + 2 * pad)
-        hollowRect.moveTop(hollowRect.top() + 2 * pad)
-        hollowPath = QtGui.QPainterPath()
-        hollowPath.addRect(hollowRect)
-        return path.subtracted(hollowPath)
+        path.addRect(self.rect())
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(padding)
+        return stroker.createStroke(path).simplified()
 
-    def paint(self, painter, *args):
+    def paint(self, painter, option, widget):
         # We have to manually draw out the bounding rect
-        if self.isSelected() is False:
-            super().paint(painter, *args)
-        else:
+        if self.isSelected() is True:
             pen = QtGui.QPen()
             pen.setStyle(2)
+            pen.setWidth(0.5)
             painter.setPen(pen)
-            painter.drawRect(self.boundingRect())
-            painter.setPen(self.localPen)
-            painter.setBrush(self.localBrush)
-            painter.drawRect(self.rect())
+            painter.drawPath(self.shape())
+        option.state &= not QtWidgets.QStyle.State_Selected
+        super().paint(painter, option, widget)
 
     def updateRectangle(self, end, edit=False):
         # Update the end point of the rectangle to end
@@ -1088,38 +1090,32 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         self.oldRect = self.rect()
 
     def boundingRect(self):
-        # Make the bounding rect a little bigger so that it is easier to see
-        pad = 10
-        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-pad, -pad)
-        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(pad, pad)
+        padding = 10
+        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-padding/2, -padding/2)
+        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(padding/2, padding/2)
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
     def shape(self):
+        padding = 10
         path = QtGui.QPainterPath()
-        path.addEllipse(self.boundingRect())
-        hollowRect = self.boundingRect()
-        pad = 10
-        hollowRect.setWidth(hollowRect.width() - 4 * pad)
-        hollowRect.setHeight(hollowRect.height() - 4 * pad)
-        hollowRect.moveLeft(hollowRect.left() + 2 * pad)
-        hollowRect.moveTop(hollowRect.top() + 2 * pad)
-        hollowPath = QtGui.QPainterPath()
-        hollowPath.addEllipse(hollowRect)
-        return path.subtracted(hollowPath)
+        path.addEllipse(self.rect())
+        if self.parentItem() is not None:
+            return super().shape()
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(padding)
+        return stroker.createStroke(path).simplified()
 
-    def paint(self, painter, *args):
+    def paint(self, painter, option, widget):
         # We have to manually draw out the bounding rect
-        if self.isSelected() is False:
-            super().paint(painter, *args)
-        else:
+        if self.isSelected() is True:
             pen = QtGui.QPen()
+            pen.setWidth(0.5)
             pen.setStyle(2)
             painter.setPen(pen)
-            painter.drawRect(self.boundingRect())
-            painter.setPen(self.localPen)
-            painter.setBrush(self.localBrush)
-            painter.drawEllipse(self.rect())
+            painter.drawPath(self.shape())
+        option.state &= not QtWidgets.QStyle.State_Selected
+        super().paint(painter, option, widget)
 
     def updateEllipse(self, end, edit=False):
         # Update the end point of the ellipse to end
