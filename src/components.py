@@ -500,6 +500,19 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         rect = super().boundingRect()
         return rect
 
+    def shape(self):
+        padding = 10
+        if self.parentItem() is not None:
+            return super().shape()
+        if self.path().toSubpathPolygons(QtGui.QTransform()) == []:
+            return QtGui.QPainterPath()
+        path = self.path()
+        path.translate(padding, padding)
+        otherPath = self.path().toReversed()
+        otherPath.translate(-padding, -padding)
+        path.connectPath(otherPath)
+        return path
+
     def updateWire(self, newEnd, edit=False):
         # Update existing segment to end at newEnd
         newEnd = self.mapFromScene(newEnd)
