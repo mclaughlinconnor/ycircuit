@@ -58,6 +58,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
         self.defaultExportFolder = './'
         self.dragMove = False
+        self.mouseRect = QtWidgets.QGraphicsRectItem(QtCore.QRectF(-4, -4, 8, 8))
+        self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('gray')))
+        self.mouseRect.setTransform(QtGui.QTransform().rotate(45))
+        self.scene().addItem(self.mouseRect)
 
         # Set up the autobackup timer
         self.autobackupTimer = QtCore.QTimer()
@@ -281,6 +285,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
 
     def listOfItemsToSave(self, mode='schematicAs'):
         listOfItems = [item for item in self.scene().items() if item.parentItem() is None]
+        if self.mouseRect in listOfItems:
+            listOfItems.remove(self.mouseRect)
         if mode != 'autobackup':
             return listOfItems
         removeItems = []
@@ -455,6 +461,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         logger.info('Beginning export')
         # Remove grid from the scene to avoid saving it
         self._grid.removeGrid()
+        self.scene().removeItem(self.mouseRect)
         # Return if no items are present
         if len(self.scene().items()) == 0:
             self._grid.createGrid()
@@ -490,6 +497,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         else:
             # Add the grid back to the scene
             self._grid.createGrid()
+            self.scene().addItem(self.mouseRect)
             return
         logger.info('Exporting to file %s', saveFile)
         if saveFilter == 'pdf':
@@ -557,6 +565,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         painter.end()
         # Add the grid back to the scene when saving is done
         self._grid.createGrid()
+        self.scene().addItem(self.mouseRect)
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
@@ -652,7 +661,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.autobackupFile.setAutoRemove(False)
                 logger.info('Creating new autobackup file %s', self.autobackupFile.fileName())
                 # Clear the scene
+                self.scene().removeItem(self.mouseRect)
                 self.scene().clear()
+                self.scene().addItem(self.mouseRect)
                 loadItem.__init__(
                     None,
                     QtCore.QPointF(0, 0),
@@ -868,7 +879,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
             logger.info('Set viewport to %s', rect)
         else:
+            self.scene().removeItem(self.mouseRect)
             self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+            self.scene().addItem(self.mouseRect)
             logger.info('Set viewport to %s', self.scene().itemsBoundingRect())
 
     def toggleGridRoutine(self):
@@ -1751,6 +1764,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         text = "Current position: "
         text += str('(') + str(pos.x()) + ', ' + str(pos.y()) + str(')')
         self.mousePosLabel.setText(text)
+        self.mouseRect.setPos(pos)
 
     def groupItems(self, mode='group'):
         listOfItems = self.scene().selectedItems()
