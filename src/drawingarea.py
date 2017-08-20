@@ -177,6 +177,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.scrollModifierNone = settings.value('Mouse/PanningZooming/Modifier none', 'Zoom')
         self.scrollModifierCtrl = settings.value('Mouse/PanningZooming/Modifier Ctrl', 'Pan vertically')
         self.scrollModifierShift = settings.value('Mouse/PanningZooming/Modifier Shift', 'Pan horizontally')
+        self.invertZoom = settings.value('Mouse/PanningZooming/Invert zoom', False, type=bool)
 
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
@@ -1738,8 +1739,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.modifyView(scaleFactor*15, panZoom)
             logger.debug('Pan in the %s direction by %d', panZoom, -scaleFactor*150)
         else:
-            if scaleFactor < 0:
-                scaleFactor = -1 / scaleFactor
+            if self.invertZoom is False:
+                if scaleFactor < 0:
+                    scaleFactor = -1 / scaleFactor
+            else:
+                if scaleFactor > 0:
+                    scaleFactor = 1 / scaleFactor
+                else:
+                    scaleFactor = -scaleFactor
             scaleFactor = 1 + (scaleFactor - 1) / 2.5
             self.setTransformationAnchor(self.AnchorUnderMouse)
             if self.showAnimationZoom is True:

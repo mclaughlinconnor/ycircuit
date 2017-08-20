@@ -1644,6 +1644,9 @@
          </item>
          <item>
           <widget class="QCheckBox" name="checkBox_showMouseRect">
+           <property name="toolTip">
+            <string>Shows a grey diamond at the current mouse position on the grid</string>
+           </property>
            <property name="layoutDirection">
             <enum>Qt::RightToLeft</enum>
            </property>
@@ -1687,6 +1690,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="checkBox_showAnimationPan">
+              <property name="toolTip">
+               <string>Toggle transition animations while panning</string>
+              </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
               </property>
@@ -1724,6 +1730,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="checkBox_showAnimationZoom">
+              <property name="toolTip">
+               <string>Toggle transition animations while zooming</string>
+              </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
               </property>
@@ -1770,6 +1779,9 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_scrollModifierNone">
+              <property name="toolTip">
+               <string>Select behaviour when the mouse wheel is scrolled</string>
+              </property>
               <item>
                <property name="text">
                 <string>Zoom</string>
@@ -1813,6 +1825,9 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_scrollModifierCtrl">
+              <property name="toolTip">
+               <string>Select behaviour when the mouse wheel is scrolled while the Ctrl key is pressed</string>
+              </property>
               <property name="currentIndex">
                <number>1</number>
               </property>
@@ -1859,6 +1874,9 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_scrollModifierShift">
+              <property name="toolTip">
+               <string>Select behaviour when the mouse wheel is scrolled while the Shift key is pressed</string>
+              </property>
               <property name="currentIndex">
                <number>2</number>
               </property>
@@ -1881,6 +1899,43 @@
             </item>
            </layout>
           </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_27">
+            <item>
+             <widget class="QLabel" name="label_35">
+              <property name="text">
+               <string>Invert scroll direction for zoom</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_35">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBox_zoomInvert">
+              <property name="toolTip">
+               <string>Invert the zooming behaviour (may be useful when using laptops with trackpads)</string>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -1892,7 +1947,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>223</height>
+           <height>195</height>
           </size>
          </property>
         </spacer>

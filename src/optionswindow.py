@@ -87,6 +87,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.comboBox_scrollModifierNone.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier none', 'Zoom'))
         self.ui.comboBox_scrollModifierCtrl.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier Ctrl', 'Pan vertically'))
         self.ui.comboBox_scrollModifierShift.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier Shift', 'Pan horizontally'))
+        self.ui.checkBox_zoomInvert.setChecked(self.settings.value('Mouse/PanningZooming/Invert zoom', False, type=bool))
 
     def writeValues(self):
         # Font settings
@@ -135,6 +136,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Mouse/PanningZooming/Modifier none', self.ui.comboBox_scrollModifierNone.currentText())
         self.settings.setValue('Mouse/PanningZooming/Modifier Ctrl', self.ui.comboBox_scrollModifierCtrl.currentText())
         self.settings.setValue('Mouse/PanningZooming/Modifier Shift', self.ui.comboBox_scrollModifierShift.currentText())
+        self.settings.setValue('Mouse/PanningZooming/Invert zoom', self.ui.checkBox_zoomInvert.isChecked())
 
         # Sync changes to disk
         self.settings.sync()
@@ -216,6 +218,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Modifier none', 'Zoom')
         self.settings.setValue('Modifier Ctrl', 'Pan vertically')
         self.settings.setValue('Modifier Shift', 'Pan horizontally')
+        self.settings.setValue('Zoom invert', False)
         self.settings.endGroup()
         self.settings.endGroup()
 
