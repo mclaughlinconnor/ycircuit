@@ -58,10 +58,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.defaultSymbolSaveFolder = 'Resources/Symbols/Custom/'
         self.defaultExportFolder = './'
         self.dragMove = False
-        self.mouseRect = QtWidgets.QGraphicsRectItem(QtCore.QRectF(-4, -4, 8, 8))
-        self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('gray')))
-        self.mouseRect.setTransform(QtGui.QTransform().rotate(45))
-        self.scene().addItem(self.mouseRect)
 
         # Set up the autobackup timer
         self.autobackupTimer = QtCore.QTimer()
@@ -71,6 +67,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.settingsFileName = '.config'
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
         self.applySettingsFromFile(self.settingsFileName)
+
+        self.mouseRect = QtWidgets.QGraphicsRectItem(QtCore.QRectF(-4, -4, 8, 8))
+        self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('gray')))
+        self.mouseRect.setTransform(QtGui.QTransform().rotate(45))
+        if self.showMouseRect is True:
+            self.scene().addItem(self.mouseRect)
 
         self.items = []
         self.moveItems = []
@@ -161,6 +163,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
             os.mkdir(self.defaultExportFolder)
         self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float)
         self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', '2.0', type=float)
+
+        # Mouse settings
+        self.showMouseRect = settings.value('Mouse/Show rect', True, type=bool)
+        if hasattr(self, 'mouseRect'):
+            if self.showMouseRect is True:
+                if not self.mouseRect in self.scene().items():
+                    self.scene().addItem(self.mouseRect)
+            elif self.mouseRect in self.scene().items():
+                self.scene().removeItem(self.mouseRect)
+        self.showAnimationPan = settings.value('Mouse/Animations/Pan', True, type=bool)
+        self.showAnimationZoom = settings.value('Mouse/Animations/Zoom', True, type=bool)
+        self.scrollModifierNone = settings.value('Mouse/PanningZooming/Modifier none', 'Zoom')
+        self.scrollModifierCtrl = settings.value('Mouse/PanningZooming/Modifier Ctrl', 'Pan vertically')
+        self.scrollModifierShift = settings.value('Mouse/PanningZooming/Modifier Shift', 'Pan horizontally')
 
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
@@ -461,7 +477,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         logger.info('Beginning export')
         # Remove grid from the scene to avoid saving it
         self._grid.removeGrid()
-        self.scene().removeItem(self.mouseRect)
+        if self.mouseRect in self.scene().items():
+            self.scene().removeItem(self.mouseRect)
         # Return if no items are present
         if len(self.scene().items()) == 0:
             self._grid.createGrid()
@@ -497,7 +514,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         else:
             # Add the grid back to the scene
             self._grid.createGrid()
-            self.scene().addItem(self.mouseRect)
+            if self.showMouseRect is True:
+                self.scene().addItem(self.mouseRect)
             return
         logger.info('Exporting to file %s', saveFile)
         if saveFilter == 'pdf':
@@ -565,7 +583,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         painter.end()
         # Add the grid back to the scene when saving is done
         self._grid.createGrid()
-        self.scene().addItem(self.mouseRect)
+        if self.showMouseRect is True:
+            self.scene().addItem(self.mouseRect)
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
@@ -661,9 +680,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.autobackupFile.setAutoRemove(False)
                 logger.info('Creating new autobackup file %s', self.autobackupFile.fileName())
                 # Clear the scene
-                self.scene().removeItem(self.mouseRect)
+                if self.mouseRect in self.scene().items():
+                    self.scene().removeItem(self.mouseRect)
                 self.scene().clear()
-                self.scene().addItem(self.mouseRect)
+                if self.showMouseRect is True:
+                    self.scene().addItem(self.mouseRect)
                 loadItem.__init__(
                     None,
                     QtCore.QPointF(0, 0),
@@ -879,9 +900,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
             logger.info('Set viewport to %s', rect)
         else:
-            self.scene().removeItem(self.mouseRect)
+            if self.mouseRect in self.scene().items():
+                self.scene().removeItem(self.mouseRect)
             self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
-            self.scene().addItem(self.mouseRect)
+            if self.showMouseRect is True:
+                self.scene().addItem(self.mouseRect)
             logger.info('Set viewport to %s', self.scene().itemsBoundingRect())
 
     def toggleGridRoutine(self):
@@ -1685,26 +1708,48 @@ class DrawingArea(QtWidgets.QGraphicsView):
         modifiers = QtWidgets.QApplication.keyboardModifiers()
         timeline = QtCore.QTimeLine(300, self)
         timeline.setFrameRange(0, 100)
-        timeline.setUpdateInterval(20)
         if modifiers == QtCore.Qt.ControlModifier:
-            # self.translate(0, -scaleFactor * 100)
-            self.setTransformationAnchor(self.NoAnchor)
-            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='vertical'))
-            logger.info('Move viewport in the Y direction by %d', -scaleFactor*150)
+            if self.scrollModifierCtrl == 'Zoom':
+                panZoom = 'zoom'
+            elif self.scrollModifierCtrl == 'Pan vertically':
+                panZoom = 'vertical'
+            elif self.scrollModifierCtrl == 'Pan horizontally':
+                panZoom = 'horizontal'
         elif modifiers == QtCore.Qt.ShiftModifier:
-            # self.translate(-scaleFactor * 100, 0)
+            if self.scrollModifierShift == 'Zoom':
+                panZoom = 'zoom'
+            elif self.scrollModifierShift == 'Pan vertically':
+                panZoom = 'vertical'
+            elif self.scrollModifierShift == 'Pan horizontally':
+                panZoom = 'horizontal'
+        else:
+            if self.scrollModifierNone == 'Zoom':
+                panZoom = 'zoom'
+            elif self.scrollModifierNone == 'Pan vertically':
+                panZoom = 'vertical'
+            elif self.scrollModifierNone == 'Pan horizontally':
+                panZoom = 'horizontal'
+        if panZoom in ['vertical', 'horizontal']:
             self.setTransformationAnchor(self.NoAnchor)
-            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='horizontal'))
-            logger.info('Move viewport in the X direction by %d', -scaleFactor*150)
+            if self.showAnimationPan is True:
+                timeline.setUpdateInterval(20)
+                timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom))
+            else:
+                self.modifyView(scaleFactor*15, panZoom)
+            logger.debug('Pan in the %s direction by %d', panZoom, -scaleFactor*150)
         else:
             if scaleFactor < 0:
                 scaleFactor = -1 / scaleFactor
             scaleFactor = 1 + (scaleFactor - 1) / 2.5
-            scaleFactor = scaleFactor**(1/5)
-            timeline.setDuration(100)
             self.setTransformationAnchor(self.AnchorUnderMouse)
-            timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom='zoom'))
-            logger.info('Viewport scaled by %.2f', scaleFactor)
+            if self.showAnimationZoom is True:
+                timeline.setDuration(100)
+                timeline.setUpdateInterval(20)
+                scaleFactor = scaleFactor**(1/5)
+                timeline.frameChanged.connect(lambda: self.modifyView(scaleFactor, panZoom))
+            else:
+                self.modifyView(scaleFactor, panZoom)
+            logger.debug('Viewport scaled by %.2f', scaleFactor)
         timeline.start()
 
     def modifyView(self, scaleFactor, panZoom='vertical'):
@@ -1764,7 +1809,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         text = "Current position: "
         text += str('(') + str(pos.x()) + ', ' + str(pos.y()) + str(')')
         self.mousePosLabel.setText(text)
-        self.mouseRect.setPos(pos)
+        if self.showMouseRect is True:
+            self.mouseRect.setPos(pos)
 
     def groupItems(self, mode='group'):
         listOfItems = self.scene().selectedItems()

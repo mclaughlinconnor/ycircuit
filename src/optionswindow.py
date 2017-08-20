@@ -80,6 +80,14 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(self.settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float))
         self.ui.doubleSpinBox_exportImageScaleFactor.setValue(self.settings.value('SaveExport/Export/Image scale factor', '2.0', type=float))
 
+        # Mouse settings
+        self.ui.checkBox_showMouseRect.setChecked(self.settings.value('Mouse/Show rect', True, type=bool))
+        self.ui.checkBox_showAnimationPan.setChecked(self.settings.value('Mouse/Animations/Pan', True, type=bool))
+        self.ui.checkBox_showAnimationZoom.setChecked(self.settings.value('Mouse/Animations/Zoom', True, type=bool))
+        self.ui.comboBox_scrollModifierNone.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier none', 'Zoom'))
+        self.ui.comboBox_scrollModifierCtrl.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier Ctrl', 'Pan vertically'))
+        self.ui.comboBox_scrollModifierShift.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier Shift', 'Pan horizontally'))
+
     def writeValues(self):
         # Font settings
         self.settings.setValue('Painting/Font/Family', self.ui.fontComboBox_fontFamily.currentText())
@@ -119,6 +127,14 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('SaveExport/Export/Default folder', self.ui.lineEdit_defaultExportFolder.text())
         self.settings.setValue('SaveExport/Export/Whitespace padding', self.ui.doubleSpinBox_exportImageWhitespacePadding.text())
         self.settings.setValue('SaveExport/Export/Image scale factor', self.ui.doubleSpinBox_exportImageScaleFactor.text())
+
+        # Mouse settings
+        self.settings.setValue('Mouse/Show rect', self.ui.checkBox_showMouseRect.isChecked())
+        self.settings.setValue('Mouse/Animations/Pan', self.ui.checkBox_showAnimationPan.isChecked())
+        self.settings.setValue('Mouse/Animations/Zoom', self.ui.checkBox_showAnimationZoom.isChecked())
+        self.settings.setValue('Mouse/PanningZooming/Modifier none', self.ui.comboBox_scrollModifierNone.currentText())
+        self.settings.setValue('Mouse/PanningZooming/Modifier Ctrl', self.ui.comboBox_scrollModifierCtrl.currentText())
+        self.settings.setValue('Mouse/PanningZooming/Modifier Shift', self.ui.comboBox_scrollModifierShift.currentText())
 
         # Sync changes to disk
         self.settings.sync()
@@ -186,6 +202,20 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Default folder', './')
         self.settings.setValue('Whitespace padding', '1.1')
         self.settings.setValue('Image scale factor', '2.0')
+        self.settings.endGroup()
+        self.settings.endGroup()
+
+        # Mouse settings
+        self.settings.beginGroup('Mouse')
+        self.settings.setValue('Show rect', True)
+        self.settings.beginGroup('Animations')
+        self.settings.setValue('Pan', True)
+        self.settings.setValue('Zoom', True)
+        self.settings.endGroup()
+        self.settings.beginGroup('PanningZooming')
+        self.settings.setValue('Modifier none', 'Zoom')
+        self.settings.setValue('Modifier Ctrl', 'Pan vertically')
+        self.settings.setValue('Modifier Shift', 'Pan horizontally')
         self.settings.endGroup()
         self.settings.endGroup()
 
