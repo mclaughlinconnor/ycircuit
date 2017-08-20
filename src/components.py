@@ -497,7 +497,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
         self.oldPath = self.__dict__.pop('oldPath2', None)
 
     def shape(self):
-        padding = 10
+        padding = 2*self.pen().width()
         if self.parentItem() is not None:
             return super().shape()
         if self.path().toSubpathPolygons(QtGui.QTransform()) == []:
@@ -650,15 +650,15 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         self.oldLine = state['oldLine']
 
     def boundingRect(self):
-        padding = 10
+        padding = 2*self.pen().width()
         rect = QtCore.QRectF(self.line().p1(), self.line().p2())
-        topLeft = rect.normalized().topLeft() + QtCore.QPointF(-padding/2, -padding/2)
-        bottomRight = rect.normalized().bottomRight() + QtCore.QPointF(padding/2, padding/2)
+        topLeft = rect.normalized().topLeft() + QtCore.QPointF(-padding, -padding)
+        bottomRight = rect.normalized().bottomRight() + QtCore.QPointF(padding, padding)
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
     def shape(self):
-        padding = 10
+        padding = 2*self.pen().width()
         if self.parentItem() is not None:
             return super().shape()
         if self.line().length() < 0.1:
@@ -982,14 +982,14 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         self.setLocalBrushOptions(**kwargs)
 
     def boundingRect(self):
-        padding = 10
-        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-padding/2, -padding/2)
-        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(padding/2, padding/2)
+        padding = 2*self.pen().width()
+        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-padding, -padding)
+        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(padding, padding)
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
     def shape(self):
-        padding = 10
+        padding = 2*self.pen().width()
         if self.parentItem() is not None:
             return super().shape()
         path = QtGui.QPainterPath()
@@ -1090,14 +1090,14 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         self.oldRect = self.rect()
 
     def boundingRect(self):
-        padding = 10
-        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-padding/2, -padding/2)
-        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(padding/2, padding/2)
+        padding = 2*self.pen().width()
+        topLeft = self.rect().normalized().topLeft() + QtCore.QPointF(-padding, -padding)
+        bottomRight = self.rect().normalized().bottomRight() + QtCore.QPointF(padding, padding)
         rect = QtCore.QRectF(topLeft, bottomRight)
         return rect
 
     def shape(self):
-        padding = 10
+        padding = 2*self.pen().width()
         path = QtGui.QPainterPath()
         path.addEllipse(self.rect())
         if self.parentItem() is not None:
