@@ -47,6 +47,8 @@ As of this point in time, the following options are available:
     * Modify existing symbol (Alt+F->M)
     * Export symbol or schematic as a PDF, SVG, JPG, PNG, BMP or TIFF file (Ctrl+E)
         * While exporting to EPS was natively supported by PyQt4, the Qt team decided to drop this during the transition to Qt5. As a result, EPS is no longer supported by YCircuit. If you need a vector-based exporting option, use the PDF or SVG options.
+    * Import image (Ctrl+I)
+        * This has the same response as Shapes->Image. Imports a raster image and embeds it in the current file. Imported images can be resized.
   * Editing (Alt+E)
     * Undo (Ctrl+Z)
     * Redo (Ctrl+Y)
@@ -71,6 +73,7 @@ As of this point in time, the following options are available:
     * Text box (with support for bold, italics, underline, overline, subscript and superscript) (Alt+A->T)
         * LaTeX support is present but not all available font options apply. Font sizes are currently mismatched but will be fixed later on. This, of course, assumes that you have a suitable LaTeX distribution already installed. Check [here](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.png) or [here for an SVG version](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/Examples/TIA noise/tia_noise.svg) in order to get an idea of what the LaTeX output looks like.
         * An option for a more coherent look would be to use the symbols button in the text editor.
+    * Image (Alt+A->G)
     * Edit selected shape (E)
   * Symbols (Alt+S)
     * Wire (Right click to change the angle of the wire!) (W)
