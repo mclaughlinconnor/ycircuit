@@ -376,6 +376,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
+                item.lightenColour(False)
                 logger.info('Setting origin for item %s to %s', item, item.origin)
             saveObject.setItems(listOfItems)
 
@@ -444,10 +445,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.autobackupFile.remove()
                     logger.info('Closing old autobackup file')
                     # Create and save a preview of the file unless when creating an autobackup
+                    if self.mouseRect in self.scene().items():
+                        self.scene().removeItem(self.mouseRect)
                     saveObject.icon = QtCore.QByteArray()
                     buf = QtCore.QBuffer(saveObject.icon)
                     img = myIconProvider().createIconPixmap(saveObject, self.scene()).toImage()
                     img.save(buf, 'PNG', quality=10)
+                    if self.showMouseRect is True:
+                        self.scene().addItem(self.mouseRect)
                 with open(saveFile, 'wb') as file:
                     logger.info('Saving to file %s', saveFile)
                     pickle.dump(saveObject, file, -1)
@@ -474,6 +479,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if mode == 'autobackup':
                 for item in selectedItems:
                     item.setSelected(True)
+            if self.itemAt(self.currentPos):
+                self.itemAt(self.currentPos).topLevelItem().lightenColour(True)
 
     def exportRoutine(self):
         """
