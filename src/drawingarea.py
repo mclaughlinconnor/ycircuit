@@ -42,6 +42,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             'rectangle': False,
             'circle': False,
             'ellipse': False,
+            'image': False,
             'textBox': False,
             'add': False,
             'edit': False,
@@ -224,6 +225,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._keys['textBox'] = True
         self.currentTextBox = None
         self.statusbarMessage.emit('Left click to pick the location of the new text box (press ESC to cancel)', 0)
+
+    def addImage(self):
+        """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
+        self.escapeRoutine()
+        cursor = self.cursor()
+        cursor.setShape(QtCore.Qt.IBeamCursor)
+        self.setCursor(cursor)
+        self._keys['image'] = True
+        self.currentImage = None
+        self.statusbarMessage.emit('Left click to pick the location of the new image (press ESC to cancel)', 0)
 
     def addNet(self):
         """Set _key to net mode so that a net is added when LMB is pressed"""
@@ -480,7 +491,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 for item in selectedItems:
                     item.setSelected(True)
             if self.itemAt(self.currentPos):
-                self.itemAt(self.currentPos).topLevelItem().lightenColour(True)
+                item = self.itemAt(self.currentPos).topLevelItem()
+                if item != self.mouseRect:
+                    item.lightenColour(True)
 
     def exportRoutine(self):
         """
@@ -795,6 +808,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Remove last ellipse being drawn
             if self._keys['ellipse'] is True:
                 self.scene().removeItem(self.currentEllipse)
+            # Remove last image being drawn
+            if self._keys['image'] is True:
+                self.scene().removeItem(self.currentImage)
             # Remove last text box being drawn
             if self._keys['textBox'] is True:
                 self.scene().removeItem(self.currentTextBox)
@@ -1186,11 +1202,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if event.modifiers() == QtCore.Qt.NoModifier:
             # If item under cursor
             if self.itemAt(self.currentPos) is not None:
+                item = self.itemAt(self.currentPos).topLevelItem()
                 # If no other items are selected, select item under cursor
                 if self.scene().selectedItems() == []:
-                    self.itemAt(self.currentPos).setSelected(True)
+                    item.setSelected(True)
                 # If item under cursor in selected items
-                if self.itemAt(self.currentPos) in self.scene().selectedItems():
+                if item in self.scene().selectedItems():
                     # If no other mode is active
                     if all(value == False for value in self._keys.values()):
                         logger.info('Beginning moving by dragging')
@@ -1634,6 +1651,29 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.setCursor(cursor)
             for item in self.scene().selectedItems():
                 item.setSelected(False)
+        # If image mode is on, add a new image
+        if self._keys['image'] is True:
+            if event.button() == QtCore.Qt.LeftButton:
+                self._mouse['1'] = not self._mouse['1']
+            if self._mouse['1'] is True:
+                self.currentPos = event.pos()
+                start = self.mapToGrid(self.currentPos)
+                logger.info('Draw image at %s', start)
+                if self.currentImage is None:
+                    self.currentImage = Image(
+                        None,
+                        start=start)
+                    add = Add(None, self.scene(), self.currentImage)
+                    self.undoStack.push(add)
+                self._keys['image'] = False
+                self._mouse['1'] = False
+                self.statusbarMessage.emit('', 0)
+                # Change cursor shape to a text editing style
+                cursor = self.cursor()
+                cursor.setShape(QtCore.Qt.ArrowCursor)
+                self.setCursor(cursor)
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
         if self.selectOrigin is True:
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
@@ -1687,6 +1727,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         item.updateArc(point, edit=True)
                     elif isinstance(item, Wire):
                         item.updateWire(point, edit=True)
+                    elif isinstance(item, Image):
+                        item.updateImage(point, edit=True)
 
     # def contextMenuEvent(self, event):
     #     # TODO: Make this work properly
@@ -1786,6 +1828,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if len(self.scene().selectedItems()) == 1:
                 logger.info('Begin editing')
                 item = self.scene().selectedItems()[0]
+                self.ensureVisible(item)
                 cursor = self.cursor()
                 if isinstance(item, Circle):
                     sceneP = item.end.toPoint()
@@ -1793,6 +1836,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 elif isinstance(item, Rectangle) or isinstance(item, Ellipse):
                     sceneP = item.mapToScene(item.p2).toPoint()
                     self.statusbarMessage.emit('Left click to place the current vertex here and finish editing (press ESC to cancel)', 0)
+                elif isinstance(item, Image):
+                    sceneP = item.sceneBoundingRect().bottomRight().toPoint()
+                    self.statusbarMessage.emit('Left click to finish resizing the image (press ESC to cancel)', 0)
                 elif isinstance(item, Wire):
                     # poly = item.oldPath.toSubpathPolygons(item.transform())[0]
                     # item.editPointNumber = poly.size() - 1
@@ -1827,7 +1873,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             return
         pos = self.mapToGrid(pos)
         text = "Current position: "
-        text += str('(') + str(pos.x()) + ', ' + str(pos.y()) + str(')')
+        text += '(%s, %s)' %(pos.x(), pos.y())
         self.mousePosLabel.setText(text)
         if self.showMouseRect is True:
             self.mouseRect.setPos(pos)

@@ -55,6 +55,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.loadRoutine('symbolModify'))
         self.ui.action_modifySymbol.triggered.connect(
             lambda x: self.changeWindowTitle(True))
+        self.ui.action_importImage.triggered.connect(
+            lambda: self.ui.drawingArea.addImage())
         self.ui.action_exportFile.triggered.connect(
             self.ui.drawingArea.exportRoutine)
         self.ui.action_quit.triggered.connect(self.close)
@@ -234,6 +236,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.addEllipse)
         self.ui.action_addTextBox.triggered.connect(
             self.ui.drawingArea.addTextBox)
+        self.ui.action_addImage.triggered.connect(
+            self.ui.drawingArea.addImage)
         self.ui.action_editShape.triggered.connect(
             self.ui.drawingArea.editShape)
 

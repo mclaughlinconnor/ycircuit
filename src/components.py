@@ -1645,3 +1645,124 @@ class Arc(Wire):
             path.cubicTo(self.controlPoint, self.controlPointAlt, self.endPoint)
         self.oldPath = path
         self.setPath(path)
+
+
+class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
+    def __init__(self, parent=None, start=None, pixmap=None, **kwargs):
+        point = QtCore.QPointF(0, 0)
+        # For some reason, checking hasattr(self, 'origin')
+        # worked with Python 2 but not with Python 3. The following
+        # approach works with both though
+        if 'origin' not in self.__dict__:
+            super().__init__(parent, start=point)
+            self.setPos(start)
+        else:
+            super().__init__(parent, start=point)
+            self.setPos(self.origin)
+        # The pen and brush options are just place holders
+        self.localPenWidth = 2
+        self.localPenColour = 'black'
+        self.localPenStyle = 1
+        self.localBrushColour = 'black'
+        self.localBrushStyle = 0
+        self.setTransformationMode(QtCore.Qt.SmoothTransformation)
+        # Always add images behind other items
+        if not hasattr(self, 'height'):
+            self.setZValue(-1)
+            self.height = -1
+        if pixmap is not None:
+            self.setPixmap(pixmap)
+        elif hasattr(self, 'oldPixmap'):
+            pix = QtGui.QPixmap()
+            pix.loadFromData(self.oldPixmap)
+            pix = pix.scaled(self.oldPixmapSize, transformMode=QtCore.Qt.SmoothTransformation)
+            self.setPixmap(pix)
+        else:
+            self.chooseFile()
+
+    def setLocalPenOptions(self, **kwargs):
+        pass
+
+    def setLocalBrushOptions(self, **kwargs):
+        pass
+
+    def lightenColour(self, lighten=False):
+        pass
+
+    def createCopy(self, parent=None):
+        if self.isSelected() is True:
+            self.setSelected(False)
+        _start = self.pos()
+        newItem = self.__class__(
+            parent,
+            _start,
+            pixmap=QtGui.QPixmap())
+        newItem.oldPixmap = self.oldPixmap
+        newItem.oldPixmapSize = self.oldPixmapSize
+        pix = QtGui.QPixmap()
+        pix.loadFromData(self.oldPixmap)
+        pix = pix.scaled(self.oldPixmapSize, transformMode=QtCore.Qt.SmoothTransformation)
+        newItem.setPixmap(pix)
+        newItem.setTransform(self.transform())
+        if hasattr(self, 'reflections'):
+            newItem.reflections = self.reflections
+        if hasattr(self, 'height'):
+            newItem.height = self.height
+            newItem.setZValue(newItem.height)
+        if parent is None:
+            self.scene().addItem(newItem)
+        newItem.setSelected(True)
+        newItem.moveTo(self.scenePos(), 'start')
+        if hasattr(self, 'origin'):
+            newItem.origin = self.origin
+        return newItem
+
+    def updateImage(self, point, edit=False):
+        self.prepareGeometryChange()
+        size = QtCore.QRectF(self.mapFromScene(self.pos()), self.mapFromScene(point)).size().toSize()
+        pix = QtGui.QPixmap()
+        pix.loadFromData(self.oldPixmap)
+        self.setPixmap(pix.scaled(size, transformMode=QtCore.Qt.SmoothTransformation))
+
+    def chooseFile(self):
+        img, filt = QtWidgets.QFileDialog.getOpenFileName(
+            None,
+            'Pick an image to import',
+            './',
+            'PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff)')
+        if '*.png' in filt:
+            filt = 'png'
+        elif '*.jpg' in filt:
+            filt = 'jpg'
+        elif '*.bmp' in filt:
+            filt = 'bmp'
+        elif '*.tiff' in filt:
+            filt = 'tiff'
+        if img != '':
+            if not img.endswith('.' + filt):
+                img = str(img) + '.' + filt
+            pix = QtGui.QPixmap()
+            pix.load(img, filt)
+            pix = pix.scaled(pix.size()/2, transformMode=QtCore.Qt.SmoothTransformation)
+            self.setPixmap(pix)
+            self.oldPixmap = QtCore.QByteArray()
+            buf = QtCore.QBuffer(self.oldPixmap)
+            pix.save(buf, filt)
+            self.oldPixmapSize = pix.size()
+
+    def undoEdit(self):
+        size = self.undoSizeList.pop()
+        pix = self.pixmap().scaled(size, transformMode=QtCore.Qt.SmoothTransformation)
+        self.setPixmap(pix)
+        self.oldPixmapSize = size
+
+    def redoEdit(self, point, **kwargs):
+        if not hasattr(self, 'undoSizeList'):
+            self.undoSizeList = []
+        size = QtCore.QRectF(self.mapFromScene(self.pos()), self.mapFromScene(point)).size().toSize()
+        pix = QtGui.QPixmap()
+        pix.loadFromData(self.oldPixmap)
+        pix = pix.scaled(size, transformMode=QtCore.Qt.SmoothTransformation)
+        self.setPixmap(pix)
+        self.oldPixmapSize = size
+        self.undoSizeList.append(size)

@@ -158,6 +158,7 @@
     <addaction name="action_loadSymbol"/>
     <addaction name="action_modifySymbol"/>
     <addaction name="separator"/>
+    <addaction name="action_importImage"/>
     <addaction name="action_exportFile"/>
     <addaction name="separator"/>
     <addaction name="action_quit"/>
@@ -493,7 +494,9 @@
     <addaction name="action_addRectangle"/>
     <addaction name="action_addCircle"/>
     <addaction name="action_addEllipse"/>
+    <addaction name="separator"/>
     <addaction name="action_addTextBox"/>
+    <addaction name="action_addImage"/>
     <addaction name="separator"/>
     <addaction name="action_editShape"/>
    </widget>
@@ -1929,6 +1932,25 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_addImage">
+   <property name="text">
+    <string>Ima&amp;ge</string>
+   </property>
+   <property name="toolTip">
+    <string>Import and embed an image</string>
+   </property>
+  </action>
+  <action name="action_importImage">
+   <property name="text">
+    <string>Import image</string>
+   </property>
+   <property name="toolTip">
+    <string>Import and embed an image</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>
