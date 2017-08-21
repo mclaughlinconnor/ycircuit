@@ -1666,6 +1666,8 @@ class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
         self.localBrushColour = 'black'
         self.localBrushStyle = 0
         self.setTransformationMode(QtCore.Qt.SmoothTransformation)
+        self.opacityEffect = QtWidgets.QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.opacityEffect)
         # Always add images behind other items
         if not hasattr(self, 'height'):
             self.setZValue(-1)
@@ -1687,7 +1689,10 @@ class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
         pass
 
     def lightenColour(self, lighten=False):
-        pass
+        if lighten is True:
+            self.opacityEffect.setOpacity(0.7)
+        else:
+            self.opacityEffect.setOpacity(1)
 
     def createCopy(self, parent=None):
         if self.isSelected() is True:

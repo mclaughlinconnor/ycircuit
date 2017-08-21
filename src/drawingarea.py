@@ -1200,6 +1200,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.dragMove = False
         # If no modifiers are enabled
         if event.modifiers() == QtCore.Qt.NoModifier:
+            if self.mouseRect in self.scene().items():
+                self.scene().removeItem(self.mouseRect)
             # If item under cursor
             if self.itemAt(self.currentPos) is not None:
                 item = self.itemAt(self.currentPos).topLevelItem()
@@ -1213,6 +1215,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         logger.info('Beginning moving by dragging')
                         self.dragMove = True
                         self._keys['m'] = True
+            if self.showMouseRect is True:
+                self.scene().addItem(self.mouseRect)
         # If copy mode is on
         if self._keys['c'] is True:
             # Check to make sure this is the first click
