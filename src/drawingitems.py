@@ -360,38 +360,12 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                         loadItem = pickle.load(f)
                     except:
                         return super().icon(fileInfo)
-                scene = QtWidgets.QGraphicsScene()
-                # Load the file
-                loadItem.__init__(
-                    None,
-                    QtCore.QPointF(0, 0),
-                    loadItem.listOfItems,
-                    mode='symbol')
-                scene.addItem(loadItem)
-                rect = loadItem.boundingRect()
-                # Set the maximum icon dimension
-                maxDim = 320
-                maxSize = QtCore.QSizeF(maxDim, maxDim)
-                pixRect = QtCore.QRectF(QtCore.QPointF(), maxSize)
-                # Create a pixmap and fill it with a white background
-                pix = QtGui.QPixmap(pixRect.toRect().size())
-                pix.fill()
 
-                # Find out the painter's starting position to have the icon drawn in the
-                # center of the pixmap
-                actualSize = rect.size()
-                actualSize.scale(maxSize, QtCore.Qt.KeepAspectRatio)
-                width, height = actualSize.width(), actualSize.height()
-                startX, startY = (maxDim - width) / 2, (maxDim - height) / 2
-
-                painter = QtGui.QPainter(pix)
-                pen = QtGui.QPen()
-                pen.setWidth(2)
-                painter.setPen(pen)
-                painter.translate(startX, startY)
-                scene.render(painter, pixRect, rect)
-                painter.end()
-
+                if not hasattr(loadItem, 'icon'):
+                    pix = self.createIconPixmap(loadItem)
+                else:
+                    pix = QtGui.QPixmap()
+                    pix.loadFromData(loadItem.icon, 'png')
                 icon = QtGui.QIcon()
                 icon.addPixmap(pix)
                 return icon
@@ -399,3 +373,39 @@ class myIconProvider(QtWidgets.QFileIconProvider):
                 return super().icon(fileInfo)
         else:
             return super().icon(fileInfo)
+
+    def createIconPixmap(self, loadItem, scene=None):
+        if scene is None:
+            scene = QtWidgets.QGraphicsScene()
+            # Load the file
+            loadItem.__init__(
+                None,
+                QtCore.QPointF(0, 0),
+                loadItem.listOfItems,
+                mode='symbol')
+            scene.addItem(loadItem)
+        rect = loadItem.sceneBoundingRect()
+        # Set the maximum icon dimension
+        maxDim = 320
+        maxSize = QtCore.QSizeF(maxDim, maxDim)
+        pixRect = QtCore.QRectF(QtCore.QPointF(), maxSize)
+        # Create a pixmap and fill it with a white background
+        pix = QtGui.QPixmap(pixRect.toRect().size())
+        pix.fill()
+
+        # Find out the painter's starting position to have the icon drawn in the
+        # center of the pixmap
+        actualSize = rect.size()
+        actualSize.scale(maxSize, QtCore.Qt.KeepAspectRatio)
+        width, height = actualSize.width(), actualSize.height()
+        startX, startY = (maxDim - width) / 2, (maxDim - height) / 2
+
+        painter = QtGui.QPainter(pix)
+        pen = QtGui.QPen()
+        pen.setWidth(2)
+        painter.setPen(pen)
+        painter.translate(startX, startY)
+        scene.render(painter, pixRect, rect)
+        painter.end()
+
+        return pix

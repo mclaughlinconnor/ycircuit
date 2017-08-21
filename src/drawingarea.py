@@ -438,14 +438,19 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 saveFile = self.autobackupFile.fileName()
 
             if saveFile[:-4] != '':
-                with open(saveFile, 'wb') as file:
-                    logger.info('Saving to file %s', saveFile)
-                    pickle.dump(saveObject, file, -1)
                 # Delete old autobackup file
                 if mode != 'autobackup':
                     self.autobackupFile.close()
                     self.autobackupFile.remove()
                     logger.info('Closing old autobackup file')
+                    # Create and save a preview of the file unless when creating an autobackup
+                    saveObject.icon = QtCore.QByteArray()
+                    buf = QtCore.QBuffer(saveObject.icon)
+                    img = myIconProvider().createIconPixmap(saveObject, self.scene()).toImage()
+                    img.save(buf, 'PNG', quality=10)
+                with open(saveFile, 'wb') as file:
+                    logger.info('Saving to file %s', saveFile)
+                    pickle.dump(saveObject, file, -1)
                 if mode == 'symbol' or mode == 'symbolAs':
                     self.symbolFileName = saveFile
                     self.schematicFileName = None
@@ -462,6 +467,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     logger.info('New autobackup file created at %s', self.autobackupFile.fileName())
                     self.undoStack.setClean()
                     logger.info('Setting undo stack to clean')
+
             # Always reparent items
             saveObject.reparentItems()
             self.scene().removeItem(saveObject)
