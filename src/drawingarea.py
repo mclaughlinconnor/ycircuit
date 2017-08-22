@@ -1200,7 +1200,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.dragMove = False
         # If no modifiers are enabled and not selecting origin for symbol
         if event.modifiers() == QtCore.Qt.NoModifier and not self.selectOrigin is True:
-            print('hi')
             if self.mouseRect in self.scene().items():
                 self.scene().removeItem(self.mouseRect)
             # If item under cursor
