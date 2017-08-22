@@ -1198,8 +1198,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.currentY = self.currentPos.y()
         # Disable drag by default
         self.dragMove = False
-        # If no modifiers are enabled
-        if event.modifiers() == QtCore.Qt.NoModifier:
+        # If no modifiers are enabled and not selecting origin for symbol
+        if event.modifiers() == QtCore.Qt.NoModifier and not self.selectOrigin is True:
+            print('hi')
             if self.mouseRect in self.scene().items():
                 self.scene().removeItem(self.mouseRect)
             # If item under cursor
@@ -1679,11 +1680,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             for item in self.scene().selectedItems():
                 item.setSelected(False)
         if self.selectOrigin is True:
-            if event.button() == QtCore.Qt.LeftButton:
-                self._mouse['1'] = not self._mouse['1']
-            if self._mouse['1'] is True:
-                self.currentPos = event.pos()
-                self.selectOrigin = False
+            self.currentPos = event.pos()
+            self.selectOrigin = False
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
