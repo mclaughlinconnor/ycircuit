@@ -18,6 +18,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         else:
             self.fileName = '.config'
         self.settings = QtCore.QSettings(self.fileName, QtCore.QSettings.IniFormat)
+        self.shortcutsModel = ShortcutsModel()
         self.readValues()
 
         self.ui.buttonBox.accepted.connect(self.accept)
@@ -29,6 +30,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.pushButton_defaultSymbolSaveFolder.clicked.connect(self.changeDefaultSymbolSaveFolder)
         self.ui.pushButton_defaultSymbolPreviewFolder.clicked.connect(self.changeDefaultSymbolPreviewFolder)
         self.ui.pushButton_defaultExportFolder.clicked.connect(self.changeDefaultExportFolder)
+
+        self.ui.tableView_shortcuts.setItemDelegate(KeySequenceEditorDelegate())
+        self.ui.tableView_shortcuts.setModel(self.shortcutsModel)
+        self.ui.tableView_shortcuts.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
     def accept(self):
         self.writeValues()
@@ -89,6 +94,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.comboBox_scrollModifierShift.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier Shift', 'Pan horizontally'))
         self.ui.checkBox_zoomInvert.setChecked(self.settings.value('Mouse/PanningZooming/Invert zoom', False, type=bool))
 
+        # Shortcuts settings
+        for item in self.shortcutsModel.actionShortcuts:
+            item[1] = self.settings.value('Shortcuts/' + item[0], item[1])
+
     def writeValues(self):
         # Font settings
         self.settings.setValue('Painting/Font/Family', self.ui.fontComboBox_fontFamily.currentText())
@@ -137,6 +146,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Mouse/PanningZooming/Modifier Ctrl', self.ui.comboBox_scrollModifierCtrl.currentText())
         self.settings.setValue('Mouse/PanningZooming/Modifier Shift', self.ui.comboBox_scrollModifierShift.currentText())
         self.settings.setValue('Mouse/PanningZooming/Invert zoom', self.ui.checkBox_zoomInvert.isChecked())
+
+        # Shortcut settings
+        for item, shortcut in self.shortcutsModel.actionShortcuts:
+            self.settings.setValue('Shortcuts/' + item, shortcut)
 
         # Sync changes to disk
         self.settings.sync()
@@ -256,3 +269,136 @@ class MyOptionsWindow(QtWidgets.QDialog):
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
             self.ui.lineEdit_defaultExportFolder.setText(dir_.relativeFilePath(defaultFolder))
+
+
+class ShortcutsModel(QtCore.QAbstractTableModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.headerLabels = ['Action', 'Shortcut']
+        self.actionShortcuts = [
+            # File menu
+            ['New schematic', 'Ctrl+N'],
+            ['Save schematic', 'Ctrl+S'],
+            ['Save schematic as', ''],
+            ['Save symbol', 'Ctrl+Shift+S'],
+            ['Save symbol as', ''],
+            ['Load schematic', 'Ctrl+L'],
+            ['Load symbol', 'Ctrl+Shift+L'],
+            ['Modify symbol', ''],
+            ['Export file', 'Ctrl+E'],
+            ['Import image', 'Ctrl+I'],
+            ['Quit', 'Ctrl+Q'],
+            # Edit menu
+            ['Undo', 'Ctrl+Z'],
+            ['Redo', 'Ctrl+Y'],
+            ['Delete', 'Del'],
+            ['Move', 'M'],
+            ['Copy', 'C'],
+            ['Paste', 'V'],
+            ['Rotate', 'R'],
+            ['Mirror', 'Shift+R'],
+            ['Font', ''],
+            ['Bring forward', 'Ctrl+='],
+            ['Send back', 'Ctrl+-'],
+            ['Reset height', 'Ctrl+0'],
+            ['Group', 'Ctrl+G'],
+            ['Ungroup', 'Ctrl+Shift+G'],
+            ['Options', 'Ctrl+P'],
+            # View menu
+            ['Fit to view', 'F'],
+            ['Show grid', 'G'],
+            ['Snap to grid', ''],
+            ['Show major grid points', ''],
+            ['Show minor grid points', ''],
+            # Shape menu
+            ['Draw line', ''],
+            ['Draw 3-point arc', ''],
+            ['Draw rectangle', ''],
+            ['Draw ellipse', ''],
+            ['Draw circle', ''],
+            ['Draw text box', ''],
+            ['Edit shape', 'E'],
+            # Symbol menu
+            ['Draw wire', 'W'],
+            ['Draw resistor', ''],
+            ['Draw capacitor', ''],
+            ['Draw ground', ''],
+            ['Draw connection dot', '']
+        ]
+
+    def flags(self, index):
+        flags = super().flags(index)
+        if index.column() == 1:
+            flags = flags | QtCore.Qt.ItemIsEditable
+        return flags
+
+    def rowCount(self, parent):
+        return len(self.actionShortcuts)
+
+    def columnCount(self, parent):
+        return 2
+
+    def data(self, index, role):
+        if role == QtCore.Qt.DisplayRole:
+            return self.actionShortcuts[index.row()][index.column()]
+
+    def headerData(self, section, orientation, role):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return self.headerLabels[section]
+        return super().headerData(section, orientation, role)
+
+    def setData(self, index, value, role):
+        if role == QtCore.Qt.EditRole:
+            for item in self.actionShortcuts:
+                if item[1] == value and value != '':
+                    if item == self.actionShortcuts[index.row()]:
+                        return False
+                    msgBox = QtWidgets.QMessageBox()
+                    msgBox.setModal(True)
+                    msgBox.setWindowTitle("Shortcut conflict")
+                    msgBox.setText("This shortcut has already been used for " + item[0])
+                    msgBox.setInformativeText("Do you wish to assign the shortcut to this action instead?")
+                    msgBox.setStandardButtons(msgBox.Ok | msgBox.Cancel)
+                    msgBox.setDefaultButton(msgBox.Ok)
+                    ret = msgBox.exec_()
+                    if ret == msgBox.Cancel:
+                        return False
+                    elif ret == msgBox.Ok:
+                        item[1] = ''
+            self.actionShortcuts[index.row()][index.column()] = value
+            return True
+        return False
+
+
+class KeySequenceEditorDelegate(QtWidgets.QItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def createEditor(self, parent, option, index):
+        widget = KeySequenceEdit(parent)
+        return widget
+
+    def setEditorData(self, editor, index):
+        editor.keySequence.setKeySequence(index.data())
+
+    def setModelData(self, editor, model, index):
+        data = editor.keySequence.keySequence()
+        model.setData(index, data, QtCore.Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        super().updateEditorGeometry(editor, option, index)
+
+
+class KeySequenceEdit(QtWidgets.QWidget):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.keySequence = QtWidgets.QKeySequenceEdit(self)
+        self.clearButton = QtWidgets.QPushButton(self)
+        self.clearButton.setText('Clear')
+        self.clearButton.pressed.connect(self.keySequence.clear)
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.addWidget(self.keySequence, stretch=1)
+        layout.addWidget(self.clearButton)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setFocusProxy(self.keySequence)

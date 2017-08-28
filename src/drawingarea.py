@@ -180,6 +180,68 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.scrollModifierShift = settings.value('Mouse/PanningZooming/Modifier Shift', 'Pan horizontally')
         self.invertZoom = settings.value('Mouse/PanningZooming/Invert zoom', False, type=bool)
 
+        # Apply shortcuts if they exist
+        if 'Shortcuts' in settings.childGroups():
+            self.applyShortcuts(settings)
+
+    def applyShortcuts(self, settings):
+        ui = self.window().ui
+        try:
+            actionShortcuts = [
+                # File menu
+                ['New schematic', ui.action_newSchematic],
+                ['Save schematic', ui.action_saveSchematic],
+                ['Save schematic as', ui.action_saveSchematicAs],
+                ['Save symbol', ui.action_saveSymbol],
+                ['Save symbol as', ui.action_saveSymbolAs],
+                ['Load schematic', ui.action_loadSchematic],
+                ['Load symbol', ui.action_loadSymbol],
+                ['Modify symbol', ui.action_modifySymbol],
+                ['Export file', ui.action_exportFile],
+                ['Import image', ui.action_importImage],
+                ['Quit', ui.action_quit],
+                # Edit menu
+                ['Undo', ui.action_undo],
+                ['Redo', ui.action_redo],
+                ['Delete', ui.action_delete],
+                ['Move', ui.action_move],
+                ['Copy', ui.action_copy],
+                ['Paste', ui.action_paste],
+                ['Rotate', ui.action_rotate],
+                ['Mirror', ui.action_mirror],
+                ['Font', ui.action_pickFont],
+                ['Bring forward', ui.action_heightBringForward],
+                ['Send back', ui.action_heightSendBack],
+                ['Reset height', ui.action_heightReset],
+                ['Group', ui.action_group],
+                ['Ungroup', ui.action_ungroup],
+                ['Options', ui.action_options],
+                # View menu
+                ['Fit to view', ui.action_fitToView],
+                ['Show grid', ui.action_showGrid],
+                ['Snap to grid', ui.action_snapToGrid],
+                ['Show major grid points', ui.action_showMajorGridPoints],
+                ['Show minor grid points', ui.action_showMinorGridPoints],
+                # Shape menu
+                ['Draw line', ui.action_addLine],
+                ['Draw 3-point arc', ui.action_addArc3Point],
+                ['Draw rectangle', ui.action_addRectangle],
+                ['Draw ellipse', ui.action_addEllipse],
+                ['Draw circle', ui.action_addCircle],
+                ['Draw text box', ui.action_addTextBox],
+                ['Edit shape', ui.action_editShape],
+                # Symbol menu
+                ['Draw wire', ui.action_addWire],
+                ['Draw resistor', ui.action_addResistor],
+                ['Draw capacitor', ui.action_addCapacitor],
+                ['Draw ground', ui.action_addGround],
+                ['Draw connection dot', ui.action_addDot]
+            ]
+            for item, action in actionShortcuts:
+                action.setShortcut(QtGui.QKeySequence(settings.value('Shortcuts/'+item)))
+        except:
+            pass
+
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
         self.escapeRoutine()
