@@ -66,14 +66,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.autobackupTimer.timeout.connect(self.autobackupRoutine)
 
         self.settingsFileName = '.config'
-        self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
-        self.applySettingsFromFile(self.settingsFileName)
 
         self.mouseRect = QtWidgets.QGraphicsRectItem(QtCore.QRectF(-4, -4, 8, 8))
         self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('gray')))
         self.mouseRect.setTransform(QtGui.QTransform().rotate(45))
-        if self.showMouseRect is True:
-            self.scene().addItem(self.mouseRect)
 
         self.items = []
         self.moveItems = []

@@ -21,6 +21,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap('./Resources/icon.jpg'))
         self.setWindowIcon(icon)
+        self.ui.drawingArea.applySettingsFromFile('.config')
 
         self.ui.drawingArea.mousePosLabel = QtWidgets.QLabel()
         self.ui.statusbar.addPermanentWidget(self.ui.drawingArea.mousePosLabel)
