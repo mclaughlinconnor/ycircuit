@@ -1624,6 +1624,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     add = Add(None, self.scene(), self.currentRectangle)
                     self.undoStack.push(add)
             else:
+                if self.currentRectangle is not None:
+                    self.currentRectangle.mouseReleaseEvent(event)
                 logger.info('Finish drawing rectangle')
                 self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
                 self.currentRectangle = None
@@ -1651,6 +1653,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentCircle)
             else:
+                if self.currentCircle is not None:
+                    self.currentCircle.mouseReleaseEvent(event)
                 logger.info('Finish drawing circle')
                 self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
                 self.currentCircle = None
@@ -1678,6 +1682,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentEllipse)
             else:
+                if self.currentEllipse is not None:
+                    self.currentEllipse.mouseReleaseEvent(event)
                 logger.info('Finish drawing ellipse')
                 self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
                 self.currentEllipse = None
@@ -1890,7 +1896,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.ensureVisible(item)
                 cursor = self.cursor()
                 if isinstance(item, Circle):
-                    sceneP = item.end.toPoint()
+                    sceneP = item.mapToScene(item.end.toPoint())
                     self.statusbarMessage.emit('Left click to place the current vertex here and finish editing (press ESC to cancel)', 0)
                 elif isinstance(item, Rectangle) or isinstance(item, Ellipse):
                     sceneP = item.mapToScene(item.p2).toPoint()

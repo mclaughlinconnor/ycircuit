@@ -1028,6 +1028,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         newRectangle = super().createCopy(parent)
         newRectangle.setRect(self.rect())
         newRectangle.oldRect = newRectangle.rect()
+        newRectangle.updateP1P2()
         return newRectangle
 
     def mouseReleaseEvent(self, event):
@@ -1135,6 +1136,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         newEllipse = super().createCopy(parent)
         newEllipse.setRect(self.rect())
         newEllipse.oldRect = newEllipse.rect()
+        newEllipse.updateP1P2()
         return newEllipse
 
     def mouseReleaseEvent(self, event):
@@ -1211,12 +1213,17 @@ class Circle(Ellipse):
         square = QtCore.QRectF(self.start + QtCore.QPointF(0, -sideLength / 2),
                                QtCore.QSizeF(sideLength, sideLength))
         self.setRect(square)
-        self.transform_ = QtGui.QTransform()
-        self.transform_.translate(0, 0)
-        self.transform_.rotate(theta)
-        self.setTransform(self.transform_)
+        self.transformData = QtGui.QTransform()
+        self.transformData.translate(0, 0)
+        self.transformData.rotate(theta)
+        self.setTransform(self.transformData)
         self.oldRect = self.rect()
-        self.end = QtCore.QPointF(end)
+        self.end = self.mapFromScene(QtCore.QPointF(end))
+
+    def createCopy(self, parent=None):
+        newCircle = super().createCopy(parent)
+        newCircle.end = self.end
+        return newCircle
 
     def undoEdit(self):
         # rect = self.undoRectList.pop()
