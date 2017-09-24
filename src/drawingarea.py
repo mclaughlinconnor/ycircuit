@@ -1258,23 +1258,26 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.dragMove = False
         # If no modifiers are enabled and not selecting origin for symbol
         if event.modifiers() == QtCore.Qt.NoModifier and not self.selectOrigin is True:
-            if self.mouseRect in self.scene().items():
-                self.scene().removeItem(self.mouseRect)
-            # If item under cursor
-            if self.itemAt(self.currentPos) is not None:
-                item = self.itemAt(self.currentPos).topLevelItem()
-                # If no other items are selected, select item under cursor
-                if self.scene().selectedItems() == []:
-                    item.setSelected(True)
-                # If item under cursor in selected items
-                if item in self.scene().selectedItems():
-                    # If no other mode is active
-                    if all(value == False for value in self._keys.values()):
-                        logger.info('Beginning moving by dragging')
-                        self.dragMove = True
-                        self._keys['m'] = True
-            if self.showMouseRect is True:
-                self.scene().addItem(self.mouseRect)
+            # Only if dragging using LMB
+            if event.button() == QtCore.Qt.LeftButton:
+                # Remove mouseRect
+                if self.mouseRect in self.scene().items():
+                    self.scene().removeItem(self.mouseRect)
+                # If item under cursor
+                if self.itemAt(self.currentPos) is not None:
+                    item = self.itemAt(self.currentPos).topLevelItem()
+                    # If no other items are selected, select item under cursor
+                    if self.scene().selectedItems() == []:
+                        item.setSelected(True)
+                    # If item under cursor in selected items
+                    if item in self.scene().selectedItems():
+                        # If no other mode is active
+                        if all(value == False for value in self._keys.values()):
+                            logger.info('Beginning moving by dragging')
+                            self.dragMove = True
+                            self._keys['m'] = True
+                if self.showMouseRect is True:
+                    self.scene().addItem(self.mouseRect)
         # If copy mode is on
         if self._keys['c'] is True:
             # Check to make sure this is the first click
