@@ -71,6 +71,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('gray')))
         self.mouseRect.setTransform(QtGui.QTransform().rotate(45))
         self.showMouseRect = True # Required for autobackup load routine below
+        self.autobackupEnable = True # Required for autobackup load routine below
 
         self.items = []
         self.moveItems = []
