@@ -14,11 +14,13 @@ class Delete(QtWidgets.QUndoCommand):
             self.listOfItems = [listOfItems]
         else:
             self.listOfItems = listOfItems
+        self.dictOfParentItems = {}
         for item in self.listOfItems:
             item.lightenColour(False)
             # Need to remember where exactly the item was deleted in case
             # its parent is moved in the future
             item.deletePos = item.pos()
+            self.dictOfParentItems[item] = item.parentItem()
 
     def redo(self):
         logger.info('Deleting items: %s', self.listOfItems)
@@ -29,18 +31,25 @@ class Delete(QtWidgets.QUndoCommand):
         logger.info('Undoing delete of items: %s', self.listOfItems)
         for item in self.listOfItems:
             self.scene.addItem(item)
+            item.setParentItem(self.dictOfParentItems[item])
+            if isinstance(self.dictOfParentItems[item], myGraphicsItemGroup):
+                childItems = self.dictOfParentItems[item].childItems()
+                childItems.append(item)
+                self.dictOfParentItems[item].setItems(childItems)
             item.setPos(item.deletePos)
 
 
 class AddMulti(QtWidgets.QUndoCommand):
-    def __init__(self, parent=None, scene=None, listOfItems=None):
+    def __init__(self, parent=None, scene=None, listOfItems=None, parentItem=None):
         super().__init__(parent)
         self.scene = scene
         self.listOfItems = listOfItems
+        self.parentItem = parentItem
 
     def redo(self):
         for item in self.listOfItems:
             self.scene.addItem(item)
+            item.setParentItem(self.parentItem)
 
     def undo(self):
         for item in self.listOfItems:
@@ -48,9 +57,10 @@ class AddMulti(QtWidgets.QUndoCommand):
 
 
 class Add(QtWidgets.QUndoCommand):
-    def __init__(self, parent=None, scene=None, item=None, **kwargs):
+    def __init__(self, parent=None, scene=None, item=None, parentItem=None, **kwargs):
         super().__init__(parent)
         self.scene = scene
+        self.parentItem = parentItem
         if 'symbol' in kwargs:
             self.symbol = kwargs['symbol']
             if 'origin' in kwargs:
@@ -78,11 +88,17 @@ class Add(QtWidgets.QUndoCommand):
         if self.symbol is False:
             """If item is a regular item"""
             self.scene.addItem(self.item)
+            self.item.setParentItem(self.parentItem)
+            if isinstance(self.parentItem, myGraphicsItemGroup):
+                childItems = self.parentItem.childItems()
+                childItems.append(self.item)
+                self.parentItem.setItems(childItems)
             logger.info('Adding item %s as a regular item', self.item)
         else:
             """Or if item is a symbol to be loaded"""
-            self.item.__init__(None, self.origin, self.item.listOfItems, mode='symbol')
-            self.scene.addItem(self.item)
+            self.item.__init__(self.parentItem, self.origin, self.item.listOfItems, mode='symbol')
+            if self.parentItem is None:
+                self.scene.addItem(self.item)
             # self.item.loadItems('symbol')
             # if hasattr(self, 'reflect'):
             #     if self.reflect == 1:
