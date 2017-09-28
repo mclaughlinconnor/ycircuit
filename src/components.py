@@ -338,7 +338,10 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
             item.setFlag(item.ItemIsSelectable, True)
             item.setAcceptHoverEvents(True)
             if hasattr(item, 'origin'):
-                item.setPos(self.pos() + item.origin)
+                transform_ = self.transform()
+                item.setPos(self.pos() + transform_.map(item.origin))
+                item.setTransform(transform_, combine=True)
+                item.transformData = item.transform()
                 item.origin = item.pos()
             if not hasattr(item, 'localPen'):
                 item.localPen = QtGui.QPen()
@@ -1038,7 +1041,8 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         self.prepareGeometryChange()
         self.setRect(rect)
         self.oldRect = rect
-        super().mouseReleaseEvent(event)
+        if isinstance(event, QtWidgets.QGraphicsSceneMouseEvent):
+            super().mouseReleaseEvent(event)
 
     def undoEdit(self):
         rect = self.undoRectList.pop()
@@ -1148,7 +1152,8 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         self.oldRect = rect
         # # Necessary so that bounding rect is drawn correctly
         # self.prepareGeometryChange()
-        super().mouseReleaseEvent(event)
+        if isinstance(event, QtWidgets.QGraphicsSceneMouseEvent):
+            super().mouseReleaseEvent(event)
 
     def updateP1P2(self):
         # Make sure start is top left and end is bottom right

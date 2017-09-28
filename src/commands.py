@@ -428,9 +428,13 @@ class Ungroup(QtWidgets.QUndoCommand):
     def undo(self):
         self.scene.addItem(self.item)
         self.item.origin = self.origin
+        transform_ = self.item.transform()
         # Set relative origins of child items
         for item in self.listOfItems:
-            item.origin = item.pos() - self.item.origin
+            item.setTransform(transform_.inverted()[0], combine=True)
+            item.transformData = item.transform()
+            # item.origin = transform_.map(item.pos())# - self.item.origin
+            item.origin = self.item.mapFromScene(item.scenePos())
         self.item.setItems(self.listOfItems)
         logger.info('Undoing destruction of group %s containing items %s', self.item, self.listOfItems)
 
