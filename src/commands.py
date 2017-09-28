@@ -431,11 +431,26 @@ class Ungroup(QtWidgets.QUndoCommand):
         transform_ = self.item.transform()
         # Set relative origins of child items
         for item in self.listOfItems:
-            item.setTransform(transform_.inverted()[0], combine=True)
+            if not hasattr(item, 'reflections'):
+                item.reflections = 0
+            if hasattr(self.item, 'reflections'):
+                item.reflections -= self.item.reflections
+                item.reflections %= 2
+            else:
+                self.item.reflections = 0
+            if item.reflections != self.item.reflections:
+                item.setTransform(item.transform().scale(-1, 1))
+            itemTransform = item.transform()
+            item.setTransform(transform_.inverted()[0])
+            item.setTransform(itemTransform, combine=True)
+            if item.reflections != self.item.reflections:
+                item.setTransform(item.transform().scale(-1, 1))
             item.transformData = item.transform()
             # item.origin = transform_.map(item.pos())# - self.item.origin
             item.origin = self.item.mapFromScene(item.scenePos())
         self.item.setItems(self.listOfItems)
+        for item in self.listOfItems:
+            item.transformData = item.transform()
         logger.info('Undoing destruction of group %s containing items %s', self.item, self.listOfItems)
 
 

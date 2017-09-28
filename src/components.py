@@ -339,8 +339,21 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
             item.setAcceptHoverEvents(True)
             if hasattr(item, 'origin'):
                 transform_ = self.transform()
+                if not hasattr(item, 'reflections'):
+                    item.reflections = 0
+                if hasattr(self, 'reflections'):
+                    item.reflections += self.reflections
+                    item.reflections %= 2
+                else:
+                    self.reflections = 0
+                if item.reflections != self.reflections:
+                    item.setTransform(item.transform().scale(-1, 1))
                 item.setPos(self.pos() + transform_.map(item.origin))
-                item.setTransform(transform_, combine=True)
+                itemTransform = item.transform()
+                item.setTransform(transform_)
+                item.setTransform(itemTransform, combine=True)
+                if item.reflections != self.reflections:
+                    item.setTransform(item.transform().scale(-1, 1))
                 item.transformData = item.transform()
                 item.origin = item.pos()
             if not hasattr(item, 'localPen'):
