@@ -518,6 +518,8 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             return super().shape()
         if self.path().toSubpathPolygons(QtGui.QTransform()) == []:
             return QtGui.QPainterPath()
+        if self.localBrushStyle == 1:
+            return super().shape()
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
         return stroker.createStroke(self.path()).simplified()
@@ -1012,6 +1014,8 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         padding = 2*self.pen().width()
         if self.parentItem() is not None:
             return super().shape()
+        if self.localBrushStyle == 1:
+            return super().shape()
         path = QtGui.QPainterPath()
         path.addRect(self.rect())
         stroker = QtGui.QPainterPathStroker()
@@ -1120,10 +1124,12 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
 
     def shape(self):
         padding = 2*self.pen().width()
-        path = QtGui.QPainterPath()
-        path.addEllipse(self.rect())
         if self.parentItem() is not None:
             return super().shape()
+        if self.localBrushStyle == 1:
+            return super().shape()
+        path = QtGui.QPainterPath()
+        path.addEllipse(self.rect())
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
         return stroker.createStroke(path).simplified()
