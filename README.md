@@ -61,7 +61,7 @@ As of this point in time, the following options are available:
     * Change font (Alt+E->F)
     * Change heights of items to bring them forward or send them back (Ctrl++/-/0)
     * Group/ungroup items for easy manipulation (Ctrl+G/Ctrl+Shift+G)
-    * Change pen colour, style, join style and width (Alt+E->C,P,J,W)
+    * Change pen colour, style, cap style, join style and width (Alt+E->C,P,-,J,W)
     * Change fill colour and style
     * Options (Ctrl+P)
   * Shapes (Alt+A)
@@ -95,6 +95,7 @@ As of this point in time, the following options are available:
 /icons/Symbols/ac.png) (Alt+S->S->A)
         * [Controlled sources](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources
 /icons/Symbols/controlledSources.png) (all 4 types) (Alt+S->S->C)
+    * Quick access symbols (Ctrl+1-5)
 
 Image previews for other symbols not listed above can be found in the [symbol images](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/) directory.
 
