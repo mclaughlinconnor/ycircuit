@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .gui.ycircuit_optionsWindow import Ui_Dialog
+from .drawingitems import myFileDialog
 import os
 
 
@@ -30,6 +31,12 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.pushButton_defaultSymbolSaveFolder.clicked.connect(self.changeDefaultSymbolSaveFolder)
         self.ui.pushButton_defaultSymbolPreviewFolder.clicked.connect(self.changeDefaultSymbolPreviewFolder)
         self.ui.pushButton_defaultExportFolder.clicked.connect(self.changeDefaultExportFolder)
+
+        self.ui.pushButton_quickAddSymbol1.clicked.connect(lambda: self.changeQuickAddSymbol(1))
+        self.ui.pushButton_quickAddSymbol2.clicked.connect(lambda: self.changeQuickAddSymbol(2))
+        self.ui.pushButton_quickAddSymbol3.clicked.connect(lambda: self.changeQuickAddSymbol(3))
+        self.ui.pushButton_quickAddSymbol4.clicked.connect(lambda: self.changeQuickAddSymbol(4))
+        self.ui.pushButton_quickAddSymbol5.clicked.connect(lambda: self.changeQuickAddSymbol(5))
 
         self.ui.tableView_shortcuts.setItemDelegate(KeySequenceEditorDelegate())
         self.ui.tableView_shortcuts.setModel(self.shortcutsModel)
@@ -100,6 +107,13 @@ class MyOptionsWindow(QtWidgets.QDialog):
         for item in self.shortcutsModel.actionShortcuts:
             item[1] = self.settings.value('Shortcuts/' + item[0], item[1])
 
+        # Misc settings
+        self.ui.lineEdit_quickAddSymbol1.setText(self.settings.value('Misc/Quick Add Symbol/1', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol2.setText(self.settings.value('Misc/Quick Add Symbol/2', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol3.setText(self.settings.value('Misc/Quick Add Symbol/3', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol4.setText(self.settings.value('Misc/Quick Add Symbol/4', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol5.setText(self.settings.value('Misc/Quick Add Symbol/5', 'Resources/Symbols/Standard/Resistor.sym'))
+
     def writeValues(self):
         # Font settings
         self.settings.setValue('Painting/Font/Family', self.ui.fontComboBox_fontFamily.currentText())
@@ -154,6 +168,13 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Shortcut settings
         for item, shortcut in self.shortcutsModel.actionShortcuts:
             self.settings.setValue('Shortcuts/' + item, shortcut)
+
+        # Misc settings
+        self.settings.setValue('Misc/Quick Add Symbol/1', self.ui.lineEdit_quickAddSymbol1.text())
+        self.settings.setValue('Misc/Quick Add Symbol/2', self.ui.lineEdit_quickAddSymbol2.text())
+        self.settings.setValue('Misc/Quick Add Symbol/3', self.ui.lineEdit_quickAddSymbol3.text())
+        self.settings.setValue('Misc/Quick Add Symbol/4', self.ui.lineEdit_quickAddSymbol4.text())
+        self.settings.setValue('Misc/Quick Add Symbol/5', self.ui.lineEdit_quickAddSymbol5.text())
 
         # Sync changes to disk
         self.settings.sync()
@@ -241,6 +262,17 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.endGroup()
         self.settings.endGroup()
 
+        # Misc settings
+        self.settings.beginGroup('Misc')
+        self.settings.beginGroup('Quick Add Symbol')
+        self.settings.setValue('1', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('2', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('3', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('4', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('5', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.endGroup()
+        self.settings.endGroup()
+
         # Write data to disk
         self.settings.sync()
 
@@ -275,6 +307,40 @@ class MyOptionsWindow(QtWidgets.QDialog):
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
             self.ui.lineEdit_defaultExportFolder.setText(dir_.relativeFilePath(defaultFolder))
+
+    def changeQuickAddSymbol(self, index):
+        if index == 1:
+            defaultFile = self.ui.lineEdit_quickAddSymbol1.text()
+        elif index == 2:
+            defaultFile = self.ui.lineEdit_quickAddSymbol2.text()
+        elif index == 3:
+            defaultFile = self.ui.lineEdit_quickAddSymbol3.text()
+        elif index == 4:
+            defaultFile = self.ui.lineEdit_quickAddSymbol4.text()
+        elif index == 5:
+            defaultFile = self.ui.lineEdit_quickAddSymbol5.text()
+        fileDialog = myFileDialog(
+            self,
+            'Load Symbol',
+            defaultFile,
+            filt='Symbols (*.sym)',
+            mode='load',
+            showSymbolPreview=True)
+        loadFile = ''
+        if fileDialog.exec_():
+            loadFile = str(fileDialog.selectedFiles()[0])
+        if loadFile != '':
+            dir_ = QtCore.QDir('./')
+            if index == 1:
+                self.ui.lineEdit_quickAddSymbol1.setText(dir_.relativeFilePath(loadFile))
+            elif index == 2:
+                self.ui.lineEdit_quickAddSymbol2.setText(dir_.relativeFilePath(loadFile))
+            elif index == 3:
+                self.ui.lineEdit_quickAddSymbol3.setText(dir_.relativeFilePath(loadFile))
+            elif index == 4:
+                self.ui.lineEdit_quickAddSymbol4.setText(dir_.relativeFilePath(loadFile))
+            elif index == 5:
+                self.ui.lineEdit_quickAddSymbol5.setText(dir_.relativeFilePath(loadFile))
 
 
 class ShortcutsModel(QtCore.QAbstractTableModel):
@@ -329,7 +395,12 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Draw resistor', ''],
             ['Draw capacitor', ''],
             ['Draw ground', ''],
-            ['Draw connection dot', '']
+            ['Draw connection dot', ''],
+            ['Quick add symbol 1', 'Ctrl+1'],
+            ['Quick add symbol 2', 'Ctrl+2'],
+            ['Quick add symbol 3', 'Ctrl+3'],
+            ['Quick add symbol 4', 'Ctrl+4'],
+            ['Quick add symbol 5', 'Ctrl+5'],
         ]
 
     def flags(self, index):

@@ -287,6 +287,16 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.addSource('CCVS'))
         self.ui.action_addCCCS.triggered.connect(
             lambda x: self.ui.drawingArea.addSource('CCCS'))
+        self.ui.action_quickAddSymbol1.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(1))
+        self.ui.action_quickAddSymbol2.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(2))
+        self.ui.action_quickAddSymbol3.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(3))
+        self.ui.action_quickAddSymbol4.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(4))
+        self.ui.action_quickAddSymbol5.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(5))
 
         # Help menu
         self.ui.action_updateYCircuit.triggered.connect(

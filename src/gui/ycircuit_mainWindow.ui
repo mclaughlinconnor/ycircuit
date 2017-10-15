@@ -413,6 +413,19 @@
      <addaction name="action_addACSource"/>
      <addaction name="menu_Controlled"/>
     </widget>
+    <widget class="QMenu" name="menu_quickAddSymbol">
+     <property name="toolTip">
+      <string>Create a list of quick access symbols</string>
+     </property>
+     <property name="title">
+      <string>Quick add</string>
+     </property>
+     <addaction name="action_quickAddSymbol1"/>
+     <addaction name="action_quickAddSymbol2"/>
+     <addaction name="action_quickAddSymbol3"/>
+     <addaction name="action_quickAddSymbol4"/>
+     <addaction name="action_quickAddSymbol5"/>
+    </widget>
     <addaction name="action_addWire"/>
     <addaction name="action_addResistor"/>
     <addaction name="action_addCapacitor"/>
@@ -420,6 +433,8 @@
     <addaction name="action_addDot"/>
     <addaction name="menu_Transistor"/>
     <addaction name="menuSources"/>
+    <addaction name="separator"/>
+    <addaction name="menu_quickAddSymbol"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
@@ -2062,6 +2077,61 @@
    </property>
    <property name="toolTip">
     <string>Set the pen cap of the selected item(s) to flat</string>
+   </property>
+  </action>
+  <action name="action_quickAddSymbol1">
+   <property name="text">
+    <string>Symbol 1</string>
+   </property>
+   <property name="toolTip">
+    <string>Quick access to user-defined symbol. Choose the symbol to be loaded from the options menu.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="action_quickAddSymbol2">
+   <property name="text">
+    <string>Symbol 2</string>
+   </property>
+   <property name="toolTip">
+    <string>Quick access to user-defined symbol. Choose the symbol to be loaded from the options menu.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="action_quickAddSymbol3">
+   <property name="text">
+    <string>Symbol 3</string>
+   </property>
+   <property name="toolTip">
+    <string>Quick access to user-defined symbol. Choose the symbol to be loaded from the options menu.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="action_quickAddSymbol4">
+   <property name="text">
+    <string>Symbol 4</string>
+   </property>
+   <property name="toolTip">
+    <string>Quick access to user-defined symbol. Choose the symbol to be loaded from the options menu.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="action_quickAddSymbol5">
+   <property name="text">
+    <string>Symbol 5</string>
+   </property>
+   <property name="toolTip">
+    <string>Quick access to user-defined symbol. Choose the symbol to be loaded from the options menu.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
    </property>
   </action>
  </widget>

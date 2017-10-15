@@ -192,6 +192,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if 'Shortcuts' in settings.childGroups():
             self.applyShortcuts(settings)
 
+        # Misc settings
+        self.quickAddSymbol1 = settings.value('Misc/Quick Add Symbol/1', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol2 = settings.value('Misc/Quick Add Symbol/2', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol3 = settings.value('Misc/Quick Add Symbol/3', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol4 = settings.value('Misc/Quick Add Symbol/4', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol5 = settings.value('Misc/Quick Add Symbol/5', 'Resources/Symbols/Standard/Resistor.sym')
+
     def applyShortcuts(self, settings):
         ui = self.window().ui
         try:
@@ -243,10 +250,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Draw resistor', ui.action_addResistor],
                 ['Draw capacitor', ui.action_addCapacitor],
                 ['Draw ground', ui.action_addGround],
-                ['Draw connection dot', ui.action_addDot]
+                ['Draw connection dot', ui.action_addDot],
+                ['Quick add symbol 1', ui.action_quickAddSymbol1],
+                ['Quick add symbol 2', ui.action_quickAddSymbol2],
+                ['Quick add symbol 3', ui.action_quickAddSymbol3],
+                ['Quick add symbol 4', ui.action_quickAddSymbol4],
+                ['Quick add symbol 5', ui.action_quickAddSymbol5]
             ]
             for item, action in actionShortcuts:
-                action.setShortcut(QtGui.QKeySequence(settings.value('Shortcuts/'+item)))
+                if settings.contains('Shortcuts/'+item):
+                    action.setShortcut(QtGui.QKeySequence(settings.value('Shortcuts/'+item)))
         except:
             pass
 
@@ -375,6 +388,35 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCVS.sym')
         elif kind == 'CCCS':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCCS.sym')
+
+    def quickAddSymbol(self, kind=1):
+        self.escapeRoutine()
+        start = self.mapToGrid(self.currentPos)
+        if kind == 1:
+            if os.path.isfile(self.quickAddSymbol1):
+                self.loadRoutine('symbol', self.quickAddSymbol1)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 2:
+            if os.path.isfile(self.quickAddSymbol2):
+                self.loadRoutine('symbol', self.quickAddSymbol2)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 3:
+            if os.path.isfile(self.quickAddSymbol3):
+                self.loadRoutine('symbol', self.quickAddSymbol3)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 4:
+            if os.path.isfile(self.quickAddSymbol4):
+                self.loadRoutine('symbol', self.quickAddSymbol4)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 5:
+            if os.path.isfile(self.quickAddSymbol5):
+                self.loadRoutine('symbol', self.quickAddSymbol5)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
 
     def autobackupRoutine(self):
         if self.autobackupEnable is True:
