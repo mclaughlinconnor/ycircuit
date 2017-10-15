@@ -91,7 +91,7 @@
         <property name="placeholderText">
          <string>Filter (Ctrl+F)...</string>
         </property>
-        <property name="clearButtonEnabled">
+        <property name="clearButtonEnabled" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -137,14 +137,14 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <addaction name="action_newSchematic"/>
@@ -167,7 +167,7 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_setPenWidth">
@@ -177,7 +177,7 @@
      <property name="title">
       <string>&amp;Width</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setWidth2"/>
@@ -195,7 +195,7 @@
      <property name="title">
       <string>&amp;Colour</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenColourBlack"/>
@@ -215,7 +215,7 @@
      <property name="title">
       <string>&amp;Pen style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenStyleSolid"/>
@@ -231,7 +231,7 @@
      <property name="title">
       <string>Fill colour</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushColourBlack"/>
@@ -251,7 +251,7 @@
      <property name="title">
       <string>Fill style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushStyleNone"/>
@@ -264,7 +264,7 @@
      <property name="title">
       <string>Height</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_heightBringForward"/>
@@ -278,6 +278,17 @@
      </property>
      <addaction name="action_group"/>
      <addaction name="action_ungroup"/>
+    </widget>
+    <widget class="QMenu" name="menu_setPenJoinStyle">
+     <property name="toolTip">
+      <string>Modify the pen join style used for drawing items</string>
+     </property>
+     <property name="title">
+      <string>&amp;Join style</string>
+     </property>
+     <addaction name="action_setPenJoinStyleRound"/>
+     <addaction name="action_setPenJoinStyleMiter"/>
+     <addaction name="action_setPenJoinStyleBevel"/>
     </widget>
     <addaction name="action_undo"/>
     <addaction name="action_redo"/>
@@ -297,6 +308,7 @@
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
     <addaction name="menu_setPenStyle"/>
+    <addaction name="menu_setPenJoinStyle"/>
     <addaction name="menu_setFillColour"/>
     <addaction name="menu_setFillStyle"/>
     <addaction name="separator"/>
@@ -306,7 +318,7 @@
     <property name="title">
      <string>&amp;Symbol</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Transistor">
@@ -316,7 +328,7 @@
      <property name="title">
       <string>&amp;Transistor</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_N_type_MOSFET">
@@ -326,7 +338,7 @@
       <property name="title">
        <string>&amp;N-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addNMOSWithArrow"/>
@@ -339,7 +351,7 @@
       <property name="title">
        <string>&amp;P-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addPMOSWithArrow"/>
@@ -357,7 +369,7 @@
      <property name="title">
       <string>&amp;Sources</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_DC">
@@ -367,7 +379,7 @@
       <property name="title">
        <string>&amp;DC</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addDCVoltageSource"/>
@@ -380,7 +392,7 @@
       <property name="title">
        <string>&amp;Controlled</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addVCVS"/>
@@ -404,7 +416,7 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menuMajor_grid_point_spacing">
@@ -414,7 +426,7 @@
      <property name="title">
       <string>Major grid point spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_majorGridPointSpacing100"/>
@@ -429,7 +441,7 @@
      <property name="title">
       <string>Minor grid point spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_minorGridPointSpacing1"/>
@@ -447,7 +459,7 @@
      <property name="title">
       <string>Snap to grid spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_snapToGridSpacing1"/>
@@ -473,7 +485,7 @@
     <property name="title">
      <string>Sh&amp;ape</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Arc">
@@ -483,7 +495,7 @@
      <property name="title">
       <string>&amp;Arc</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_addArc3Point"/>
@@ -1951,6 +1963,51 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="action_setPenJoinStyleRound">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penJoinStyle/penJoinStyle_round.svg</normaloff>:/penJoinStyle/penJoinStyle_round.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Round</string>
+   </property>
+   <property name="toolTip">
+    <string>Set pen join style for selected item(s) to round (soft vertices)</string>
+   </property>
+  </action>
+  <action name="action_setPenJoinStyleMiter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penJoinStyle/penJoinStyle_miter.svg</normaloff>:/penJoinStyle/penJoinStyle_miter.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Mi&amp;ter</string>
+   </property>
+   <property name="toolTip">
+    <string>Set pen join style for selected item(s) to miter (hard vertices)</string>
+   </property>
+  </action>
+  <action name="action_setPenJoinStyleBevel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penJoinStyle/penJoinStyle_bevel.svg</normaloff>:/penJoinStyle/penJoinStyle_bevel.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Bevel</string>
+   </property>
+   <property name="toolTip">
+    <string>Set pen join style for selected item(s) to bevel</string>
    </property>
   </action>
  </widget>

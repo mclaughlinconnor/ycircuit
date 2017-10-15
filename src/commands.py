@@ -500,6 +500,15 @@ class ChangePen(QtWidgets.QUndoCommand):
                         changePen = ChangePen(self, i.listOfItems, **kwargs)
                     else:
                         changePen = ChangePenStyle(self, i, **kwargs)
+        if 'penJoinStyle' in kwargs:
+            self.newLocalPenJoinStyle = kwargs['penJoinStyle']
+            if isinstance(item, list):
+                self.listOfItems = item
+                for i in self.listOfItems:
+                    if isinstance(i, myGraphicsItemGroup):
+                        changePen = ChangePen(self, i.listOfItems, **kwargs)
+                    else:
+                        changePen = ChangePenJoinStyle(self, i, **kwargs)
 
 
 class ChangePenWidth(QtWidgets.QUndoCommand):
@@ -586,6 +595,31 @@ class ChangePenStyle(QtWidgets.QUndoCommand):
                 'Undoing pen style change. Changing pen style of %s back to %d',
                 self.item,
                 self.oldLocalPenStyle)
+
+
+class ChangePenJoinStyle(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, item=None, **kwargs):
+        super().__init__(parent)
+        self.item = item
+        self.oldLocalPenJoinStyle = self.item.localPenJoinStyle
+        if 'penJoinStyle' in kwargs:
+            self.newLocalPenJoinStyle = kwargs['penJoinStyle']
+
+    def redo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.setLocalPenOptions(penJoinStyle=self.newLocalPenJoinStyle)
+            logger.info(
+                'Changing pen join style of %s to %d',
+                self.item,
+                self.newLocalPenJoinStyle)
+
+    def undo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.setLocalPenOptions(penJoinStyle=self.oldLocalPenJoinStyle)
+            logger.info(
+                'Undoing pen join style change. Changing pen join style of %s back to %d',
+                self.item,
+                self.oldLocalPenJoinStyle)
 
 
 class ChangeBrush(QtWidgets.QUndoCommand):

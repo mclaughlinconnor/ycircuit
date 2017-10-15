@@ -106,7 +106,7 @@
               <property name="toolTip">
                <string>Set the default font size</string>
               </property>
-              <property name="currentText">
+              <property name="currentText" stdset="0">
                <string>6</string>
               </property>
               <item>
@@ -390,6 +390,45 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_36">
+              <property name="text">
+               <string>Default join style</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <spacer name="horizontalSpacer_36">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="2">
+             <widget class="QComboBox" name="comboBox_penJoinStyle">
+              <item>
+               <property name="text">
+                <string>Round</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Miter</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Bevel</string>
+               </property>
+              </item>
+             </widget>
             </item>
            </layout>
           </item>

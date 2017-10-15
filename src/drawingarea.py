@@ -118,6 +118,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedBrushColour = settings.value('Painting/Brush/Colour', 'Black')
         brushStyles = {'No fill': 0, 'Solid': 1}
         self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style', 'No fill')]
+        penJoinStyles = {'Round': 0x80, 'Miter': 0x00, 'Bevel': 0x40}
+        self.selectedPenJoinStyle = penJoinStyles[settings.value('Painting/Pen/Join Style', 'Round')]
         self.rotateDirection = settings.value('Painting/Rotation/Direction', 'Clockwise')
         self.rotateAngle = settings.value('Painting/Rotation/Angle', '45', type=float)
         if self.rotateDirection == 'Counter-clockwise':
@@ -1208,6 +1210,37 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 "Changed pen style to %s" %(styles[selectedPenStyle]),
                 2000)
 
+    def changePenJoinStyleRoutine(self, selectedPenJoinStyle):
+        styles = {
+            0x80: 'round',
+            0x00: 'miter',
+            0x40: 'bevel',
+        }
+        if self.scene().selectedItems() != []:
+            samePenJoinStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedPenJoinStyle != item.getLocalPenParameters('joinStyle'):
+                        samePenJoinStyle = False
+                        break
+                elif selectedPenJoinStyle != item.localPen.joinStyle():
+                    samePenJoinStyle = False
+                    break
+            if samePenJoinStyle is False:
+                changePen = ChangePen(
+                    None,
+                    self.scene().selectedItems(),
+                    penJoinStyle=selectedPenJoinStyle)
+                self.undoStack.push(changePen)
+                self.statusbarMessage.emit(
+                    "Changed the pen join style of the selected item(s) to %s" %(styles[selectedPenJoinStyle]),
+                    2000)
+        elif selectedPenJoinStyle != self.selectedPenJoinStyle:
+            self.selectedPenJoinStyle = selectedPenJoinStyle
+            self.statusbarMessage.emit(
+                "Changed pen join style to %s" %(styles[selectedPenJoinStyle]),
+                2000)
+
     def changeBrushColourRoutine(self, selectedBrushColour):
         selectedBrushColour = QtGui.QColor(selectedBrushColour)
         if self.scene().selectedItems() != []:
@@ -1531,6 +1564,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             penColour=self.selectedPenColour,
                             width=self.selectedWidth,
                             penStyle=self.selectedPenStyle,
+                            penJoinStyle=self.selectedPenJoinStyle,
                             brushColour=self.selectedBrushColour,
                             brushStyle=self.selectedBrushStyle)
                         self.scene().addItem(self.currentWire)
@@ -1549,6 +1583,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             penColour=self.selectedPenColour,
                             width=self.selectedWidth,
                             penStyle=self.selectedPenStyle,
+                            penJoinStyle=self.selectedPenJoinStyle,
                             brushColour=self.selectedBrushColour,
                             brushStyle=self.selectedBrushStyle,
                             points=self.arcPoints)
@@ -1578,6 +1613,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     # Add the original net
@@ -1637,6 +1673,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentRectangle)
@@ -1665,6 +1702,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentCircle)
@@ -1694,6 +1732,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentEllipse)
@@ -1722,6 +1761,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle,
                         font=self.selectedFont)

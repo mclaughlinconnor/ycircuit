@@ -20,6 +20,11 @@
     <file>object-flip-horizontal.svg</file>
     <file>object-rotate-right.svg</file>
   </qresource>
+  <qresource prefix="penJoinStyle">
+    <file>penJoinStyle_bevel.svg</file>
+    <file>penJoinStyle_miter.svg</file>
+    <file>penJoinStyle_round.svg</file>
+  </qresource>
   <qresource prefix="penStyle">
     <file>penStyle_solid.svg</file>
     <file>penStyle_dash.svg</file>

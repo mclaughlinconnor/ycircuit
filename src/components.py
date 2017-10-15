@@ -60,17 +60,20 @@ class drawingElement(object):
             self.localPenWidth = self.localPen.width()
             self.localPenColour = self.localPen.color()
             self.localPenStyle = self.localPen.style()
+            self.localPenJoinStyle = self.localPen.joinStyle()
         if 'width' in kwargs:
             self.localPenWidth = kwargs['width']
         if 'penColour' in kwargs:
             self.localPenColour = kwargs['penColour']
         if 'penStyle' in kwargs:
             self.localPenStyle = kwargs['penStyle']
+        if 'penJoinStyle' in kwargs:
+            self.localPenJoinStyle = kwargs['penJoinStyle']
         self.localPen.setWidth(self.localPenWidth)
         self.localPen.setColor(QtGui.QColor(self.localPenColour))
         # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
         self.localPen.setStyle(self.localPenStyle)
-        self.localPen.setJoinStyle(QtCore.Qt.RoundJoin)
+        self.localPen.setJoinStyle(self.localPenJoinStyle)
         if hasattr(self, 'setPen'):
             self.setPen(self.localPen)
 
@@ -267,6 +270,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         self.localPenWidth = 2
         self.localPenColour = 'black'
         self.localPenStyle = 1
+        self.localPenJoinStyle = 0x80
         self.localBrushColour = 'black'
         self.localBrushStyle = 0
         self.setAcceptHoverEvents(True)
@@ -367,6 +371,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         widthList = []
         penColourList = []
         penStyleList = []
+        penJoinStyleList = []
         for item in self.listOfItems:
             if item.localPen.width() not in widthList:
                 widthList.append(item.localPen.width())
@@ -374,6 +379,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 penColourList.append(item.localPen.color())
             if item.localPen.style() not in penStyleList:
                 penStyleList.append(item.localPen.style())
+            if item.localPen.joinStyle() not in penJoinStyleList:
+                penJoinStyleList.append(item.localPen.joinStyle())
         if parameter == 'width':
             if len(widthList) > 1:
                 return None
@@ -389,6 +396,11 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 return None
             else:
                 return penStyleList[0]
+        if parameter == 'joinStyle':
+            if len(penJoinStyleList) > 1:
+                return None
+            else:
+                return penJoinStyleList[0]
 
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
@@ -441,6 +453,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         """Initializes items in self.listOfItems."""
         for item in self.listOfItems:
             if not isinstance(item, myGraphicsItemGroup):
+                if not hasattr(item, 'localPenJoinStyle'):
+                    item.localPenJoinStyle = 0x80 # Default to round join
                 item.__init__(
                     self,
                     item.origin,
@@ -448,7 +462,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                     width=item.localPenWidth,
                     penStyle=item.localPenStyle,
                     brushColour=item.localBrushColour,
-                    brushStyle=item.localBrushStyle)
+                    brushStyle=item.localBrushStyle,
+                    penJoinStyle=item.localPenJoinStyle)
             else:
                 item.__init__(
                     self, item.origin, item.listOfItems, mode='symbol')
@@ -522,6 +537,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             return super().shape()
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         return stroker.createStroke(self.path()).simplified()
 
     def paint(self, painter, option, widget):
@@ -683,6 +699,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
             return QtGui.QPainterPath()
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         poly = QtGui.QPolygonF([self.line().p1(), self.line().p2()])
         path = QtGui.QPainterPath()
         path.addPolygon(poly)
@@ -1020,6 +1037,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         path.addRect(self.rect())
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         return stroker.createStroke(path).simplified()
 
     def paint(self, painter, option, widget):
@@ -1132,6 +1150,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         path.addEllipse(self.rect())
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         return stroker.createStroke(path).simplified()
 
     def paint(self, painter, option, widget):
@@ -1698,6 +1717,7 @@ class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
         self.localPenWidth = 2
         self.localPenColour = 'black'
         self.localPenStyle = 1
+        self.localPenJoinStyle = 0x80
         self.localBrushColour = 'black'
         self.localBrushStyle = 0
         self.setTransformationMode(QtCore.Qt.SmoothTransformation)

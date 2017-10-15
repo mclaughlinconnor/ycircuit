@@ -148,6 +148,13 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setPenStyleDashDotDot.triggered.connect(
             lambda x: self.action_setPenStyle_triggered(5))
 
+        self.ui.action_setPenJoinStyleRound.triggered.connect(
+            lambda x: self.action_setPenJoinStyle_triggered(0x80))
+        self.ui.action_setPenJoinStyleMiter.triggered.connect(
+            lambda x: self.action_setPenJoinStyle_triggered(0x00))
+        self.ui.action_setPenJoinStyleBevel.triggered.connect(
+            lambda x: self.action_setPenJoinStyle_triggered(0x40))
+
         self.ui.action_setBrushColourBlack.triggered.connect(
             lambda x: self.action_setBrushColour_triggered('black'))
         self.ui.action_setBrushColourRed.triggered.connect(
@@ -383,6 +390,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         widthList = []
         penColourList = []
         penStyleList = []
+        penJoinStyleList = []
         brushColourList = []
         brushStyleList = []
         for item in self.ui.drawingArea.scene().selectedItems():
@@ -390,6 +398,7 @@ class myMainWindow(QtWidgets.QMainWindow):
                 widthList.append(item.localPenWidth)
             penColourList.append(item.localPenColour)
             penStyleList.append(item.localPenStyle)
+            penJoinStyleList.append(item.localPenJoinStyle)
             brushColourList.append(item.localBrushColour)
             brushStyleList.append(item.localBrushStyle)
 
@@ -398,6 +407,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             set(widthList)
             set(penColourList)
             set(penStyleList)
+            set(penJoinStyleList)
             set(brushColourList)
             set(brushStyleList)
         except:
@@ -423,6 +433,13 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.action_setPenStyle_triggered(-1, temporary=True)
         elif len(set(penStyleList)) == 0:
             self.action_setPenStyle_triggered(self.ui.drawingArea.selectedPenStyle, temporary=True)
+
+        if len(set(penJoinStyleList)) == 1:
+            self.action_setPenJoinStyle_triggered(penJoinStyleList[0], temporary=True)
+        elif len(set(penJoinStyleList)) > 1:
+            self.action_setPenJoinStyle_triggered(-1, temporary=True)
+        elif len(set(penJoinStyleList)) == 0:
+            self.action_setPenJoinStyle_triggered(self.ui.drawingArea.selectedPenJoinStyle, temporary=True)
 
         if len(set(brushColourList)) == 1:
             self.action_setBrushColour_triggered(brushColourList[0], temporary=True)
@@ -532,6 +549,20 @@ class myMainWindow(QtWidgets.QMainWindow):
         if temporary is False:
             self.logger.info('Set pen style to %d', penStyle)
             self.ui.drawingArea.changePenStyleRoutine(penStyle)
+
+    def action_setPenJoinStyle_triggered(self, penJoinStyle, temporary=False):
+        self.ui.action_setPenJoinStyleRound.setChecked(False)
+        self.ui.action_setPenJoinStyleMiter.setChecked(False)
+        self.ui.action_setPenJoinStyleBevel.setChecked(False)
+        if penJoinStyle == 0x80:
+            self.ui.action_setPenJoinStyleRound.setChecked(True)
+        if penJoinStyle == 0x00:
+            self.ui.action_setPenJoinStyleMiter.setChecked(True)
+        if penJoinStyle == 0x40:
+            self.ui.action_setPenJoinStyleBevel.setChecked(True)
+        if temporary is False:
+            self.logger.info('Set pen join style to %d', penJoinStyle)
+            self.ui.drawingArea.changePenJoinStyleRoutine(penJoinStyle)
 
     def action_setBrushColour_triggered(self, brushColour, temporary=False):
         self.ui.action_setBrushColourBlack.setChecked(False)
