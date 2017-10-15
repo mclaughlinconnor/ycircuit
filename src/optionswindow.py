@@ -53,6 +53,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width', '4'))
         self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour', 'Black'))
         self.ui.comboBox_penStyle.setCurrentText(self.settings.value('Painting/Pen/Style', 'Solid'))
+        self.ui.comboBox_penCapStyle.setCurrentText(self.settings.value('Painting/Pen/Cap Style', 'Square'))
         self.ui.comboBox_penJoinStyle.setCurrentText(self.settings.value('Painting/Pen/Join Style', 'Round'))
         # Painting brush settings
         self.ui.comboBox_brushColour.setCurrentText(self.settings.value('Painting/Brush/Colour', 'Black'))
@@ -107,6 +108,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Painting/Pen/Width', self.ui.comboBox_penWidth.currentText())
         self.settings.setValue('Painting/Pen/Colour', self.ui.comboBox_penColour.currentText())
         self.settings.setValue('Painting/Pen/Style', self.ui.comboBox_penStyle.currentText())
+        self.settings.setValue('Painting/Pen/Cap Style', self.ui.comboBox_penCapStyle.currentText())
         self.settings.setValue('Painting/Pen/Join Style', self.ui.comboBox_penJoinStyle.currentText())
         # Painting brush settings
         self.settings.setValue('Painting/Brush/Colour', self.ui.comboBox_brushColour.currentText())
@@ -169,6 +171,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Width', '4')
         self.settings.setValue('Colour', 'Black')
         self.settings.setValue('Style', 'Solid')
+        self.settings.setValue('Cap Style', 'Square')
         self.settings.setValue('Join Style', 'Round')
         self.settings.endGroup()
         # Painting brush settings

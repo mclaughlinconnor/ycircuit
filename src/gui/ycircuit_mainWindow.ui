@@ -290,6 +290,14 @@
      <addaction name="action_setPenJoinStyleMiter"/>
      <addaction name="action_setPenJoinStyleBevel"/>
     </widget>
+    <widget class="QMenu" name="men_setPenCapStyle">
+     <property name="title">
+      <string>Cap style</string>
+     </property>
+     <addaction name="action_setPenCapStyleSquare"/>
+     <addaction name="action_setPenCapStyleRound"/>
+     <addaction name="action_setPenCapStyleFlat"/>
+    </widget>
     <addaction name="action_undo"/>
     <addaction name="action_redo"/>
     <addaction name="separator"/>
@@ -308,6 +316,7 @@
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
     <addaction name="menu_setPenStyle"/>
+    <addaction name="men_setPenCapStyle"/>
     <addaction name="menu_setPenJoinStyle"/>
     <addaction name="menu_setFillColour"/>
     <addaction name="menu_setFillStyle"/>
@@ -2008,6 +2017,51 @@
    </property>
    <property name="toolTip">
     <string>Set pen join style for selected item(s) to bevel</string>
+   </property>
+  </action>
+  <action name="action_setPenCapStyleSquare">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penCapStyle/penCapStyle_square.svg</normaloff>:/penCapStyle/penCapStyle_square.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Square</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the pen cap of the selected item(s) to square</string>
+   </property>
+  </action>
+  <action name="action_setPenCapStyleRound">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penCapStyle/penCapStyle_round.svg</normaloff>:/penCapStyle/penCapStyle_round.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Round</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the pen cap of the selected item(s) to round</string>
+   </property>
+  </action>
+  <action name="action_setPenCapStyleFlat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/penCapStyle/penCapStyle_flat.svg</normaloff>:/penCapStyle/penCapStyle_flat.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Flat</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the pen cap of the selected item(s) to flat</string>
    </property>
   </action>
  </widget>

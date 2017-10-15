@@ -60,6 +60,7 @@ class drawingElement(object):
             self.localPenWidth = self.localPen.width()
             self.localPenColour = self.localPen.color()
             self.localPenStyle = self.localPen.style()
+            self.localPenCapStyle = self.localPen.capStyle()
             self.localPenJoinStyle = self.localPen.joinStyle()
         if 'width' in kwargs:
             self.localPenWidth = kwargs['width']
@@ -67,12 +68,15 @@ class drawingElement(object):
             self.localPenColour = kwargs['penColour']
         if 'penStyle' in kwargs:
             self.localPenStyle = kwargs['penStyle']
+        if 'penCapStyle' in kwargs:
+            self.localPenCapStyle = kwargs['penCapStyle']
         if 'penJoinStyle' in kwargs:
             self.localPenJoinStyle = kwargs['penJoinStyle']
         self.localPen.setWidth(self.localPenWidth)
         self.localPen.setColor(QtGui.QColor(self.localPenColour))
         # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
         self.localPen.setStyle(self.localPenStyle)
+        self.localPen.setCapStyle(self.localPenCapStyle)
         self.localPen.setJoinStyle(self.localPenJoinStyle)
         if hasattr(self, 'setPen'):
             self.setPen(self.localPen)
@@ -270,6 +274,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         self.localPenWidth = 2
         self.localPenColour = 'black'
         self.localPenStyle = 1
+        self.localPenCapStyle = 0x10
         self.localPenJoinStyle = 0x80
         self.localBrushColour = 'black'
         self.localBrushStyle = 0
@@ -371,6 +376,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         widthList = []
         penColourList = []
         penStyleList = []
+        penCapStyleList = []
         penJoinStyleList = []
         for item in self.listOfItems:
             if item.localPen.width() not in widthList:
@@ -379,6 +385,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 penColourList.append(item.localPen.color())
             if item.localPen.style() not in penStyleList:
                 penStyleList.append(item.localPen.style())
+            if item.localPen.capStyle() not in penCapStyleList:
+                penCapStyleList.append(item.localPen.capStyle())
             if item.localPen.joinStyle() not in penJoinStyleList:
                 penJoinStyleList.append(item.localPen.joinStyle())
         if parameter == 'width':
@@ -396,6 +404,11 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 return None
             else:
                 return penStyleList[0]
+        if parameter == 'capStyle':
+            if len(penCapStyleList) > 1:
+                return None
+            else:
+                return penCapStyleList[0]
         if parameter == 'joinStyle':
             if len(penJoinStyleList) > 1:
                 return None
@@ -453,6 +466,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         """Initializes items in self.listOfItems."""
         for item in self.listOfItems:
             if not isinstance(item, myGraphicsItemGroup):
+                if not hasattr(item, 'localPenCapStyle'):
+                    item.localPenCapStyle = 0x10 # Default to square cap
                 if not hasattr(item, 'localPenJoinStyle'):
                     item.localPenJoinStyle = 0x80 # Default to round join
                 item.__init__(
@@ -461,9 +476,10 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                     penColour=item.localPenColour,
                     width=item.localPenWidth,
                     penStyle=item.localPenStyle,
+                    penCapStyle=item.localPenCapStyle,
+                    penJoinStyle=item.localPenJoinStyle,
                     brushColour=item.localBrushColour,
-                    brushStyle=item.localBrushStyle,
-                    penJoinStyle=item.localPenJoinStyle)
+                    brushStyle=item.localBrushStyle)
             else:
                 item.__init__(
                     self, item.origin, item.listOfItems, mode='symbol')
@@ -1537,7 +1553,6 @@ class Arc(Wire):
         self.setFocus()
         self.undoPointsList = []
         self.startPoint = QtCore.QPointF(0, 0)
-        self.localPen.setCapStyle(QtCore.Qt.RoundCap)
 
     def __getstate__(self):
         localDict = super().__getstate__()
@@ -1717,6 +1732,7 @@ class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
         self.localPenWidth = 2
         self.localPenColour = 'black'
         self.localPenStyle = 1
+        self.localPenCapStyle = 0x10
         self.localPenJoinStyle = 0x80
         self.localBrushColour = 'black'
         self.localBrushStyle = 0

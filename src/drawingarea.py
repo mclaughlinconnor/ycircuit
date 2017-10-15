@@ -118,6 +118,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedBrushColour = settings.value('Painting/Brush/Colour', 'Black')
         brushStyles = {'No fill': 0, 'Solid': 1}
         self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style', 'No fill')]
+        penCapStyles = {'Square': 0x10, 'Round': 0x20, 'Flat': 0x00}
+        self.selectedPenCapStyle = penCapStyles[settings.value('Painting/Pen/Cap Style', 'Square')]
         penJoinStyles = {'Round': 0x80, 'Miter': 0x00, 'Bevel': 0x40}
         self.selectedPenJoinStyle = penJoinStyles[settings.value('Painting/Pen/Join Style', 'Round')]
         self.rotateDirection = settings.value('Painting/Rotation/Direction', 'Clockwise')
@@ -1210,6 +1212,37 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 "Changed pen style to %s" %(styles[selectedPenStyle]),
                 2000)
 
+    def changePenCapStyleRoutine(self, selectedPenCapStyle):
+        styles = {
+            0x10: 'square',
+            0x20: 'round',
+            0x00: 'flat',
+        }
+        if self.scene().selectedItems() != []:
+            samePenCapStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedPenCapStyle != item.getLocalPenParameters('capStyle'):
+                        samePenCapStyle = False
+                        break
+                elif selectedPenCapStyle != item.localPen.capStyle():
+                    samePenCapStyle = False
+                    break
+            if samePenCapStyle is False:
+                changePen = ChangePen(
+                    None,
+                    self.scene().selectedItems(),
+                    penCapStyle=selectedPenCapStyle)
+                self.undoStack.push(changePen)
+                self.statusbarMessage.emit(
+                    "Changed the pen cap style of the selected item(s) to %s" %(styles[selectedPenCapStyle]),
+                    2000)
+        elif selectedPenCapStyle != self.selectedPenCapStyle:
+            self.selectedPenCapStyle = selectedPenCapStyle
+            self.statusbarMessage.emit(
+                "Changed pen cap style to %s" %(styles[selectedPenCapStyle]),
+                2000)
+
     def changePenJoinStyleRoutine(self, selectedPenJoinStyle):
         styles = {
             0x80: 'round',
@@ -1564,6 +1597,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             penColour=self.selectedPenColour,
                             width=self.selectedWidth,
                             penStyle=self.selectedPenStyle,
+                            penCapStyle=self.selectedPenCapStyle,
                             penJoinStyle=self.selectedPenJoinStyle,
                             brushColour=self.selectedBrushColour,
                             brushStyle=self.selectedBrushStyle)
@@ -1583,6 +1617,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             penColour=self.selectedPenColour,
                             width=self.selectedWidth,
                             penStyle=self.selectedPenStyle,
+                            penCapStyle=self.selectedPenCapStyle,
                             penJoinStyle=self.selectedPenJoinStyle,
                             brushColour=self.selectedBrushColour,
                             brushStyle=self.selectedBrushStyle,
@@ -1613,6 +1648,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
                         penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
@@ -1673,6 +1709,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
                         penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
@@ -1702,6 +1739,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
                         penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
@@ -1732,6 +1770,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
                         penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
@@ -1761,6 +1800,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
                         penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle,

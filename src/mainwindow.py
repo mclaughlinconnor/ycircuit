@@ -148,6 +148,13 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setPenStyleDashDotDot.triggered.connect(
             lambda x: self.action_setPenStyle_triggered(5))
 
+        self.ui.action_setPenCapStyleSquare.triggered.connect(
+            lambda x: self.action_setPenCapStyle_triggered(0x10))
+        self.ui.action_setPenCapStyleRound.triggered.connect(
+            lambda x: self.action_setPenCapStyle_triggered(0x20))
+        self.ui.action_setPenCapStyleFlat.triggered.connect(
+            lambda x: self.action_setPenCapStyle_triggered(0x00))
+
         self.ui.action_setPenJoinStyleRound.triggered.connect(
             lambda x: self.action_setPenJoinStyle_triggered(0x80))
         self.ui.action_setPenJoinStyleMiter.triggered.connect(
@@ -390,6 +397,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         widthList = []
         penColourList = []
         penStyleList = []
+        penCapStyleList = []
         penJoinStyleList = []
         brushColourList = []
         brushStyleList = []
@@ -398,6 +406,7 @@ class myMainWindow(QtWidgets.QMainWindow):
                 widthList.append(item.localPenWidth)
             penColourList.append(item.localPenColour)
             penStyleList.append(item.localPenStyle)
+            penCapStyleList.append(item.localPenCapStyle)
             penJoinStyleList.append(item.localPenJoinStyle)
             brushColourList.append(item.localBrushColour)
             brushStyleList.append(item.localBrushStyle)
@@ -407,6 +416,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             set(widthList)
             set(penColourList)
             set(penStyleList)
+            set(penCapStyleList)
             set(penJoinStyleList)
             set(brushColourList)
             set(brushStyleList)
@@ -433,6 +443,13 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.action_setPenStyle_triggered(-1, temporary=True)
         elif len(set(penStyleList)) == 0:
             self.action_setPenStyle_triggered(self.ui.drawingArea.selectedPenStyle, temporary=True)
+
+        if len(set(penCapStyleList)) == 1:
+            self.action_setPenCapStyle_triggered(penCapStyleList[0], temporary=True)
+        elif len(set(penCapStyleList)) > 1:
+            self.action_setPenCapStyle_triggered(-1, temporary=True)
+        elif len(set(penCapStyleList)) == 0:
+            self.action_setPenCapStyle_triggered(self.ui.drawingArea.selectedPenCapStyle, temporary=True)
 
         if len(set(penJoinStyleList)) == 1:
             self.action_setPenJoinStyle_triggered(penJoinStyleList[0], temporary=True)
@@ -549,6 +566,20 @@ class myMainWindow(QtWidgets.QMainWindow):
         if temporary is False:
             self.logger.info('Set pen style to %d', penStyle)
             self.ui.drawingArea.changePenStyleRoutine(penStyle)
+
+    def action_setPenCapStyle_triggered(self, penCapStyle, temporary=False):
+        self.ui.action_setPenCapStyleSquare.setChecked(False)
+        self.ui.action_setPenCapStyleRound.setChecked(False)
+        self.ui.action_setPenCapStyleFlat.setChecked(False)
+        if penCapStyle == 0x10:
+            self.ui.action_setPenCapStyleSquare.setChecked(True)
+        if penCapStyle == 0x20:
+            self.ui.action_setPenCapStyleRound.setChecked(True)
+        if penCapStyle == 0x00:
+            self.ui.action_setPenCapStyleFlat.setChecked(True)
+        if temporary is False:
+            self.logger.info('Set pen cap style to %d', penCapStyle)
+            self.ui.drawingArea.changePenCapStyleRoutine(penCapStyle)
 
     def action_setPenJoinStyle_triggered(self, penJoinStyle, temporary=False):
         self.ui.action_setPenJoinStyleRound.setChecked(False)
