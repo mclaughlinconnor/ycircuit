@@ -160,10 +160,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if not os.path.isdir(self.defaultSymbolSaveFolder):
                 os.mkdir(self.defaultSymbolSaveFolder)
         self.defaultExportFormat = settings.value('SaveExport/Export/Default format', 'pdf').lower()
-        self.defaultExportFolder = settings.value('SaveExport/Export/Default folder', './')
+        if not (hasattr(self, 'defaultExportFolder') and self.defaultExportFolder is None):
+            self.defaultExportFolder = settings.value('SaveExport/Export/Default folder', './')
         # Create default directory if it does not exist
-        if not os.path.isdir(self.defaultExportFolder):
-            os.mkdir(self.defaultExportFolder)
+        if self.defaultExportFolder is not None:
+            if not os.path.isdir(self.defaultExportFolder):
+                os.mkdir(self.defaultExportFolder)
         self.exportImageWhitespacePadding = settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float)
         self.exportImageScaleFactor = settings.value('SaveExport/Export/Image scale factor', '2.0', type=float)
 
@@ -586,10 +588,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
             self,
             'Export File',
-            self.defaultExportFolder + '/untitled.' + self.defaultExportFormat,
+            self.defaultExportFolder,
             'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff)',
             self.defaultExportFormat.upper() + ' files (*.' + self.defaultExportFormat + ')'
         )
+        self.defaultExportFolder = None
         if '*.pdf' in saveFilter:
             saveFilter = 'pdf'
         elif '*.svg' in saveFilter:
