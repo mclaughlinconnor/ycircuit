@@ -142,19 +142,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.autobackupTimerInterval = settings.value('SaveExport/Autobackup/Timer interval', '10', type=int)*1000
         self.autobackupTimer.setInterval(self.autobackupTimerInterval)
         self.showSchematicPreview = settings.value('SaveExport/Schematic/Show preview', True, type=bool)
-        self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder', './')
+        if not (hasattr(self, 'defaultSchematicSaveFolder') and self.defaultSchematicSaveFolder is None):
+            self.defaultSchematicSaveFolder = settings.value('SaveExport/Schematic/Default save folder', './')
         # Create default directory if it does not exist
-        if not os.path.isdir(self.defaultSchematicSaveFolder):
-            os.mkdir(self.defaultSchematicSaveFolder)
+        if self.defaultSchematicSaveFolder is not None:
+            if not os.path.isdir(self.defaultSchematicSaveFolder):
+                os.mkdir(self.defaultSchematicSaveFolder)
         self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', True, type=bool)
-        self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/')
+        if not (hasattr(self, 'defaultSymbolSaveFolder') and self.defaultSymbolSaveFolder is None):
+            self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/')
         self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/')
         # When the program is starting, myMainWindow will not have fileSystemModel
         if hasattr(self.window(), 'fileSystemModel'):
             self.window().pickSymbolViewerDirectory(self.defaultSymbolPreviewFolder)
         # Create default directory if it does not exist
-        if not os.path.isdir(self.defaultSymbolSaveFolder):
-            os.mkdir(self.defaultSymbolSaveFolder)
+        if self.defaultSymbolSaveFolder is not None:
+            if not os.path.isdir(self.defaultSymbolSaveFolder):
+                os.mkdir(self.defaultSymbolSaveFolder)
         self.defaultExportFormat = settings.value('SaveExport/Export/Default format', 'pdf').lower()
         self.defaultExportFolder = settings.value('SaveExport/Export/Default folder', './')
         # Create default directory if it does not exist
@@ -457,10 +461,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     fileDialog = myFileDialog(
                         self,
                         'Save symbol',
-                        self.defaultSymbolSaveFolder + '/untitled.sym',
+                        self.defaultSymbolSaveFolder,
                         filt='Symbols (*.sym)',
                         mode='save',
                         showSymbolPreview = self.showSymbolPreview)
+                    self.defaultSymbolSaveFolder = None
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
                     if not saveFile.endswith('.sym'):
@@ -471,10 +476,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 fileDialog = myFileDialog(
                     self,
                     'Save symbol as',
-                    self.defaultSymbolSaveFolder + '/untitled.sym',
+                    self.defaultSymbolSaveFolder,
                     filt='Symbols (*.sym)',
                     mode='save',
                     showSymbolPreview = self.showSymbolPreview)
+                self.defaultSymbolSaveFolder = None
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
                 if not saveFile.endswith('.sym'):
@@ -484,10 +490,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     fileDialog = myFileDialog(
                         self,
                         'Save schematic',
-                        self.defaultSchematicSaveFolder + '/untitled.sch',
+                        self.defaultSchematicSaveFolder,
                         filt='Schematics (*.sch)',
                         mode='save',
                         showSchematicPreview = self.showSchematicPreview)
+                    self.defaultSchematicSaveFolder = None
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
                     if not saveFile.endswith('.sch'):
@@ -498,10 +505,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 fileDialog = myFileDialog(
                     self,
                     'Save schematic as',
-                    self.defaultSchematicSaveFolder + '/untitled.sch',
+                    self.defaultSchematicSaveFolder,
                     filt='Schematics (*.sch)',
                     mode='save',
                     showSchematicPreview = self.showSchematicPreview)
+                self.defaultSchematicSaveFolder = None
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
                 if not saveFile.endswith('.sch'):
@@ -720,6 +728,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         filt='Symbols (*.sym)',
                         mode='load',
                         showSymbolPreview=self.showSymbolPreview)
+                    self.defaultSymbolSaveFolder = None
                 elif mode == 'schematic':
                     fileDialog = myFileDialog(
                         self,
@@ -728,6 +737,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         filt='Schematics (*.sch)',
                         mode='load',
                         showSchematicPreview=self.showSchematicPreview)
+                    self.defaultSchematicSaveFolder = None
                 if (fileDialog.exec_()):
                     loadFile = str(fileDialog.selectedFiles()[0])
             if loadFile != '':
