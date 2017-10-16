@@ -466,9 +466,9 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         """Initializes items in self.listOfItems."""
         for item in self.listOfItems:
             if not isinstance(item, myGraphicsItemGroup):
-                if not hasattr(item, 'localPenCapStyle'):
+                if 'localPenCapStyle' not in item.__dict__:
                     item.localPenCapStyle = 0x10 # Default to square cap
-                if not hasattr(item, 'localPenJoinStyle'):
+                if 'localPenJoinStyle' not in item.__dict__:
                     item.localPenJoinStyle = 0x80 # Default to round join
                 item.__init__(
                     self,
@@ -1381,6 +1381,9 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             font = QtGui.QFont()
             font.fromString(state.pop('font_'))
             self.font_ = font
+        # Older versions of the software did not save this for latex images
+        if 'localPenWidth' not in state:
+            state['localPenWidth'] = 2
 
     def boundingRect(self):
         if self.latexImageBinary is None:
