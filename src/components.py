@@ -520,7 +520,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
 
     def __getstate__(self):
         localDict = super().__getstate__()
-        # Add a list of all points part of the wire
+        # Add a list of all points part of the line
         polyPathList = self.path().toSubpathPolygons(QtGui.QTransform())
         polyPathPointList = []
         for poly in polyPathList:
@@ -535,6 +535,9 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
 
     def __setstate__(self, state):
         super().__setstate__(state)
+        if len(state['polyPathPointList']) == 0:
+            state['polyPathPointList'] = [[QtCore.QPointF(0, 0)]]
+            logger.warning('This item was saved with 0 points. This fix is only temporary.')
         # Add a polygon corresponding to the list of saved points
         a = QtGui.QPolygonF(state['polyPathPointList'][0])
         self.oldPath2 = QtGui.QPainterPath()
