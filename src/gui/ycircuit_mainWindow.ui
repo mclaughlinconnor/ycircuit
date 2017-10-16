@@ -91,7 +91,7 @@
         <property name="placeholderText">
          <string>Filter (Ctrl+F)...</string>
         </property>
-        <property name="clearButtonEnabled" stdset="0">
+        <property name="clearButtonEnabled">
          <bool>false</bool>
         </property>
        </widget>
@@ -137,14 +137,14 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <property name="toolTipsVisible" stdset="0">
+    <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
     <addaction name="action_newSchematic"/>
@@ -167,7 +167,7 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <property name="toolTipsVisible" stdset="0">
+    <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_setPenWidth">
@@ -177,7 +177,7 @@
      <property name="title">
       <string>&amp;Width</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_setWidth2"/>
@@ -195,7 +195,7 @@
      <property name="title">
       <string>&amp;Colour</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenColourBlack"/>
@@ -215,7 +215,7 @@
      <property name="title">
       <string>&amp;Pen style</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenStyleSolid"/>
@@ -231,7 +231,7 @@
      <property name="title">
       <string>Fill colour</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushColourBlack"/>
@@ -251,7 +251,7 @@
      <property name="title">
       <string>Fill style</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushStyleNone"/>
@@ -264,7 +264,7 @@
      <property name="title">
       <string>Height</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_heightBringForward"/>
@@ -273,8 +273,14 @@
      <addaction name="action_heightReset"/>
     </widget>
     <widget class="QMenu" name="menuGroup">
+     <property name="toolTip">
+      <string>Group selected items together</string>
+     </property>
      <property name="title">
       <string>Group</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="action_group"/>
      <addaction name="action_ungroup"/>
@@ -286,6 +292,9 @@
      <property name="title">
       <string>&amp;Join style</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="action_setPenJoinStyleRound"/>
      <addaction name="action_setPenJoinStyleMiter"/>
      <addaction name="action_setPenJoinStyleBevel"/>
@@ -293,6 +302,9 @@
     <widget class="QMenu" name="men_setPenCapStyle">
      <property name="title">
       <string>Cap style</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="action_setPenCapStyleSquare"/>
      <addaction name="action_setPenCapStyleRound"/>
@@ -327,7 +339,7 @@
     <property name="title">
      <string>&amp;Symbol</string>
     </property>
-    <property name="toolTipsVisible" stdset="0">
+    <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Transistor">
@@ -337,7 +349,7 @@
      <property name="title">
       <string>&amp;Transistor</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_N_type_MOSFET">
@@ -347,7 +359,7 @@
       <property name="title">
        <string>&amp;N-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible" stdset="0">
+      <property name="toolTipsVisible">
        <bool>true</bool>
       </property>
       <addaction name="action_addNMOSWithArrow"/>
@@ -360,7 +372,7 @@
       <property name="title">
        <string>&amp;P-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible" stdset="0">
+      <property name="toolTipsVisible">
        <bool>true</bool>
       </property>
       <addaction name="action_addPMOSWithArrow"/>
@@ -378,7 +390,7 @@
      <property name="title">
       <string>&amp;Sources</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_DC">
@@ -388,7 +400,7 @@
       <property name="title">
        <string>&amp;DC</string>
       </property>
-      <property name="toolTipsVisible" stdset="0">
+      <property name="toolTipsVisible">
        <bool>true</bool>
       </property>
       <addaction name="action_addDCVoltageSource"/>
@@ -401,7 +413,7 @@
       <property name="title">
        <string>&amp;Controlled</string>
       </property>
-      <property name="toolTipsVisible" stdset="0">
+      <property name="toolTipsVisible">
        <bool>true</bool>
       </property>
       <addaction name="action_addVCVS"/>
@@ -419,6 +431,9 @@
      </property>
      <property name="title">
       <string>Quick add</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="action_quickAddSymbol1"/>
      <addaction name="action_quickAddSymbol2"/>
@@ -440,7 +455,7 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <property name="toolTipsVisible" stdset="0">
+    <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menuMajor_grid_point_spacing">
@@ -450,7 +465,7 @@
      <property name="title">
       <string>Major grid point spacing</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_majorGridPointSpacing100"/>
@@ -465,7 +480,7 @@
      <property name="title">
       <string>Minor grid point spacing</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_minorGridPointSpacing1"/>
@@ -483,7 +498,7 @@
      <property name="title">
       <string>Snap to grid spacing</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_snapToGridSpacing1"/>
@@ -509,7 +524,7 @@
     <property name="title">
      <string>Sh&amp;ape</string>
     </property>
-    <property name="toolTipsVisible" stdset="0">
+    <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Arc">
@@ -519,7 +534,7 @@
      <property name="title">
       <string>&amp;Arc</string>
      </property>
-     <property name="toolTipsVisible" stdset="0">
+     <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
      <addaction name="action_addArc3Point"/>
@@ -540,9 +555,15 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menu_tutorials">
      <property name="title">
       <string>Tutorials</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="action_tutorialInverterSchematic"/>
      <addaction name="action_tutorialCustomSymbols"/>
@@ -1925,7 +1946,7 @@
     <string>Inverter schematic</string>
    </property>
    <property name="toolTip">
-    <string>Open a tutorial for creating a schematic in the web browser</string>
+    <string>Open a tutorial in the web browser for creating a schematic</string>
    </property>
   </action>
   <action name="action_tutorialCustomSymbols">
@@ -1933,7 +1954,7 @@
     <string>Custom symbols</string>
    </property>
    <property name="toolTip">
-    <string>Open a tutorial for creating custom symbols in the web browser</string>
+    <string>Open a tutorial in the web browser for creating custom symbols</string>
    </property>
   </action>
   <action name="action_setWidthCustom">

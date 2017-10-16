@@ -106,7 +106,7 @@
               <property name="toolTip">
                <string>Set the default font size</string>
               </property>
-              <property name="currentText" stdset="0">
+              <property name="currentText">
                <string>6</string>
               </property>
               <item>
@@ -2071,6 +2071,9 @@
       <layout class="QVBoxLayout" name="verticalLayout_16">
        <item>
         <widget class="QGroupBox" name="groupBox_13">
+         <property name="toolTip">
+          <string>Pick a symbol for adding via customisable shortcut</string>
+         </property>
          <property name="title">
           <string>Quick add symbols</string>
          </property>
@@ -2100,7 +2103,7 @@
             <item>
              <widget class="QLineEdit" name="lineEdit_quickAddSymbol1">
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>Resources/Symbols/Standard/Resistor.sym</string>
@@ -2122,7 +2125,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -2156,7 +2159,7 @@
             <item>
              <widget class="QLineEdit" name="lineEdit_quickAddSymbol2">
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>Resources/Symbols/Standard/Resistor.sym</string>
@@ -2178,7 +2181,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -2212,7 +2215,7 @@
             <item>
              <widget class="QLineEdit" name="lineEdit_quickAddSymbol3">
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>Resources/Symbols/Standard/Resistor.sym</string>
@@ -2234,7 +2237,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -2268,7 +2271,7 @@
             <item>
              <widget class="QLineEdit" name="lineEdit_quickAddSymbol4">
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>Resources/Symbols/Standard/Resistor.sym</string>
@@ -2290,7 +2293,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -2324,7 +2327,7 @@
             <item>
              <widget class="QLineEdit" name="lineEdit_quickAddSymbol5">
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>Resources/Symbols/Standard/Resistor.sym</string>
@@ -2346,7 +2349,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Pick a default folder for saving schematics to</string>
+               <string>Pick a symbol for adding via customisable shortcut</string>
               </property>
               <property name="text">
                <string>...</string>
