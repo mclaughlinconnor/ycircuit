@@ -29,7 +29,6 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         self.ui.pushButton_defaultSchematicSaveFolder.clicked.connect(self.changeDefaultSchematicSaveFolder)
         self.ui.pushButton_defaultSymbolSaveFolder.clicked.connect(self.changeDefaultSymbolSaveFolder)
-        self.ui.pushButton_defaultSymbolPreviewFolder.clicked.connect(self.changeDefaultSymbolPreviewFolder)
         self.ui.pushButton_defaultExportFolder.clicked.connect(self.changeDefaultExportFolder)
 
         self.ui.pushButton_quickAddSymbol1.clicked.connect(lambda: self.changeQuickAddSymbol(1))
@@ -37,6 +36,11 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.pushButton_quickAddSymbol3.clicked.connect(lambda: self.changeQuickAddSymbol(3))
         self.ui.pushButton_quickAddSymbol4.clicked.connect(lambda: self.changeQuickAddSymbol(4))
         self.ui.pushButton_quickAddSymbol5.clicked.connect(lambda: self.changeQuickAddSymbol(5))
+
+        self.ui.pushButton_defaultSymbolPreviewFolder.clicked.connect(lambda: self.changeSymbolPreviewFolder('default'))
+        self.ui.pushButton_symbolPreviewFolder1.clicked.connect(lambda: self.changeSymbolPreviewFolder(1))
+        self.ui.pushButton_symbolPreviewFolder2.clicked.connect(lambda: self.changeSymbolPreviewFolder(2))
+        self.ui.pushButton_symbolPreviewFolder3.clicked.connect(lambda: self.changeSymbolPreviewFolder(3))
 
         self.ui.tableView_shortcuts.setItemDelegate(KeySequenceEditorDelegate())
         self.ui.tableView_shortcuts.setModel(self.shortcutsModel)
@@ -88,7 +92,6 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default save folder', './'))
         self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show preview', True, type=bool))
         self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/'))
-        self.ui.lineEdit_defaultSymbolPreviewFolder.setText(self.settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/'))
         self.ui.comboBox_defaultExportFormat.setCurrentText(self.settings.value('SaveExport/Export/Default format', 'pdf'))
         self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default folder', './'))
         self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(self.settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float))
@@ -113,6 +116,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.lineEdit_quickAddSymbol3.setText(self.settings.value('Misc/Quick Add Symbol/3', 'Resources/Symbols/Standard/Resistor.sym'))
         self.ui.lineEdit_quickAddSymbol4.setText(self.settings.value('Misc/Quick Add Symbol/4', 'Resources/Symbols/Standard/Resistor.sym'))
         self.ui.lineEdit_quickAddSymbol5.setText(self.settings.value('Misc/Quick Add Symbol/5', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_defaultSymbolPreviewFolder.setText(self.settings.value('Misc/Symbol Preview Folder/Default', 'Resources/Symbols/Standard'))
+        self.ui.lineEdit_symbolPreviewFolder1.setText(self.settings.value('Misc/Symbol Preview Folder/1', 'Resources/Symbols/Standard'))
+        self.ui.lineEdit_symbolPreviewFolder2.setText(self.settings.value('Misc/Symbol Preview Folder/2', 'Resources/Symbols/Standard'))
+        self.ui.lineEdit_symbolPreviewFolder3.setText(self.settings.value('Misc/Symbol Preview Folder/3', 'Resources/Symbols/Standard'))
 
     def writeValues(self):
         # Font settings
@@ -150,7 +157,6 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('SaveExport/Schematic/Default save folder', self.ui.lineEdit_defaultSchematicSaveFolder.text())
         self.settings.setValue('SaveExport/Symbol/Show preview', self.ui.checkBox_showSymbolPreview.isChecked())
         self.settings.setValue('SaveExport/Symbol/Default save folder', self.ui.lineEdit_defaultSymbolSaveFolder.text())
-        self.settings.setValue('SaveExport/Symbol/Default preview folder', self.ui.lineEdit_defaultSymbolPreviewFolder.text())
         self.settings.setValue('SaveExport/Export/Default format', self.ui.comboBox_defaultExportFormat.currentText())
         self.settings.setValue('SaveExport/Export/Default folder', self.ui.lineEdit_defaultExportFolder.text())
         self.settings.setValue('SaveExport/Export/Whitespace padding', self.ui.doubleSpinBox_exportImageWhitespacePadding.text())
@@ -175,6 +181,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Misc/Quick Add Symbol/3', self.ui.lineEdit_quickAddSymbol3.text())
         self.settings.setValue('Misc/Quick Add Symbol/4', self.ui.lineEdit_quickAddSymbol4.text())
         self.settings.setValue('Misc/Quick Add Symbol/5', self.ui.lineEdit_quickAddSymbol5.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/Default', self.ui.lineEdit_defaultSymbolPreviewFolder.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/1', self.ui.lineEdit_symbolPreviewFolder1.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/2', self.ui.lineEdit_symbolPreviewFolder2.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/3', self.ui.lineEdit_symbolPreviewFolder3.text())
 
         # Sync changes to disk
         self.settings.sync()
@@ -237,7 +247,6 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.beginGroup('Symbol')
         self.settings.setValue('Show preview', True)
         self.settings.setValue('Default save folder', 'Resources/Symbols/Custom/')
-        self.settings.setValue('Default preview folder', 'Resources/Symbols/Standard/')
         self.settings.endGroup()
         self.settings.beginGroup('Export')
         self.settings.setValue('Default format', 'pdf')
@@ -271,6 +280,12 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('4', 'Resources/Symbols/Standard/Resistor.sym')
         self.settings.setValue('5', 'Resources/Symbols/Standard/Resistor.sym')
         self.settings.endGroup()
+        self.settings.beginGroup('Symbol Preview Folder')
+        self.settings.setValue('Default', 'Resources/Symbols/Standard/')
+        self.settings.setValue('1', 'Resources/Symbols/Standard')
+        self.settings.setValue('2', 'Resources/Symbols/Standard')
+        self.settings.setValue('3', 'Resources/Symbols/Standard')
+        self.settings.endGroup()
         self.settings.endGroup()
 
         # Write data to disk
@@ -292,13 +307,27 @@ class MyOptionsWindow(QtWidgets.QDialog):
         if defaultFolder != '':
             self.ui.lineEdit_defaultSymbolSaveFolder.setText(dir_.relativeFilePath(defaultFolder))
 
-    def changeDefaultSymbolPreviewFolder(self):
+    def changeSymbolPreviewFolder(self, kind='default'):
         fileDialog = QtWidgets.QFileDialog()
-        defaultFolder = self.ui.lineEdit_defaultSymbolPreviewFolder.text()
+        if kind == 'default':
+            defaultFolder = self.ui.lineEdit_defaultSymbolPreviewFolder.text()
+        elif kind == 1:
+            defaultFolder = self.ui.lineEdit_symbolPreviewFolder1.text()
+        elif kind == 2:
+            defaultFolder = self.ui.lineEdit_symbolPreviewFolder2.text()
+        elif kind == 3:
+            defaultFolder = self.ui.lineEdit_symbolPreviewFolder3.text()
         defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol preview folder', defaultFolder)
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
-            self.ui.lineEdit_defaultSymbolPreviewFolder.setText(dir_.relativeFilePath(defaultFolder))
+            if kind == 'default':
+                self.ui.lineEdit_defaultSymbolPreviewFolder.setText(dir_.relativeFilePath(defaultFolder))
+            elif kind == 1:
+                self.ui.lineEdit_symbolPreviewFolder1.setText(dir_.relativeFilePath(defaultFolder))
+            elif kind == 2:
+                self.ui.lineEdit_symbolPreviewFolder2.setText(dir_.relativeFilePath(defaultFolder))
+            elif kind == 3:
+                self.ui.lineEdit_symbolPreviewFolder3.setText(dir_.relativeFilePath(defaultFolder))
 
     def changeDefaultExportFolder(self):
         fileDialog = QtWidgets.QFileDialog()

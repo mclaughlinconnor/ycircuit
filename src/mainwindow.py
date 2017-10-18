@@ -741,10 +741,38 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.changeMinorGridPointSpacing(spacing)
 
     def initialiseSymbolViewer(self):
-        # Create a new file picker when the symbol directory pushbutton
+        # Create a new file picker when the symbol directory toolbutton
         # is triggered
-        self.ui.pushButton_symbolPreviewDirectory.clicked.connect(
-            lambda x: self.pickSymbolViewerDirectory())
+        self.ui.menu_symbolPreviewFolderPicker = QtWidgets.QMenu(self.ui.toolButton_symbolPreviewDirectory)
+        self.ui.action_symbolPreviewFolderDefault = QtWidgets.QAction('Default', self)
+        self.ui.action_symbolPreviewFolderStandard = QtWidgets.QAction('Standard', self)
+        self.ui.action_symbolPreviewFolderCustom = QtWidgets.QAction('Custom', self)
+        self.ui.action_symbolPreviewFolder1 = QtWidgets.QAction('Folder 1', self)
+        self.ui.action_symbolPreviewFolder2 = QtWidgets.QAction('Folder 2', self)
+        self.ui.action_symbolPreviewFolder3 = QtWidgets.QAction('Folder 3', self)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderDefault)
+        self.ui.menu_symbolPreviewFolderPicker.addSeparator()
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderStandard)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderCustom)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder1)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder2)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder3)
+        self.ui.toolButton_symbolPreviewDirectory.setMenu(
+            self.ui.menu_symbolPreviewFolderPicker)
+        self.ui.toolButton_symbolPreviewDirectory.clicked.connect(
+            lambda x: self.pickSymbolPreviewDirectory())
+        self.ui.action_symbolPreviewFolderDefault.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.defaultSymbolPreviewFolder))
+        self.ui.action_symbolPreviewFolderStandard.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory('Resources/Symbols/Standard'))
+        self.ui.action_symbolPreviewFolderCustom.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory('Resources/Symbols/Custom'))
+        self.ui.action_symbolPreviewFolder1.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.symbolPreviewFolder1))
+        self.ui.action_symbolPreviewFolder2.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.symbolPreviewFolder2))
+        self.ui.action_symbolPreviewFolder3.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.symbolPreviewFolder3))
         # Connecting the symbol viewer to the appropriate model
         self.fileSystemModel = QtWidgets.QFileSystemModel()
         if hasattr(self.ui.drawingArea, 'defaultSymbolPreviewFolder'):
@@ -777,7 +805,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             )
         )
 
-    def pickSymbolViewerDirectory(self, dir_=None):
+    def pickSymbolPreviewDirectory(self, dir_=None):
         if dir_ is None:
             dir_ = QtWidgets.QFileDialog().getExistingDirectory(
                 self,

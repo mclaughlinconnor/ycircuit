@@ -155,10 +155,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', True, type=bool)
         if not (hasattr(self, 'defaultSymbolSaveFolder') and self.defaultSymbolSaveFolder is None):
             self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/')
-        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/')
-        # When the program is starting, myMainWindow will not have fileSystemModel
-        if hasattr(self.window(), 'fileSystemModel'):
-            self.window().pickSymbolViewerDirectory(self.defaultSymbolPreviewFolder)
         # Create default directory if it does not exist
         if self.defaultSymbolSaveFolder is not None:
             if not os.path.isdir(self.defaultSymbolSaveFolder):
@@ -198,6 +194,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.quickAddSymbol3 = settings.value('Misc/Quick Add Symbol/3', 'Resources/Symbols/Standard/Resistor.sym')
         self.quickAddSymbol4 = settings.value('Misc/Quick Add Symbol/4', 'Resources/Symbols/Standard/Resistor.sym')
         self.quickAddSymbol5 = settings.value('Misc/Quick Add Symbol/5', 'Resources/Symbols/Standard/Resistor.sym')
+        self.defaultSymbolPreviewFolder = settings.value('Misc/Symbol Preview Folder/Default', 'Resources/Symbols/Standard/')
+        # When the program is starting, myMainWindow will not have fileSystemModel
+        if hasattr(self.window(), 'fileSystemModel'):
+            self.window().pickSymbolPreviewDirectory(self.defaultSymbolPreviewFolder)
+        self.symbolPreviewFolder1 = settings.value('Misc/Symbol Preview Folder/1', 'Resources/Symbols/Standard/')
+        self.symbolPreviewFolder2 = settings.value('Misc/Symbol Preview Folder/2', 'Resources/Symbols/Standard/')
+        self.symbolPreviewFolder3 = settings.value('Misc/Symbol Preview Folder/3', 'Resources/Symbols/Standard/')
 
     def applyShortcuts(self, settings):
         ui = self.window().ui
