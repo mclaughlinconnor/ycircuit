@@ -701,7 +701,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
             self.scene().render(painter, source=sourceRect)
-            logger.info('Rendering SVG')
+            logger.info('Rendering PDF')
         elif mode == 'svg':
             svgGenerator = QtSvg.QSvgGenerator()
             svgGenerator.setFileName(saveFile)
@@ -710,7 +710,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
-            logger.info('Rendering PDF')
+            logger.info('Rendering SVG')
         elif mode == 'image':
             # Create an image object
             img = QtGui.QImage(

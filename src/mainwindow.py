@@ -743,23 +743,23 @@ class myMainWindow(QtWidgets.QMainWindow):
     def initialiseSymbolViewer(self):
         # Create a new file picker when the symbol directory toolbutton
         # is triggered
-        self.ui.menu_symbolPreviewFolderPicker = QtWidgets.QMenu(self.ui.toolButton_symbolPreviewDirectory)
+        self.ui.menu_symbolPreviewFolderPicker = QtWidgets.QMenu(self.ui.toolButton_symbolPreviewFolder)
         self.ui.action_symbolPreviewFolderDefault = QtWidgets.QAction('Default', self)
         self.ui.action_symbolPreviewFolderStandard = QtWidgets.QAction('Standard', self)
         self.ui.action_symbolPreviewFolderCustom = QtWidgets.QAction('Custom', self)
         self.ui.action_symbolPreviewFolder1 = QtWidgets.QAction('Folder 1', self)
         self.ui.action_symbolPreviewFolder2 = QtWidgets.QAction('Folder 2', self)
         self.ui.action_symbolPreviewFolder3 = QtWidgets.QAction('Folder 3', self)
-        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderDefault)
-        self.ui.menu_symbolPreviewFolderPicker.addSeparator()
         self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderStandard)
         self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderCustom)
         self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder1)
         self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder2)
         self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder3)
-        self.ui.toolButton_symbolPreviewDirectory.setMenu(
+        self.ui.menu_symbolPreviewFolderPicker.addSeparator()
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderDefault)
+        self.ui.toolButton_symbolPreviewFolder.setMenu(
             self.ui.menu_symbolPreviewFolderPicker)
-        self.ui.toolButton_symbolPreviewDirectory.clicked.connect(
+        self.ui.toolButton_symbolPreviewFolder.clicked.connect(
             lambda x: self.pickSymbolPreviewDirectory())
         self.ui.action_symbolPreviewFolderDefault.triggered.connect(
             lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.defaultSymbolPreviewFolder))

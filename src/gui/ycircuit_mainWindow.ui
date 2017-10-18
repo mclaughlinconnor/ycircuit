@@ -25,18 +25,30 @@
        <enum>QLayout::SetDefaultConstraint</enum>
       </property>
       <item>
-       <widget class="QToolButton" name="toolButton_symbolPreviewDirectory">
+       <widget class="QToolButton" name="toolButton_symbolPreviewFolder">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>0</width>
           <height>24</height>
          </size>
         </property>
+        <property name="maximumSize">
+         <size>
+          <width>110</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="toolTip">
          <string>Pick the folder to show symbol previews for. The folders in the drop-down menu can be customized through Options.</string>
         </property>
         <property name="text">
-         <string>Symbol directory</string>
+         <string>Symbol folder</string>
         </property>
         <property name="popupMode">
          <enum>QToolButton::MenuButtonPopup</enum>
@@ -51,9 +63,15 @@
       </item>
       <item>
        <widget class="QListView" name="listView_symbolPreview">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
-          <width>110</width>
+          <width>0</width>
           <height>0</height>
          </size>
         </property>
@@ -71,9 +89,6 @@
         </property>
         <property name="autoScroll">
          <bool>true</bool>
-        </property>
-        <property name="verticalScrollMode">
-         <enum>QAbstractItemView::ScrollPerItem</enum>
         </property>
         <property name="flow">
          <enum>QListView::TopToBottom</enum>
@@ -103,13 +118,19 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="maximumSize">
+         <size>
+          <width>110</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
         <property name="placeholderText">
          <string>Filter (Ctrl+F)...</string>
         </property>
-        <property name="clearButtonEnabled">
+        <property name="clearButtonEnabled" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -155,14 +176,14 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <addaction name="action_newSchematic"/>
@@ -185,7 +206,7 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_setPenWidth">
@@ -195,7 +216,7 @@
      <property name="title">
       <string>&amp;Width</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setWidth2"/>
@@ -213,7 +234,7 @@
      <property name="title">
       <string>&amp;Colour</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenColourBlack"/>
@@ -233,7 +254,7 @@
      <property name="title">
       <string>&amp;Pen style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenStyleSolid"/>
@@ -249,7 +270,7 @@
      <property name="title">
       <string>Fill colour</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushColourBlack"/>
@@ -269,7 +290,7 @@
      <property name="title">
       <string>Fill style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setBrushStyleNone"/>
@@ -282,7 +303,7 @@
      <property name="title">
       <string>Height</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_heightBringForward"/>
@@ -297,7 +318,7 @@
      <property name="title">
       <string>Group</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_group"/>
@@ -310,7 +331,7 @@
      <property name="title">
       <string>&amp;Join style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenJoinStyleRound"/>
@@ -321,7 +342,7 @@
      <property name="title">
       <string>Cap style</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_setPenCapStyleSquare"/>
@@ -357,7 +378,7 @@
     <property name="title">
      <string>&amp;Symbol</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Transistor">
@@ -367,7 +388,7 @@
      <property name="title">
       <string>&amp;Transistor</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_N_type_MOSFET">
@@ -377,7 +398,7 @@
       <property name="title">
        <string>&amp;N-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addNMOSWithArrow"/>
@@ -390,7 +411,7 @@
       <property name="title">
        <string>&amp;P-type MOSFET</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addPMOSWithArrow"/>
@@ -408,7 +429,7 @@
      <property name="title">
       <string>&amp;Sources</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <widget class="QMenu" name="menu_DC">
@@ -418,7 +439,7 @@
       <property name="title">
        <string>&amp;DC</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addDCVoltageSource"/>
@@ -431,7 +452,7 @@
       <property name="title">
        <string>&amp;Controlled</string>
       </property>
-      <property name="toolTipsVisible">
+      <property name="toolTipsVisible" stdset="0">
        <bool>true</bool>
       </property>
       <addaction name="action_addVCVS"/>
@@ -450,7 +471,7 @@
      <property name="title">
       <string>Quick add</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_quickAddSymbol1"/>
@@ -473,7 +494,7 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menuMajor_grid_point_spacing">
@@ -483,7 +504,7 @@
      <property name="title">
       <string>Major grid point spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_majorGridPointSpacing100"/>
@@ -498,7 +519,7 @@
      <property name="title">
       <string>Minor grid point spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_minorGridPointSpacing1"/>
@@ -516,7 +537,7 @@
      <property name="title">
       <string>Snap to grid spacing</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_snapToGridSpacing1"/>
@@ -542,7 +563,7 @@
     <property name="title">
      <string>Sh&amp;ape</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_Arc">
@@ -552,7 +573,7 @@
      <property name="title">
       <string>&amp;Arc</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_addArc3Point"/>
@@ -573,14 +594,14 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <property name="toolTipsVisible">
+    <property name="toolTipsVisible" stdset="0">
      <bool>true</bool>
     </property>
     <widget class="QMenu" name="menu_tutorials">
      <property name="title">
       <string>Tutorials</string>
      </property>
-     <property name="toolTipsVisible">
+     <property name="toolTipsVisible" stdset="0">
       <bool>true</bool>
      </property>
      <addaction name="action_tutorialInverterSchematic"/>
