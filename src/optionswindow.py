@@ -60,6 +60,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Font settings
         self.ui.fontComboBox_fontFamily.setCurrentText(self.settings.value('Painting/Font/Family', 'Arial'))
         self.ui.comboBox_fontPointSize.setCurrentText(self.settings.value('Painting/Font/Point size', '10'))
+        self.ui.checkBox_useEulerFontForLatex.setChecked(self.settings.value('Painting/Font/Use Euler font for LaTeX', True, type=bool))
         # Painting pen settings
         self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width', '4'))
         self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour', 'Black'))
@@ -125,6 +126,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Font settings
         self.settings.setValue('Painting/Font/Family', self.ui.fontComboBox_fontFamily.currentText())
         self.settings.setValue('Painting/Font/Point size', self.ui.comboBox_fontPointSize.currentText())
+        self.settings.setValue('Painting/Font/Use Euler font for LaTeX', self.ui.checkBox_useEulerFontForLatex.isChecked())
         # Painting pen settings
         self.settings.setValue('Painting/Pen/Width', self.ui.comboBox_penWidth.currentText())
         self.settings.setValue('Painting/Pen/Colour', self.ui.comboBox_penColour.currentText())
@@ -196,6 +198,7 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.beginGroup('Font')
         self.settings.setValue('Family', 'Arial')
         self.settings.setValue('Point size', '10')
+        self.settings.setValue('Use Euler font for LaTeX', True)
         self.settings.endGroup()
         # Painting pen settings
         self.settings.beginGroup('Pen')

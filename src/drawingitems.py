@@ -80,7 +80,7 @@ class Grid(QtCore.QObject):
 
 
 class TextEditor(QtWidgets.QDialog):
-    def __init__(self, textBox=None):
+    def __init__(self, textBox=None, **kwargs):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -98,7 +98,7 @@ class TextEditor(QtWidgets.QDialog):
             else:
                 plainText = '$' + self.textBox.latexExpression + '$'
                 self.ui.textEdit.setPlainText(plainText)
-                self.ui.pushButton_latex.setChecked(True)
+                self.ui.toolButton_latex.setChecked(True)
                 cursor = self.ui.textEdit.textCursor()
                 cursor.setPosition(1)
                 self.ui.textEdit.setTextCursor(cursor)
@@ -124,12 +124,19 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.pushButton_superscript.clicked.connect(self.modifyText)
         self.ui.pushButton_symbol.clicked.connect(self.modifyText)
         if not find_executable('latex'):
-            self.ui.pushButton_latex.setEnabled(False)
-        self.ui.pushButton_latex.clicked.connect(self.modifyText)
+            self.ui.toolButton_latex.setEnabled(False)
+        self.ui.toolButton_latex.clicked.connect(self.modifyText)
+        self.ui.latexMenu = QtWidgets.QMenu()
+        self.ui.action_useEulerFont = QtWidgets.QAction('Use Euler font', self)
+        self.ui.action_useEulerFont.setCheckable(True)
+        if 'eulerFont' in kwargs:
+            self.ui.action_useEulerFont.setChecked(kwargs['eulerFont'])
+        self.ui.latexMenu.addAction(self.ui.action_useEulerFont)
+        self.ui.toolButton_latex.setMenu(self.ui.latexMenu)
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
-        if self.ui.pushButton_latex.isChecked():
+        if self.ui.toolButton_latex.isChecked():
             self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
             # This will not be None if latex is installed
             if self.textBox.latexImageBinary is not None:
@@ -137,6 +144,7 @@ class TextEditor(QtWidgets.QDialog):
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
                 self.textBox.setHtml(htmlString)
+                self.textBox.useEulerFont = self.ui.action_useEulerFont.isChecked()
                 logger.info('Set latex expression for %s to %s', self.textBox, self.textBox.latexExpression)
             else:
                 self.textBox.setHtml(self.ui.textEdit.toHtml())
@@ -158,7 +166,7 @@ class TextEditor(QtWidgets.QDialog):
         format = cursor.charFormat()
         bold, italic, underline, overline = True, True, True, True
         subscript, superscript, symbol = True, True, True
-        latex = self.ui.pushButton_latex.isChecked()
+        latex = self.ui.toolButton_latex.isChecked()
         if latex is not True:
             if cursor.hasSelection() is True:
                 start, end = cursor.selectionStart(), cursor.selectionEnd()
@@ -190,7 +198,7 @@ class TextEditor(QtWidgets.QDialog):
             self.ui.pushButton_symbol.setChecked(symbol)
 
     def latexDollarDecorators(self):
-        latex = self.ui.pushButton_latex.isChecked()
+        latex = self.ui.toolButton_latex.isChecked()
         if latex is True:
             plainText = self.ui.textEdit.toPlainText()
             cursor = self.ui.textEdit.textCursor()
@@ -219,7 +227,7 @@ class TextEditor(QtWidgets.QDialog):
         subscript = self.ui.pushButton_subscript.isChecked()
         superscript = self.ui.pushButton_superscript.isChecked()
         symbol = self.ui.pushButton_symbol.isChecked()
-        latex = self.ui.pushButton_latex.isChecked()
+        latex = self.ui.toolButton_latex.isChecked()
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
         if latex is not True:
@@ -288,10 +296,10 @@ class TextEditor(QtWidgets.QDialog):
         r, g, b = rgba[0], rgba[1], rgba[2]
         fg = 'rgb ' + str(r) + ' ' + str(g) + ' ' + str(b)
         try:
-            sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
+            sympy.preview(mathTex, output='png', viewer='BytesIO', euler=self.ui.action_useEulerFont.isChecked(), outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
             logger.info('Generating latex expression %s', mathTex)
         except RuntimeError:
-            self.ui.pushButton_latex.setChecked(False)
+            self.ui.toolButton_latex.setChecked(False)
             logger.info('Latex installation not detected (Sympy raised RuntimeError)')
             return None, None
 

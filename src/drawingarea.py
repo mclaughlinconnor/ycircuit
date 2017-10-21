@@ -110,6 +110,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedFont = QtGui.QFont()
         self.selectedFont.setFamily(fontFamily)
         self.selectedFont.setPointSize(fontPointSize)
+        self.useEulerFontForLatex = settings.value('Painting/Font/Use Euler font for LaTeX', True, type=bool)
         # Painting settings
         self.selectedWidth = settings.value('Painting/Pen/Width', '4', type=int)
         self.selectedPenColour = settings.value('Painting/Pen/Colour', 'Black')
@@ -1849,7 +1850,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle,
-                        font=self.selectedFont)
+                        font=self.selectedFont,
+                        eulerFont=self.useEulerFontForLatex)
                     add = Add(None, self.scene(), self.currentTextBox)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)

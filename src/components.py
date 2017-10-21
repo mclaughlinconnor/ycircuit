@@ -1340,6 +1340,10 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         # For backwards compatibility
         if not hasattr(self, 'latexImageColour'):
             self.latexImageColour = QtGui.QColor('black')
+        if 'eulerFont' in kwargs:
+            self.useEulerFont = kwargs['eulerFont']
+        elif not hasattr(self, 'useEulerFont'):
+            self.useEulerFont = True
         if not hasattr(self, 'textScale'):
             self.textScale = 4
         self.setLocalPenOptions(**kwargs)
@@ -1428,7 +1432,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         return path
 
     def showEditor(self):
-        self.textEditor = TextEditor(self)
+        self.textEditor = TextEditor(self, eulerFont=self.useEulerFont)
         self.textEditor.exec_()
 
     def setLocalPenOptions(self, **kwargs):
@@ -1519,7 +1523,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 pen=pen,
                 brush=brush,
                 penColour=self.localPenColour,
-                brushColour=self.localBrushColour)
+                brushColour=self.localBrushColour,
+                eulerFont=self.useEulerFont)
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
         else:
@@ -1530,7 +1535,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 pen=pen,
                 brush=brush,
                 penColour=self.localPenColour,
-                brushColour=self.localBrushColour)
+                brushColour=self.localBrushColour,
+                eulerFont=self.useEulerFont)
             newItem.localPenWidth = self.localPenWidth
             newItem.setFont(self.font())
         newItem.setTransform(self.transform())

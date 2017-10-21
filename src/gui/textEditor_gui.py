@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'src/gui/textEditor_gui.ui'
+# Form implementation generated from reading ui file '.\src\gui\textEditor_gui.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -107,18 +107,23 @@ class Ui_Dialog(object):
         self.pushButton_symbol.setFlat(True)
         self.pushButton_symbol.setObjectName("pushButton_symbol")
         self.horizontalLayout.addWidget(self.pushButton_symbol)
-        self.pushButton_latex = QtWidgets.QPushButton(Dialog)
-        self.pushButton_latex.setMinimumSize(QtCore.QSize(50, 0))
-        self.pushButton_latex.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.pushButton_latex.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.pushButton_latex.setStyleSheet("QPushButton {\n"
+        self.toolButton_latex = QtWidgets.QToolButton(Dialog)
+        self.toolButton_latex.setMinimumSize(QtCore.QSize(50, 0))
+        self.toolButton_latex.setMaximumSize(QtCore.QSize(30, 16777215))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.toolButton_latex.setFont(font)
+        self.toolButton_latex.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.toolButton_latex.setStyleSheet("QPushButton {\n"
 "    font-size: 15px;\n"
 "}")
-        self.pushButton_latex.setCheckable(True)
-        self.pushButton_latex.setAutoDefault(False)
-        self.pushButton_latex.setFlat(True)
-        self.pushButton_latex.setObjectName("pushButton_latex")
-        self.horizontalLayout.addWidget(self.pushButton_latex)
+        self.toolButton_latex.setCheckable(True)
+        self.toolButton_latex.setPopupMode(QtWidgets.QToolButton.MenuButtonPopup)
+        self.toolButton_latex.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
+        self.toolButton_latex.setAutoRaise(True)
+        self.toolButton_latex.setArrowType(QtCore.Qt.DownArrow)
+        self.toolButton_latex.setObjectName("toolButton_latex")
+        self.horizontalLayout.addWidget(self.toolButton_latex)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.horizontalLayout.setStretch(8, 1)
@@ -162,7 +167,7 @@ class Ui_Dialog(object):
         self.pushButton_symbol.setToolTip(_translate("Dialog", "Change the font to symbol (Ctrl+S)"))
         self.pushButton_symbol.setText(_translate("Dialog", "abc"))
         self.pushButton_symbol.setShortcut(_translate("Dialog", "Ctrl+S"))
-        self.pushButton_latex.setToolTip(_translate("Dialog", "Insert LaTeX equations (Ctrl+L)"))
-        self.pushButton_latex.setText(_translate("Dialog", "LaTeX"))
-        self.pushButton_latex.setShortcut(_translate("Dialog", "Ctrl+L"))
+        self.toolButton_latex.setToolTip(_translate("Dialog", "Insert LaTeX equations (Ctrl+L)"))
+        self.toolButton_latex.setText(_translate("Dialog", "LaTeX"))
+        self.toolButton_latex.setShortcut(_translate("Dialog", "Ctrl+L"))
 
