@@ -414,10 +414,10 @@ class myMainWindow(QtWidgets.QMainWindow):
         for item in self.ui.drawingArea.scene().selectedItems():
             if not isinstance(item, TextBox):
                 widthList.append(item.localPenWidth)
+                penCapStyleList.append(item.localPenCapStyle)
+                penJoinStyleList.append(item.localPenJoinStyle)
             penColourList.append(item.localPenColour)
             penStyleList.append(item.localPenStyle)
-            penCapStyleList.append(item.localPenCapStyle)
-            penJoinStyleList.append(item.localPenJoinStyle)
             brushColourList.append(item.localBrushColour)
             brushStyleList.append(item.localBrushStyle)
 
