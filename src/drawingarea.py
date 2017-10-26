@@ -1891,6 +1891,28 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.currentPos = event.pos()
             self.selectOrigin = False
 
+    def mouseDoubleClickEvent(self, event):
+        items = self.scene().selectedItems()
+        if len(items) == 1:
+            items[0].lightenColour(False)
+            oldTextBox = items[0].createCopy()
+            oldTextBox.mouseDoubleClickEvent(event)
+        if len(items) == 1:
+            if isinstance(items[0], TextBox):
+                if items[0].latexExpression == oldTextBox.latexExpression and\
+                   items[0].toHtml() == oldTextBox.toHtml() and\
+                   items[0].useEulerFont == oldTextBox.useEulerFont:
+                    self.scene().removeItem(oldTextBox)
+                else:
+                    logger.info('Edited text box')
+                    self.scene().removeItem(oldTextBox)
+                    self.undoStack.beginMacro('')
+                    add = Add(None, self.scene(), oldTextBox)
+                    del_ = Delete(None, self.scene(), [items[0]])
+                    self.undoStack.push(add)
+                    self.undoStack.push(del_)
+                    self.undoStack.endMacro()
+
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         self.currentPos = event.pos()

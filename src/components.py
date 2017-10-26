@@ -1499,7 +1499,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
-        super().mouseDoubleClickEvent(event)
+        if isinstance(event, QtWidgets.QGraphicsSceneMouseEvent):
+            super().mouseDoubleClickEvent(event)
         # Reset the text colour from gray
         self.lightenColour(False)
         self.showEditor()
@@ -1525,6 +1526,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 penColour=self.localPenColour,
                 brushColour=self.localBrushColour,
                 eulerFont=self.useEulerFont)
+            newItem.localPenWidth = self.localPenWidth
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
         else:
