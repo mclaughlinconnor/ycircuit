@@ -1496,6 +1496,11 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 self.changeTextColour('gray')
             else:
                 self.changeTextColour(self.localPenColour)
+        else:
+            if lighten is True:
+                self.setOpacity(0.5)
+            else:
+                self.setOpacity(1)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
