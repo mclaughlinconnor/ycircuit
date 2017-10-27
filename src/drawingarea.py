@@ -346,7 +346,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Load the standard ground symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/Ground.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Ground_earth.sym')
 
     def addDot(self):
         """Load the standard dot symbol"""
@@ -578,6 +578,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Create and save a preview of the file unless when creating an autobackup
                     if self.mouseRect in self.scene().items():
                         self.scene().removeItem(self.mouseRect)
+                    saveObject.lightenColour(False)
                     saveObject.icon = QtCore.QByteArray()
                     buf = QtCore.QBuffer(saveObject.icon)
                     img = myIconProvider().createIconPixmap(saveObject, self.scene()).toImage()
