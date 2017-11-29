@@ -1895,9 +1895,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def mouseDoubleClickEvent(self, event):
         items = self.scene().selectedItems()
         if len(items) == 1:
-            items[0].lightenColour(False)
-            oldTextBox = items[0].createCopy()
-            oldTextBox.mouseDoubleClickEvent(event)
+            if isinstance(items[0], TextBox):
+                items[0].lightenColour(False)
+                oldTextBox = items[0].createCopy()
+                oldTextBox.mouseDoubleClickEvent(event)
         if len(items) == 1:
             if isinstance(items[0], TextBox):
                 if items[0].latexExpression == oldTextBox.latexExpression and\
