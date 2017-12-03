@@ -259,12 +259,17 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def __init__(self, parent=None, start=None, listOfItems=None, **kwargs):
         super().__init__(parent=parent, start=start)
         self.listOfItems = listOfItems
+        self.pins = []
         if 'mode' in kwargs:
             self.loadItems(**kwargs)
         if self.listOfItems != []:
             self.setItems(self.listOfItems)
             self.setLocalPenOptions(**kwargs)
             self.setLocalBrushOptions(**kwargs)
+            for item in self.listOfItems:
+                if hasattr(item, 'isPin'):
+                    if item.isPin is True:
+                        self.pins.append(item)
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         if start is not None:
@@ -311,6 +316,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         if hasattr(self, 'height'):
             newItem.height = self.height
             newItem.setZValue(newItem.height)
+        if hasattr(self, 'isPin'):
+            newItem.isPin = self.isPin
         if newItem.parentItem() is None:
             self.scene().addItem(newItem)
             newItem.moveTo(self.scenePos(), 'start')
@@ -486,6 +493,13 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 # Call loadItems if item is also a myGraphicsItemGroup
                 # item.loadItems(mode)
         self.setItems(self.listOfItems)
+
+    def pinVisibility(self, visible):
+        for pin in self.pins:
+            pin.setVisible(visible)
+        for item in self.listOfItems:
+            if isinstance(item, myGraphicsItemGroup):
+                item.pinVisibility(visible)
 
     def undoEdit(self):
         for item in self.listOfItems:

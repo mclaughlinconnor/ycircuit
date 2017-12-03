@@ -410,6 +410,7 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Options', 'Ctrl+P'],
             # View menu
             ['Fit to view', 'F'],
+            ['Show pin(s)', 'Shift+P'],
             ['Show grid', 'G'],
             ['Snap to grid', ''],
             ['Show major grid points', ''],
@@ -423,6 +424,7 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Draw text box', ''],
             ['Edit shape', 'E'],
             # Symbol menu
+            ['Draw pin', 'P'],
             ['Draw wire', 'W'],
             ['Draw resistor', ''],
             ['Draw capacitor', ''],

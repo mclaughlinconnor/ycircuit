@@ -50,6 +50,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         }
         self._mouse = {'1': False}
         self._grid = Grid(None, self)
+        self.showPins = True
         self.undoStack = QtWidgets.QUndoStack(self)
         self.undoStack.setUndoLimit(1000)
         self.reflections = 0
@@ -237,6 +238,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Options', ui.action_options],
                 # View menu
                 ['Fit to view', ui.action_fitToView],
+                ['Show pin(s)', ui.action_showPins],
                 ['Show grid', ui.action_showGrid],
                 ['Snap to grid', ui.action_snapToGrid],
                 ['Show major grid points', ui.action_showMajorGridPoints],
@@ -250,6 +252,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Draw text box', ui.action_addTextBox],
                 ['Edit shape', ui.action_editShape],
                 # Symbol menu
+                ['Draw pin', ui.action_addPin],
                 ['Draw wire', ui.action_addWire],
                 ['Draw resistor', ui.action_addResistor],
                 ['Draw capacitor', ui.action_addCapacitor],
@@ -266,6 +269,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     action.setShortcut(QtGui.QKeySequence(settings.value('Shortcuts/'+item)))
         except:
             pass
+
+    def addPin(self):
+        """Load standard pin"""
+        self.escapeRoutine()
+        start = self.mapToGrid(self.currentPos)
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Pin.sym')
+        self.loadItem.isPin = True
 
     def addWire(self):
         """Set _key to wire mode so that a wire is added when LMB is pressed"""
@@ -503,6 +513,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
+                if hasattr(item, 'isPin'):
+                    if item.isPin is True:
+                        saveObject.pins.append(item)
                 item.lightenColour(False)
                 logger.info('Setting origin for item %s to %s', item, item.origin)
             saveObject.setItems(listOfItems)
@@ -852,6 +865,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     loadItem.listOfItems,
                     mode='symbol')
                 self.scene().addItem(self.loadItem)
+                self.loadItem.pinVisibility(self.showPins)
                 # loadItem.loadItems('symbol')
             if mode == 'schematic' or mode == 'symbolModify':
                 loadItem.setPos(loadItem.origin)
@@ -1060,6 +1074,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self.showMouseRect is True:
                 self.scene().addItem(self.mouseRect)
             logger.info('Set viewport to %s', self.scene().itemsBoundingRect())
+
+    def togglePinsRoutine(self):
+        """Toggles visibility of pins on symbols"""
+        self.showPins = not self.showPins
+        for item in self.scene().items():
+            if isinstance(item, myGraphicsItemGroup):
+                item.pinVisibility(self.showPins)
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
@@ -1501,6 +1522,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene(),
                     self.loadItem,
                     symbol=True,
+                    pinVisibility=self.window().ui.action_showPins,
                     origin=self.mapToGrid(event.pos()),
                     transform=self.loadItem.transform())
                 self.undoStack.beginMacro('')

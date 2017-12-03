@@ -188,6 +188,8 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.menu_View.hovered.connect(self.menu_View_hovered)
         self.ui.action_fitToView.triggered.connect(
             self.ui.drawingArea.fitToViewRoutine)
+        self.ui.action_showPins.triggered.connect(
+            self.ui.drawingArea.togglePinsRoutine)
         self.ui.action_showGrid.triggered.connect(
             self.ui.drawingArea.toggleGridRoutine)
         self.ui.action_snapToGrid.triggered.connect(
@@ -253,6 +255,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.editShape)
 
         # Symbol menu
+        self.ui.action_addPin.triggered.connect(self.ui.drawingArea.addPin)
         self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addNet)
         self.ui.action_addResistor.triggered.connect(
             self.ui.drawingArea.addResistor)

@@ -77,6 +77,10 @@ class Add(QtWidgets.QUndoCommand):
                 self.reflect = 0
             if 'transform' in kwargs:
                 self.transform_ = kwargs['transform']
+            # pinVisibility is actually a reference to the UI object in the
+            # window that holds the value for pin visibility
+            if 'pinVisibility' in kwargs:
+                self.pinVisibility = kwargs['pinVisibility']
         else:
             self.symbol = False
         if self.symbol is True:
@@ -107,6 +111,8 @@ class Add(QtWidgets.QUndoCommand):
             #     self.item.rotateBy(moving=False, origin=self.origin, angle=self.rotateAngle)
             if hasattr(self, 'transform_'):
                 self.item.setTransform(self.transform_)
+            if hasattr(self, 'pinVisibility'):
+                self.item.pinVisibility(self.pinVisibility.isChecked())
             logger.info('Adding item %s as a symbol', self.item)
         self.scene.update(self.scene.sceneRect())
 
