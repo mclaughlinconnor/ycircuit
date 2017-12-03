@@ -411,6 +411,7 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             # View menu
             ['Fit to view', 'F'],
             ['Show pin(s)', 'Shift+P'],
+            ['Snap net to pin', 'S'],
             ['Show grid', 'G'],
             ['Snap to grid', ''],
             ['Show major grid points', ''],

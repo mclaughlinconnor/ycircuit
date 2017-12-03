@@ -240,6 +240,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 # View menu
                 ['Fit to view', ui.action_fitToView],
                 ['Show pin(s)', ui.action_showPins],
+                ['Snap net to pin', ui.action_snapNetToPin],
                 ['Show grid', ui.action_showGrid],
                 ['Snap to grid', ui.action_snapToGrid],
                 ['Show major grid points', ui.action_showMajorGridPoints],
