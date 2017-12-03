@@ -551,7 +551,10 @@
      <addaction name="action_snapToGridSpacing40"/>
     </widget>
     <addaction name="action_fitToView"/>
+    <addaction name="separator"/>
     <addaction name="action_showPins"/>
+    <addaction name="action_snapNetToPin"/>
+    <addaction name="separator"/>
     <addaction name="action_showGrid"/>
     <addaction name="action_snapToGrid"/>
     <addaction name="menuSnap_to_grid_spacing"/>
@@ -897,9 +900,6 @@
    </property>
    <property name="toolTip">
     <string>Toggle grid visibility</string>
-   </property>
-   <property name="shortcut">
-    <string>G</string>
    </property>
   </action>
   <action name="action_delete">
@@ -2205,7 +2205,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show pin(s)</string>
+    <string>Show pins</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle pin visibility (does not affect top level pins)</string>
    </property>
    <property name="shortcut">
     <string>Shift+P</string>
@@ -2217,6 +2220,23 @@
    </property>
    <property name="shortcut">
     <string>P</string>
+   </property>
+  </action>
+  <action name="action_snapNetToPin">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Snap net to pin</string>
+   </property>
+   <property name="toolTip">
+    <string>Snap net to nearest pin while drawing a net</string>
+   </property>
+   <property name="shortcut">
+    <string>S</string>
    </property>
   </action>
  </widget>

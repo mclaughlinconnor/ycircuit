@@ -190,6 +190,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.fitToViewRoutine)
         self.ui.action_showPins.triggered.connect(
             self.ui.drawingArea.togglePinsRoutine)
+        self.ui.action_snapNetToPin.triggered.connect(
+            self.ui.drawingArea.toggleSnapNetToPinRoutine)
         self.ui.action_showGrid.triggered.connect(
             self.ui.drawingArea.toggleGridRoutine)
         self.ui.action_snapToGrid.triggered.connect(

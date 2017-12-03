@@ -21,6 +21,7 @@ class Grid(QtCore.QObject):
         self.view = view
         self.enableGrid = True
         self.snapToGrid = True
+        self.snapNetToPin = True
         self.minorSpacing = minorSpacing
         self.majorSpacing = majorSpacing
         self.minorSpacingVisibility = True
@@ -34,6 +35,7 @@ class Grid(QtCore.QObject):
         self.yMinorPoints = list(range(0, self.yLength + self.minorSpacing, self.minorSpacing))
         self.xMajorPoints = list(range(0, self.xLength + self.majorSpacing, self.majorSpacing))
         self.yMajorPoints = list(range(0, self.yLength + self.majorSpacing, self.majorSpacing))
+        self.pinsPos = []
 
     def createGrid(self):
         self.xMinorPoints = list(range(0, self.xLength + self.minorSpacing, self.minorSpacing))
@@ -69,13 +71,21 @@ class Grid(QtCore.QObject):
     def removeGrid(self):
         self.view.setBackgroundBrush(QtGui.QBrush())
 
-    def snapTo(self, point, snapToGridSpacing=None):
+    def snapTo(self, point, snapToGridSpacing=None, pin=False):
         if snapToGridSpacing is None:
             newX = round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
             newY = round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
         else:
             newX = round(point.x()/snapToGridSpacing)*snapToGridSpacing
             newY = round(point.y()/snapToGridSpacing)*snapToGridSpacing
+        if pin is True:
+            if self.snapNetToPin is False:
+                return QtCore.QPointF(newX, newY)
+            pinsPos = [pos-QtCore.QPointF(newX, newY) for pos in self.pinsPos]
+            dist = [pin.x()**2 + pin.y()**2 for pin in pinsPos]
+            if min(dist) < 25*self.snapToGridSpacing**2:
+                closestPin = dist.index(min(dist))
+                newX, newY = self.pinsPos[closestPin].x(), self.pinsPos[closestPin].y()
         return QtCore.QPointF(newX, newY)
 
 

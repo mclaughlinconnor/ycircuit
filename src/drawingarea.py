@@ -69,8 +69,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.settingsFileName = '.config'
 
         self.mouseRect = QtWidgets.QGraphicsRectItem(QtCore.QRectF(-4, -4, 8, 8))
-        self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('gray')))
+        self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('darkGray')))
         self.mouseRect.setTransform(QtGui.QTransform().rotate(45))
+        self.mouseRect.setZValue(1000)
         self.showMouseRect = True # Required for autobackup load routine below
         self.autobackupEnable = True # Required for autobackup load routine below
 
@@ -338,7 +339,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.escapeRoutine()
         self._keys['net'] = True
         self.currentNet = None
-        self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
+        self._grid.pinsPos = []
+        # Create a list of all pins in the schematic
+        for item in self.scene().items():
+            if isinstance(item, myGraphicsItemGroup):
+                if hasattr(item, 'isPin'):
+                    if item.isPin is True:
+                        self._grid.pinsPos.append(item.scenePos())
+        self.statusbarMessage.emit('Left click to begin drawing a new net (press S to toggle snapping to pins or press ESC to cancel)', 0)
 
     def addResistor(self):
         """Load the standard resistor"""
@@ -1082,6 +1090,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if isinstance(item, myGraphicsItemGroup):
                 item.pinVisibility(self.showPins)
 
+    def toggleSnapNetToPinRoutine(self):
+        """Toggles snapping of nets to nearest pin while drawing nets"""
+        self._grid.snapNetToPin = not self._grid.snapNetToPin
+
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
         self._grid.enableGrid = not self._grid.enableGrid
@@ -1705,9 +1717,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
-                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation or press ESC to cancel)', 0)
+                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation, press S to toggle snapping to pins or press ESC to cancel)', 0)
                 self.currentPos = event.pos()
-                start = self.mapToGrid(self.currentPos)
+                start = self.mapToGrid(self.currentPos, pin=True)
                 # Create new net if none exists
                 if self.currentNet is None:
                     logger.info('Begin drawing net at %s', start)
@@ -1724,7 +1736,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Add the original net
                     self.scene().addItem(self.currentNet)
             else:
-                self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
+                self.statusbarMessage.emit('Left click to begin drawing a new net (press S to toggle snapping to pins or press ESC to cancel)', 0)
                 if self.currentNet is not None:
                     netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet))]
                     netList.remove(self.currentNet)
@@ -1951,7 +1963,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
                 if self._keys['net'] is True:
-                    self.currentNet.updateNet(self.mapToGrid(event.pos()))
+                    self.currentNet.updateNet(self.mapToGrid(event.pos(), pin=True))
                 if self._keys['arc'] is True:
                     if self.currentArc is not None:
                         self.currentArc.updateArc(self.mapToGrid(event.pos()))
@@ -1993,11 +2005,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
     #     actionDelete.triggered.connect(lambda: self.scene().removeItem(self))
     #     menu.exec_(event.screenPos())
 
-    def mapToGrid(self, point):
+    def mapToGrid(self, point, pin=False):
         # Convenience function to map given point on to the grid
         point = self.mapToScene(point)
         if self._grid.snapToGrid is True:
-            return self._grid.snapTo(point)
+            return self._grid.snapTo(point, pin=pin)
         else:
             return point
 
@@ -2127,12 +2139,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
     def updateMousePosLabel(self, pos=None):
         if pos is None:
             return
-        pos = self.mapToGrid(pos)
+        gridPos = self.mapToGrid(pos)
         text = "Current position: "
-        text += '(%s, %s)' %(pos.x(), pos.y())
+        text += '(%s, %s)' %(gridPos.x(), gridPos.y())
         self.mousePosLabel.setText(text)
         if self.showMouseRect is True:
-            self.mouseRect.setPos(pos)
+            if self._keys['net'] is True:
+                pinPos = self.mapToGrid(pos, pin=True)
+            else:
+                pinPos = gridPos
+            self.mouseRect.setPos(pinPos)
 
     def groupItems(self, mode='group'):
         listOfItems = self.scene().selectedItems()
