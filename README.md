@@ -46,6 +46,7 @@ As of this point in time, the following options are available:
     * Save and load symbols (.sym files) (Ctrl+Shift+S, Ctrl+Shift+L)
     * Modify existing symbol (Alt+F->M)
     * Export symbol or schematic as a PDF, SVG, JPG, PNG, BMP or TIFF file (Ctrl+E)
+        * Make sure to turn off pin visibility (Shift+P) while exporting if you don't want the pins to show up!
         * While exporting to EPS was natively supported by PyQt4, the Qt team decided to drop this during the transition to Qt5. As a result, EPS is no longer supported by YCircuit. If you need a vector-based exporting option, use the PDF or SVG options.
     * Import image (Ctrl+I)
         * This has the same response as Shapes->Image. Imports a raster image and embeds it in the current file. Imported images can be resized.
@@ -76,6 +77,7 @@ As of this point in time, the following options are available:
     * Image (Alt+A->G)
     * Edit selected shape (E)
   * Symbols (Alt+S)
+    * Pins (P)
     * Wire (Right click to change the angle of the wire!) (W)
     * [Resistor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/resistor.png) (Alt+S->R)
     * [Capacitor](https://bitbucket.org/siddharthshekar/ycircuit/raw/master/Resources/icons/Symbols/capacitor.png) (Alt+S->C)
