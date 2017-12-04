@@ -891,7 +891,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                 undoStack.push(del1)
         return mergedNet
 
-    def splitNets(self, netList, undoStack, mode='add'):
+    def splitNets(self, netList, pinList, undoStack, mode='add'):
         # Had to do the import here to avoid circular imports
         from src.commands import Add, Delete
         # If this net has already been processed, its scene will not exist
@@ -902,12 +902,52 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         line1 = self.line()
         line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
         scene = self.scene()
+        for pin in pinList:
+            pinPos = pin.scenePos()
+            if pinPos in [line1.p1(), line1.p2()]:
+                pass
+            elif self.contains(self.mapFromScene(pinPos)):
+                newNet1 = self.createCopy()
+                newNet2 = self.createCopy()
+                scene.removeItem(newNet1)
+                scene.removeItem(newNet2)
+                newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                newNet1Line.setP1(self.line().p1())
+                newNet1Line.setP2(self.mapFromScene(pinPos))
+                newNet2Line.setP2(self.line().p2())
+                newNet2Line.setP1(self.mapFromScene(pinPos))
+                newNet1.setLine(newNet1Line)
+                newNet2.setLine(newNet2Line)
+                if self.scene() is not None:
+                    parentItem = self.parentItem()
+                    del1 = Delete(None, scene, [self])
+                    undoStack.push(del1)
+                logger.info('Splitting net %s into nets %s and %s', self, newNet1, newNet2)
+                add = Add(None, scene, newNet1, parentItem)
+                undoStack.push(add)
+                add = Add(None, scene, newNet2, parentItem)
+                undoStack.push(add)
+                dotPos = pin.scenePos()
+                self.addDot(scene, dotPos, netList, pinList, undoStack)
         for net in netList:
             line2 = net.line()
             line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
             if line2.angleTo(line1) == 90 or line2.angleTo(line1) == 270:
                 if line2.p1() in [line1.p1(), line1.p2()] or line2.p2() in [line1.p1(), line1.p2()]:
-                    pass
+                    if line2.p1() in [line1.p1(), line1.p2()]:
+                        dotPos = line2.p1()
+                    else:
+                        dotPos = line2.p2()
+                    allDots = [item for item in scene.items() if
+                                isinstance(item, Circle) and
+                                item.localBrushStyle == 1 and
+                                item.rect() == QtCore.QRectF(0, -4, 8, 8)
+                    ]
+                    for pin in pinList:
+                        pinPos = pin.scenePos()
+                        if dotPos == pinPos:
+                            self.addDot(scene, dotPos, netList, pinList, undoStack, allDots)
+                            break
                 else:
                     newNet1, newNet2 = None, None
                     if net.contains(net.mapFromItem(self, self.line().p1())):
@@ -999,40 +1039,49 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         undoStack.push(add)
                         dotPos = net.mapToScene(net.line().p2())
                     if newNet1 is not None:
+                        self.addDot(scene, dotPos, netList, pinList, undoStack)
                         newNetList1 = [item for item in netList if item.collidesWithItem(newNet1)]
                         newNetList2 = [item for item in netList if item.collidesWithItem(newNet2)]
-                        # Add a dot if required
-                        allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.rect() == QtCore.QRectF(0, -4, 8, 8)]
-                        dotExists = False
-                        for item in allDots:
-                            existingDotPos = item.scenePos()
-                            # The dot's scenePos is slightly to the left of actual center
-                            existingDotPos += QtCore.QPointF(4, 0)
-                            if dotPos == item.scenePos():
-                                dotExists = True
-                                break
-                        if dotExists is False:
-                            logger.info('Adding dot at %s', dotPos)
-                            with open('Resources/Symbols/Standard/Dot.sym', 'rb') as f:
-                                dot1 = pickle.load(f)
-                                dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
-                                scene.addItem(dot1)
-                                dot1.moveTo(dotPos, 'start')
-                                dot1.moveTo(dotPos, 'done')
-                                scene.removeItem(dot1)
-                                add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
-                                undoStack.push(add1)
                         for net in newNetList1:
                             if net.scene() is None:
                                 newNetList1.remove(net)
-                        newNet1.splitNets(newNetList1, undoStack)
+                        newNet1.splitNets(newNetList1, pinList, undoStack)
                         for net in newNetList2:
                             if net.scene() is None:
                                 newNetList2.remove(net)
-                        newNet2.splitNets(newNetList2, undoStack)
+                        newNet2.splitNets(newNetList2, pinList, undoStack)
                         # Break if self has been deleted
                         if self.scene() is None:
                             break
+
+    def addDot(self, scene, dotPos, netList, pinList, undoStack, allDots=None):
+        from src.commands import Add
+        # Add a dot if required
+        if allDots is None:
+            allDots = [item for item in scene.items() if
+                    isinstance(item, Circle) and
+                    item.localBrushStyle == 1 and
+                    item.rect() == QtCore.QRectF(0, -4, 8, 8)
+            ]
+        dotExists = False
+        for item in allDots:
+            existingDotPos = item.scenePos()
+            # The dot's scenePos is slightly to the left of actual center
+            existingDotPos += QtCore.QPointF(4, 0)
+            if dotPos == item.scenePos():
+                dotExists = True
+                break
+        if dotExists is False:
+            logger.info('Adding dot at %s', dotPos)
+            with open('Resources/Symbols/Standard/Dot.sym', 'rb') as f:
+                dot1 = pickle.load(f)
+                dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
+                scene.addItem(dot1)
+                dot1.moveTo(dotPos, 'start')
+                dot1.moveTo(dotPos, 'done')
+                scene.removeItem(dot1)
+                add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
+                undoStack.push(add1)
 
 
 class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):

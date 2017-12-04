@@ -1057,13 +1057,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
         itemsToDelete = self.scene().selectedItems()
         for item2 in self.scene().selectedItems():
             if isinstance(item2, Net):
-                netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
+                netList = [item for item in self.scene().items() if
+                           (isinstance(item, Net) and
+                            item.collidesWithItem(item2)) and
+                           item not in self.scene().selectedItems()
+                ]
+                pinList = [item for item in self.scene().items() if
+                            (isinstance(item, myGraphicsItemGroup) and
+                            hasattr(item, 'isPin') and
+                            item.isPin is True and
+                            item.collidesWithItem(self.currentNet))
+                ]
                 if item2 in netList:
                     netList.remove(item2)
                 for item in netList[:]:
                     mergedNet = item.mergeNets(netList[:], self.undoStack)
                     if mergedNet is not None:
-                        mergedNet.splitNets(netList[:], self.undoStack)
+                        mergedNet.splitNets(netList[:], pinList, self.undoStack)
         del1 = Delete(None, self.scene(), itemsToDelete)
         self.undoStack.push(del1)
         self.undoStack.endMacro()
@@ -1478,13 +1488,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['c'] is False:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
+                            netList = [item for item in self.scene().items() if
+                                       (isinstance(item, Net) and
+                                        item.collidesWithItem(item2)) and
+                                       item not in self.scene().selectedItems()
+                            ]
+                            pinList = [item for item in self.scene().items() if
+                                    (isinstance(item, myGraphicsItemGroup) and
+                                        hasattr(item, 'isPin') and
+                                        item.isPin is True and
+                                        item.collidesWithItem(self.currentNet))
+                            ]
                             if item2 in netList:
                                 netList.remove(item2)
                             for item in netList[:]:
                                 mergedNet = item.mergeNets(netList, self.undoStack)
                                 if mergedNet is not None:
-                                    mergedNet.splitNets(netList, self.undoStack)
+                                    mergedNet.splitNets(netList, pinList, self.undoStack)
             # End moving if LMB is clicked again and selection is not empty
             elif self.moveItems != []:
                 point = self.mapToGrid(event.pos())
@@ -1510,12 +1530,22 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if True:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
+                            netList = [item for item in self.scene().items() if
+                                       (isinstance(item, Net) and
+                                        item.collidesWithItem(item2)) and
+                                       item not in self.scene().selectedItems()
+                            ]
+                            pinList = [item for item in self.scene().items() if
+                                    (isinstance(item, myGraphicsItemGroup) and
+                                        hasattr(item, 'isPin') and
+                                        item.isPin is True and
+                                        item.collidesWithItem(self.currentNet))
+                            ]
                             mergedNet = item2.mergeNets(netList, self.undoStack)
                             if mergedNet is not None:
-                                mergedNet.splitNets(netList, self.undoStack)
+                                mergedNet.splitNets(netList, pinList, self.undoStack)
                             elif item2.scene() is not None:
-                                item2.splitNets(netList, self.undoStack)
+                                item2.splitNets(netList, pinList, self.undoStack)
                 # End move command once item has been placed
                 self._keys['m'] = False
                 self._keys['c'] = False
@@ -1739,7 +1769,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
             else:
                 self.statusbarMessage.emit('Left click to begin drawing a new net (press S to toggle snapping to pins or press ESC to cancel)', 0)
                 if self.currentNet is not None:
-                    netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet))]
+                    netList = [item for item in self.scene().items() if
+                               (isinstance(item, Net) and
+                                item.collidesWithItem(self.currentNet))
+                    ]
+                    pinList = [item for item in self.scene().items() if
+                               (isinstance(item, myGraphicsItemGroup) and
+                                hasattr(item, 'isPin') and
+                                item.isPin is True and
+                                item.collidesWithItem(self.currentNet))
+                    ]
                     netList.remove(self.currentNet)
                     self.scene().removeItem(self.currentNet)
                     # Only do this if current net is not 0 length
@@ -1748,7 +1787,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         add = Add(None, self.scene(), self.currentNet)
                         self.undoStack.push(add)
                         mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
-                        self.currentNet.splitNets(netList, self.undoStack)
+                        self.currentNet.splitNets(netList, pinList, self.undoStack)
                         # Add the perpendicular line properly, if it exists
                         if self.currentNet.perpLine is not None:
                             netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
@@ -1766,7 +1805,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                 add = Add(None, self.scene(), self.currentNet.perpLine)
                                 self.undoStack.push(add)
                                 mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
-                                self.currentNet.perpLine.splitNets(netList, self.undoStack)
+                                self.currentNet.perpLine.splitNets(netList, pinList, self.undoStack)
                         self.undoStack.endMacro()
                     self.currentNet = None
                     logger.info('Finish drawing net')
