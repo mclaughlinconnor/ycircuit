@@ -79,6 +79,8 @@ class Grid(QtCore.QObject):
             newX = round(point.x()/snapToGridSpacing)*snapToGridSpacing
             newY = round(point.y()/snapToGridSpacing)*snapToGridSpacing
         if pin is True:
+            if self.pinsPos == []:
+                return QtCore.QPointF(newX, newY)
             if self.snapNetToPin is False:
                 return QtCore.QPointF(newX, newY)
             pinsPos = [pos-QtCore.QPointF(newX, newY) for pos in self.pinsPos]
