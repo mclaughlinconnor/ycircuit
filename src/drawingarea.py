@@ -1787,10 +1787,22 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         add = Add(None, self.scene(), self.currentNet)
                         self.undoStack.push(add)
                         mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
-                        self.currentNet.splitNets(netList, pinList, self.undoStack)
+                        if mergedNet is not None:
+                            mergedNet.splitNets(netList, pinList, self.undoStack)
+                        else:
+                            self.currentNet.splitNets(netList, pinList, self.undoStack)
                         # Add the perpendicular line properly, if it exists
                         if self.currentNet.perpLine is not None:
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
+                            netList = [item for item in self.scene().items() if
+                                       (isinstance(item, Net) and
+                                        item.collidesWithItem(self.currentNet.perpLine))
+                            ]
+                            pinList = [item for item in self.scene().items() if
+                                    (isinstance(item, myGraphicsItemGroup) and
+                                        hasattr(item, 'isPin') and
+                                        item.isPin is True and
+                                        item.collidesWithItem(self.currentNet.perpLine))
+                            ]
                             netList.remove(self.currentNet.perpLine)
                             perpLineObscured = False
                             for net in netList:
@@ -1805,7 +1817,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                 add = Add(None, self.scene(), self.currentNet.perpLine)
                                 self.undoStack.push(add)
                                 mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
-                                self.currentNet.perpLine.splitNets(netList, pinList, self.undoStack)
+                                if mergedNet is not None:
+                                    mergedNet.splitNets(netList, pinList, self.undoStack)
+                                else:
+                                    self.currentNet.perpLine.splitNets(netList, pinList, self.undoStack)
                         self.undoStack.endMacro()
                     self.currentNet = None
                     logger.info('Finish drawing net')

@@ -929,6 +929,9 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                 undoStack.push(add)
                 dotPos = pin.scenePos()
                 self.addDot(scene, dotPos, netList, pinList, undoStack)
+                self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet1)
+                self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet2)
+                return
         for net in netList:
             line2 = net.line()
             line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
@@ -1039,20 +1042,20 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         undoStack.push(add)
                         dotPos = net.mapToScene(net.line().p2())
                     if newNet1 is not None:
-                        self.addDot(scene, dotPos, netList, pinList, undoStack)
-                        newNetList1 = [item for item in netList if item.collidesWithItem(newNet1)]
-                        newNetList2 = [item for item in netList if item.collidesWithItem(newNet2)]
-                        for net in newNetList1:
-                            if net.scene() is None:
-                                newNetList1.remove(net)
-                        newNet1.splitNets(newNetList1, pinList, undoStack)
-                        for net in newNetList2:
-                            if net.scene() is None:
-                                newNetList2.remove(net)
-                        newNet2.splitNets(newNetList2, pinList, undoStack)
+                        self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet1)
+                        self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet2)
                         # Break if self has been deleted
                         if self.scene() is None:
                             break
+
+    def splitNewNets(self, scene, dotPos, netList, pinList, undoStack, newNet):
+        if newNet is not None:
+            self.addDot(scene, dotPos, netList, pinList, undoStack)
+            newNetList = [item for item in netList if item.collidesWithItem(newNet)]
+            for net in newNetList:
+                if net.scene() is None:
+                    newNetList.remove(net)
+            newNet.splitNets(newNetList, pinList, undoStack)
 
     def addDot(self, scene, dotPos, netList, pinList, undoStack, allDots=None):
         from src.commands import Add
