@@ -318,6 +318,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
             newItem.setZValue(newItem.height)
         if hasattr(self, 'isPin'):
             newItem.isPin = self.isPin
+            newItem.parentItem().pins.append(newItem)
         if newItem.parentItem() is None:
             self.scene().addItem(newItem)
             newItem.moveTo(self.scenePos(), 'start')
