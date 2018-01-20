@@ -90,6 +90,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if loadFile != autobackupFileNameTemplate:
             self.loadRoutine(mode='schematic', loadFile=loadFile)
             self.schematicFileName = None
+            # Push a dummy undo command so that the user is prompted to save
+            self.undoStack.push(QtWidgets.QUndoCommand(None))
         else:
             # If backup existed, delete it
             if glob.glob(autobackupFileNameTemplate + '*') != []:
@@ -102,6 +104,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.autobackupTimer.start()
 
     def applySettingsFromFile(self, fileName=None):
+        """When provided with an appropriate settings filename, this method
+        opens it for reading and extracts various parameters and sets them."""
         # Load settings file
         settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
         logger.info('Applying settings from file %s', fileName)
@@ -206,6 +210,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.symbolPreviewFolder3 = settings.value('Misc/Symbol Preview Folder/3', 'Resources/Symbols/Standard/')
 
     def applyShortcuts(self, settings):
+        """Applies shortcuts for the various functions part of YCircuit"""
         ui = self.window().ui
         try:
             actionShortcuts = [
@@ -280,14 +285,17 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.loadItem.isPin = True
 
     def addWire(self):
-        """Set _key to wire mode so that a wire is added when LMB is pressed"""
+        """Create a poly-line. The wire name used here is a relic
+        from the past where poly-lines doubled as nets."""
+        # Set _key to wire mode so that a wire is added when LMB is pressed
         self.escapeRoutine()
         self._keys['w'] = True
         self.currentWire = None
         self.statusbarMessage.emit('Left click to begin drawing a new line (press ESC to cancel)', 0)
 
     def addArc(self, points=3):
-        """Set _key to arc mode so that an arc is added when LMB is pressed"""
+        """Create an arc with _points_ number of points"""
+        # Set _key to arc mode so that an arc is added when LMB is pressed
         self.escapeRoutine()
         self._keys['arc'] = True
         self.arcPoints = points
@@ -295,28 +303,32 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.statusbarMessage.emit('Left click to begin drawing a new arc (press ESC to cancel)', 0)
 
     def addRectangle(self):
-        """Set _key to rectangle mode so that a rectangle is added when LMB is pressed"""
+        """Create a rectangle"""
+        # Set _key to rectangle mode so that a rectangle is added when LMB is pressed
         self.escapeRoutine()
         self._keys['rectangle'] = True
         self.currentRectangle = None
         self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
 
     def addCircle(self):
-        """Set _key to circle mode so that a circle is added when LMB is pressed"""
+        """Create a circle"""
+        # Set _key to circle mode so that a circle is added when LMB is pressed
         self.escapeRoutine()
         self._keys['circle'] = True
         self.currentCircle = None
         self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
 
     def addEllipse(self):
-        """Set _key to ellipse mode so that an ellipse is added when LMB is pressed"""
+        """Create an ellipse"""
+        # Set _key to ellipse mode so that an ellipse is added when LMB is pressed
         self.escapeRoutine()
         self._keys['ellipse'] = True
         self.currentEllipse = None
         self.statusbarMessage.emit('Left click to begin drawing a new ellipse (press ESC to cancel)', 0)
 
     def addTextBox(self):
-        """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
+        """Create a text box"""
+        # Set _key to textBox mode so that a textbox is added when LMB is pressed
         self.escapeRoutine()
         cursor = self.cursor()
         cursor.setShape(QtCore.Qt.IBeamCursor)
@@ -326,7 +338,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.statusbarMessage.emit('Left click to pick the location of the new text box (press ESC to cancel)', 0)
 
     def addImage(self):
-        """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
+        """Import an image"""
         self.escapeRoutine()
         cursor = self.cursor()
         cursor.setShape(QtCore.Qt.IBeamCursor)
@@ -336,7 +348,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.statusbarMessage.emit('Left click to pick the location of the new image (press ESC to cancel)', 0)
 
     def addNet(self):
-        """Set _key to net mode so that a net is added when LMB is pressed"""
+        """Add a net. Nets are different from wires in that nets can only be
+        created at right angles and automatically merge/split as needed."""
+        # Set _key to net mode so that a net is added when LMB is pressed
         self.escapeRoutine()
         self._keys['net'] = True
         self.currentNet = None
@@ -395,6 +409,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.loadRoutine('symbol', './Resources/Symbols/Standard/BJT_PNP.sym')
 
     def addSource(self, kind='DCV'):
+        """Load the standard dependent/independent source"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 'DCV':
@@ -413,6 +428,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCCS.sym')
 
     def quickAddSymbol(self, kind=1):
+        """Quickly add symbols as defined in the settings file"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 1:
@@ -442,27 +458,45 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
 
     def autobackupRoutine(self):
+        """Convenience function for saving the autobackup file"""
         if self.autobackupEnable is True:
             self.saveRoutine(mode='autobackup')
             self.autobackupFile.flush()
 
     def listOfItemsToSave(self, mode='schematicAs'):
+        """Convenience function for generating the list of items to save. Most
+        useful when paired with the autobackup utility. In such a case, we do
+        not wish to save items that are eg. being selected/moved."""
         listOfItems = [item for item in self.scene().items() if item.parentItem() is None]
+        # Remove the mouse diamond if it is present
         if self.mouseRect in listOfItems:
             listOfItems.remove(self.mouseRect)
+        # If mode is not autobackup, return everything else
         if mode != 'autobackup':
             return listOfItems
         removeItems = []
+        # Remove items being added/moved
         if self._keys['m'] is True or self._keys['add'] is True:
             removeItems = self.moveItems
+        # Remove the current rectangle being drawn
         if self._keys['rectangle'] is True:
             removeItems = [self.currentRectangle]
+        # Remove the current circle being drawn
         if self._keys['circle'] is True:
             removeItems = [self.currentCircle]
+        # Remove the current ellipse being drawn
         if self._keys['ellipse'] is True:
             removeItems = [self.currentEllipse]
+        # Remove the current wire being drawn
         if self._keys['w'] is True:
             removeItems = [self.currentWire]
+        # Remove the current net being drawn
+        if self._keys['net'] is True:
+            removeItems = [self.currentNet]
+            if hasattr(self.currentNet, 'perpLine'):
+                if self.currentNet.perpLine is not None:
+                    removeItems.append(self.currentNet.perpLine)
+        # Remove the current arc being drawn
         if self._keys['arc'] is True:
             removeItems = [self.currentArc]
         for item in removeItems:
@@ -762,6 +796,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         logger.info('Finishing export')
 
     def loadAutobackupRoutine(self, loadFile=None):
+        """Convenience function that generates a message box asking the user
+        whether they would like to recover from the backup"""
         # Ask if you would like to recover the autobackup
         msgBox = QtWidgets.QMessageBox(self)
         msgBox.setWindowTitle("Recover file")
@@ -1128,6 +1164,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             logger.info('Snap to grid is disabled')
 
     def changeSnapToGridSpacing(self, spacing):
+        """Changes the snap to grid spacing"""
         if spacing != self._grid.snapToGridSpacing:
             self._grid.snapToGridSpacing = spacing
 
@@ -1144,6 +1181,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
 
     def changeMajorGridPointSpacing(self, spacing):
+        """Changes the major grid point spacing"""
         if spacing != self._grid.majorSpacing:
             self._grid.majorSpacing = spacing
             self.statusbarMessage.emit('Major grid point spacing changed to ' + str(spacing), 2000)
@@ -1163,6 +1201,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
 
     def changeMinorGridPointSpacing(self, spacing):
+        """Changes the minor grid point spacing"""
         if spacing != self._grid.minorSpacing:
             self._grid.minorSpacing = spacing
             self.statusbarMessage.emit('Minor grid point spacing changed to ' + str(spacing), 2000)
@@ -1170,6 +1209,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self._grid.createGrid()
 
     def changeFontRoutine(self, selectedFont):
+        """Convenience function for changing the font to selectedFont"""
         if self.scene().selectedItems() != []:
             sameFont = True
             for item in self.scene().selectedItems():
@@ -1190,6 +1230,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                    2000)
 
     def changeHeightRoutine(self, mode='reset'):
+        """Changes the height of the selected items. If mode is 'reset', sets
+        the height to 0."""
         if self.scene().selectedItems == []:
             return
         else:
@@ -1216,6 +1258,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changeWidthRoutine(self, selectedWidth):
+        """Changes the width of the selected items to selectedWidth."""
         if self.scene().selectedItems() != []:
             sameWidth = True
             for item in self.scene().selectedItems():
@@ -1244,6 +1287,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changePenColourRoutine(self, selectedPenColour):
+        """Changes the pen colour for the selected items to selectedPenColour."""
         selectedPenColour = QtGui.QColor(selectedPenColour)
         if self.scene().selectedItems() != []:
             sameColour = True
@@ -1271,6 +1315,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
+        """Changes the pen style for the selected items to selectedPenStyle."""
         styles = {
             1: 'solid',
             2: 'dash',
@@ -1304,6 +1349,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changePenCapStyleRoutine(self, selectedPenCapStyle):
+        """Changes the pen cap style for the selected items to
+        selectedPenCapStyle."""
         styles = {
             0x10: 'square',
             0x20: 'round',
@@ -1335,6 +1382,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changePenJoinStyleRoutine(self, selectedPenJoinStyle):
+        """Changes the pen join style for the selected items to
+        selectedPenJoinStyle."""
         styles = {
             0x80: 'round',
             0x00: 'miter',
@@ -1366,6 +1415,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changeBrushColourRoutine(self, selectedBrushColour):
+        """Changes the brush colour for the selected items to
+        selectedBrushColour."""
         selectedBrushColour = QtGui.QColor(selectedBrushColour)
         if self.scene().selectedItems() != []:
             sameBrushColour = True
@@ -1393,6 +1444,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
+        """Changes the brush style for the selected items to
+        selectedBrushStyle."""
         styles = {
             0: 'no fill',
             1: 'solid',
@@ -2061,7 +2114,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
     #     menu.exec_(event.screenPos())
 
     def mapToGrid(self, point, pin=False):
-        # Convenience function to map given point on to the grid
+        """Convenience function to map given point on to the grid"""
         point = self.mapToScene(point)
         if self._grid.snapToGrid is True:
             return self._grid.snapTo(point, pin=pin)
@@ -2069,6 +2122,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             return point
 
     def wheelEvent(self, event):
+        """Handles mouse wheel interactions."""
         # Pan or zoom depending on keyboard modifiers
         eventDelta = event.angleDelta().y()
         if eventDelta >= 0:
@@ -2138,6 +2192,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         timeline.start()
 
     def modifyView(self, scaleFactor, panZoom='vertical'):
+        """Convenience function for handling panning/zooming"""
         if panZoom == 'vertical':
             self.translate(0, -scaleFactor * 10)
         elif panZoom == 'horizontal':
@@ -2146,6 +2201,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.scale(scaleFactor, scaleFactor)
 
     def editShape(self):
+        """Convenience function for handling the editing of shapes."""
         # Only process this if edit mode is not already active
         if self._keys['edit'] is False:
             if len(self.scene().selectedItems()) == 1:
@@ -2186,12 +2242,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.statusbarMessage.emit("Please select an item to edit", 2000)
 
     def optionsRoutine(self):
+        """Convenience function that creates the options box and then applies
+        any changes needed."""
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
         self.optionswindow.applied.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.finished.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.exec_()
 
     def updateMousePosLabel(self, pos=None):
+        """Updates the current mouse position."""
         if pos is None:
             return
         gridPos = self.mapToGrid(pos)
@@ -2206,6 +2265,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.mouseRect.setPos(pinPos)
 
     def groupItems(self, mode='group'):
+        """Groups or ungroups selected items depending on mode."""
         listOfItems = self.scene().selectedItems()
         if listOfItems == []:
             return
