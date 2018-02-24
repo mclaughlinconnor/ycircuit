@@ -376,6 +376,7 @@ class ChangeHeight(QtWidgets.QUndoCommand):
             elif self.mode == 'reset':
                 self.item.setZValue(0)
             newValue = self.item.zValue()
+            self.item.height = newValue
             logger.info('Changed height of %s from %d to %d', self.item, oldValue, newValue)
         else:
             super().redo()
@@ -390,6 +391,7 @@ class ChangeHeight(QtWidgets.QUndoCommand):
             elif self.mode == 'reset':
                 self.item.setZValue(self.oldHeight)
             newValue = self.item.zValue()
+            self.item.height = newValue
             logger.info('Undoing height change. Changed height of %s from %d to %d', self.item, oldValue, newValue)
         else:
             super().undo()
