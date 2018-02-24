@@ -550,6 +550,8 @@
      <addaction name="action_snapToGridSpacing30"/>
      <addaction name="action_snapToGridSpacing40"/>
     </widget>
+    <addaction name="action_zoomIn"/>
+    <addaction name="action_zoomOut"/>
     <addaction name="action_fitToView"/>
     <addaction name="separator"/>
     <addaction name="action_showPins"/>
@@ -666,6 +668,10 @@
    <addaction name="separator"/>
    <addaction name="action_undo"/>
    <addaction name="action_redo"/>
+   <addaction name="separator"/>
+   <addaction name="action_zoomIn"/>
+   <addaction name="action_fitToView"/>
+   <addaction name="action_zoomOut"/>
    <addaction name="separator"/>
    <addaction name="action_delete"/>
    <addaction name="action_move"/>
@@ -878,6 +884,10 @@
    </property>
   </action>
   <action name="action_fitToView">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/view-restore.svg</normaloff>:/icons/view-restore.svg</iconset>
+   </property>
    <property name="text">
     <string>Fit to view</string>
    </property>
@@ -886,6 +896,9 @@
    </property>
    <property name="shortcut">
     <string>F</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_showGrid">
@@ -2237,6 +2250,36 @@
    </property>
    <property name="shortcut">
     <string>S</string>
+   </property>
+  </action>
+  <action name="action_zoomIn">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/zoom-in.svg</normaloff>:/icons/zoom-in.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom in</string>
+   </property>
+   <property name="shortcut">
+    <string>Z</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_zoomOut">
+   <property name="icon">
+    <iconset resource="../../Resources/icons/icon.qrc">
+     <normaloff>:/icons/zoom-out.svg</normaloff>:/icons/zoom-out.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom out</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Z</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

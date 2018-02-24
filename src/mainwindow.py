@@ -186,6 +186,10 @@ class myMainWindow(QtWidgets.QMainWindow):
 
         # View menu
         self.ui.menu_View.hovered.connect(self.menu_View_hovered)
+        self.ui.action_zoomIn.triggered.connect(
+            lambda x: self.ui.drawingArea.keyboardZoomRoutine('in'))
+        self.ui.action_zoomOut.triggered.connect(
+            lambda x: self.ui.drawingArea.keyboardZoomRoutine('out'))
         self.ui.action_fitToView.triggered.connect(
             self.ui.drawingArea.fitToViewRoutine)
         self.ui.action_showPins.triggered.connect(

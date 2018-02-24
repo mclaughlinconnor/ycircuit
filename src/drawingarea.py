@@ -243,6 +243,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Ungroup', ui.action_ungroup],
                 ['Options', ui.action_options],
                 # View menu
+                ['Zoom in', ui.action_zoomIn],
+                ['Zoom out', ui.action_zoomOut],
                 ['Fit to view', ui.action_fitToView],
                 ['Show pin(s)', ui.action_showPins],
                 ['Snap net to pin', ui.action_snapNetToPin],
@@ -2138,7 +2140,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 return
             delta = min(-120, eventDelta)
         scaleFactor = -delta / 240.
-        modifiers = QtWidgets.QApplication.keyboardModifiers()
+        modifiers = event.modifiers()
         timeline = QtCore.QTimeLine(300, self)
         timeline.setFrameRange(0, 100)
         if modifiers == QtCore.Qt.ControlModifier:
@@ -2190,6 +2192,25 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.modifyView(scaleFactor, panZoom)
             logger.debug('Viewport scaled by %.2f', scaleFactor)
         timeline.start()
+
+    def keyboardZoomRoutine(self, direction='in'):
+        # angleDelta will be set to 120 anyway in wheelEvent
+        if direction == 'in':
+            angleDelta = QtCore.QPoint(0, 10)
+        else:
+            angleDelta = QtCore.QPoint(0, -10)
+        cursor = QtGui.QCursor()
+        event = QtGui.QWheelEvent(
+            cursor.pos(), #pos
+            cursor.pos(), #globalPos
+            QtCore.QPoint(), #pixelDelta
+            angleDelta, #angleDelta
+            0, #qt4Delta
+            QtCore.Qt.Vertical, #qt4Orientation
+            QtCore.Qt.NoButton, #buttons
+            QtCore.Qt.NoModifier #modifiers
+            )
+        self.wheelEvent(event)
 
     def modifyView(self, scaleFactor, panZoom='vertical'):
         """Convenience function for handling panning/zooming"""

@@ -409,6 +409,8 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Ungroup', 'Ctrl+Shift+G'],
             ['Options', 'Ctrl+P'],
             # View menu
+            ['Zoom in', 'Z'],
+            ['Zoom out', 'Shift+Z'],
             ['Fit to view', 'F'],
             ['Show pin(s)', 'Shift+P'],
             ['Snap net to pin', 'S'],
