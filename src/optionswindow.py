@@ -407,6 +407,7 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Reset height', 'Ctrl+0'],
             ['Group', 'Ctrl+G'],
             ['Ungroup', 'Ctrl+Shift+G'],
+            ['Scale', ''],
             ['Options', 'Ctrl+P'],
             # View menu
             ['Zoom in', 'Z'],

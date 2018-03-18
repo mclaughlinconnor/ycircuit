@@ -141,7 +141,7 @@ class drawingElement(object):
                 angle = -angle
         if moving is True:
             # origin = self.mapFromScene(origin)
-            origin = origin
+            origin = origin*self.scale()
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
@@ -163,7 +163,7 @@ class drawingElement(object):
         transform_ = self.transform()
         if moving is True:
             # origin = self.mapFromScene(origin)
-            origin = origin
+            origin = origin*self.scale()
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
@@ -376,7 +376,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                     self.reflections = 0
                 if item.reflections != self.reflections:
                     item.setTransform(item.transform().scale(-1, 1))
-                item.setPos(self.pos() + transform_.map(item.origin))
+                item.setPos(self.pos() + transform_.map(item.origin)*self.scale())
                 itemTransform = item.transform()
                 item.setTransform(transform_)
                 item.setTransform(itemTransform, combine=True)

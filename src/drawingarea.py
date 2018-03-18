@@ -242,6 +242,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Reset height', ui.action_heightReset],
                 ['Group', ui.action_group],
                 ['Ungroup', ui.action_ungroup],
+                ['Scale', ui.action_setScale],
                 ['Options', ui.action_options],
                 # View menu
                 ['Zoom in', ui.action_zoomIn],
@@ -364,7 +365,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if hasattr(item, 'isPin'):
                     if item.isPin is True:
                         self._grid.pinsPos.append(item.scenePos())
-        self.statusbarMessage.emit('Left click to begin drawing a new net (press S to toggle snapping to pins or press ESC to cancel)', 0)
+        self.statusbarMessage.emit('Left click to begin drawing a new net (press ' + self.window().ui.action_snapNetToPin.shortcut().toString() + ' to toggle snapping to pins or press ESC to cancel)', 0)
 
     def addResistor(self):
         """Load the standard resistor"""
@@ -1264,22 +1265,24 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Changes the scale of the selected items to selectedScale."""
         self.undoStack.beginMacro('')
         group = False
-        if len(self.scene().selectedItems()) > 1:
-            scaleList = [item.localScale for item in self.scene().selectedItems()]
-            scaleList.sort()
-            if scaleList[0] == scaleList[-1]:
-                if scaleList[0] == selectedScale:
-                    return
-            group = True
-            self.groupItems('group')
-        changeScale = ChangeScale(
-            None,
-            self.scene().selectedItems()[0],
-            scale=selectedScale,
-            group=group)
-        self.undoStack.push(changeScale)
-        if group is True:
-            self.groupItems('ungroup')
+        # if len(self.scene().selectedItems()) > 1:
+        #     scaleList = [item.localScale for item in self.scene().selectedItems()]
+        #     scaleList.sort()
+        #     if scaleList[0] == scaleList[-1]:
+        #         if scaleList[0] == selectedScale:
+        #             return
+        #     group = True
+        #     self.groupItems('group')
+        for item in self.scene().selectedItems():
+            changeScale = ChangeScale(
+                None,
+                # self.scene().selectedItems()[0],
+                item,
+                scale=selectedScale,
+                group=group)
+            self.undoStack.push(changeScale)
+        # if group is True:
+        #     self.groupItems('ungroup')
         self.undoStack.endMacro()
         self.statusbarMessage.emit(
             "Changed scale of the selected item(s) to %1.2f" %(selectedScale),
@@ -1829,7 +1832,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
-                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation, press S to toggle snapping to pins or press ESC to cancel)', 0)
+                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation, press ' + self.window().ui.action_snapNetToPin.shortcut().toString() + ' to toggle snapping to pins or press ESC to cancel)', 0)
                 self.currentPos = event.pos()
                 start = self.mapToGrid(self.currentPos, pin=True)
                 # Create new net if none exists
@@ -1848,7 +1851,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Add the original net
                     self.scene().addItem(self.currentNet)
             else:
-                self.statusbarMessage.emit('Left click to begin drawing a new net (press S to toggle snapping to pins or press ESC to cancel)', 0)
+                self.statusbarMessage.emit('Left click to begin drawing a new net (press ' + self.window().ui.action_snapNetToPin.shortcut().toString() + ' to toggle snapping to pins or press ESC to cancel)', 0)
                 if self.currentNet is not None:
                     netList = [item for item in self.scene().items() if
                                (isinstance(item, Net) and

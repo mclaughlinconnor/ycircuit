@@ -446,11 +446,11 @@ class Ungroup(QtWidgets.QUndoCommand):
         self.origin = QtCore.QPointF(x, y)
 
     def redo(self):
-        self.item.reparentItems()
         for item in self.listOfItems:
             item.setSelected(True)
             item.localScale = self.item.scale()*item.scale()
             item.setScale(item.localScale)
+        self.item.reparentItems()
         self.scene.removeItem(self.item)
         logger.info('Destroying group %s containing %s', self.item, self.listOfItems)
 
@@ -497,10 +497,6 @@ class ChangeScale(QtWidgets.QUndoCommand):
 
     def redo(self):
         self.item.setScale(self.newScale)
-        # if isinstance(self.item, myGraphicsItemGroup):
-        if self.isGroup is True:
-            for item in self.item.listOfItems:
-                item.origin = item.pos()*self.newScale
         self.item.localScale = self.item.scale()
         logger.info('Changing scale to %f', self.newScale)
 
