@@ -117,6 +117,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedFont.setFamily(fontFamily)
         self.selectedFont.setPointSize(fontPointSize)
         self.useEulerFontForLatex = settings.value('Painting/Font/Use Euler font for LaTeX', True, type=bool)
+        self.selectedScale = 1.0
         # Painting settings
         self.selectedWidth = settings.value('Painting/Pen/Width', '4', type=int)
         self.selectedPenColour = settings.value('Painting/Pen/Colour', 'Black')
@@ -1258,6 +1259,31 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.statusbarMessage.emit(
                 "Reset the height(s) of the selected item(s)",
                 2000)
+
+    def changeScaleRoutine(self, selectedScale):
+        """Changes the scale of the selected items to selectedScale."""
+        self.undoStack.beginMacro('')
+        group = False
+        if len(self.scene().selectedItems()) > 1:
+            scaleList = [item.localScale for item in self.scene().selectedItems()]
+            scaleList.sort()
+            if scaleList[0] == scaleList[-1]:
+                if scaleList[0] == selectedScale:
+                    return
+            group = True
+            self.groupItems('group')
+        changeScale = ChangeScale(
+            None,
+            self.scene().selectedItems()[0],
+            scale=selectedScale,
+            group=group)
+        self.undoStack.push(changeScale)
+        if group is True:
+            self.groupItems('ungroup')
+        self.undoStack.endMacro()
+        self.statusbarMessage.emit(
+            "Changed scale of the selected item(s) to %1.2f" %(selectedScale),
+            2000)
 
     def changeWidthRoutine(self, selectedWidth):
         """Changes the width of the selected items to selectedWidth."""

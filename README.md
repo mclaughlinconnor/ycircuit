@@ -62,6 +62,7 @@ As of this point in time, the following options are available:
     * Change font (Alt+E->F)
     * Change heights of items to bring them forward or send them back (Ctrl++/-/0)
     * Group/ungroup items for easy manipulation (Ctrl+G/Ctrl+Shift+G)
+    * Scale items (Alt+E->S)
     * Change pen colour, style, cap style, join style and width (Alt+E->C,P,-,J,W)
     * Change fill colour and style
     * Options (Ctrl+P)

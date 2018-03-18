@@ -107,6 +107,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.groupItems('ungroup'))
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
+        self.ui.action_setScale.triggered.connect(
+            self.action_setScale_triggered)
         self.ui.action_setWidth2.triggered.connect(
             lambda x: self.action_setWidth_triggered(2))
         self.ui.action_setWidth4.triggered.connect(
@@ -490,6 +492,40 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.action_setBrushStyle_triggered(-1, temporary=True)
         elif len(set(brushStyleList)) == 0:
             self.action_setBrushStyle_triggered(self.ui.drawingArea.selectedBrushStyle, temporary=True)
+
+    def action_setScale_triggered(self):
+        scaleList = []
+        for item in self.ui.drawingArea.scene().selectedItems():
+            scaleList.append(item.localScale)
+        try:
+            set(scaleList)
+        except:
+            pass
+        if len(set(scaleList)) == 1:
+            currentScale = scaleList[0]
+        else:
+            currentScale = 1.0
+        scaleValueList = [str(float(x/10)) for x in range(2, 42, 2)]
+        if str(currentScale) not in scaleValueList:
+            scaleValueList.append(str(currentScale))
+            scaleValueList.sort()
+        currentIndex = scaleValueList.index(str(currentScale))
+        scale, accept = QtWidgets.QInputDialog.getItem(
+            self,
+            'Scale',
+            'Enter the scale',
+            scaleValueList,
+            currentIndex)
+        try:
+            scale = float(scale)
+        except:
+            return
+        if scale < 0.2:
+            scale = 0.2
+        elif scale > 4.0:
+            scale = 4.0
+        if accept is True:
+            self.ui.drawingArea.changeScaleRoutine(scale)
 
     def action_setWidth_triggered(self, width, temporary=False):
         self.ui.action_setWidth2.setChecked(False)

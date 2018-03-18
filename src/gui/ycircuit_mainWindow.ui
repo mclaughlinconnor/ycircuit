@@ -363,6 +363,7 @@
     <addaction name="separator"/>
     <addaction name="menuHeight"/>
     <addaction name="menuGroup"/>
+    <addaction name="action_setScale"/>
     <addaction name="separator"/>
     <addaction name="menu_setPenWidth"/>
     <addaction name="menu_setPenColour"/>
@@ -2280,6 +2281,14 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_setScale">
+   <property name="text">
+    <string>&amp;Scale</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the scale for the selected item(s)</string>
    </property>
   </action>
  </widget>

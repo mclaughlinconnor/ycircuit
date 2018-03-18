@@ -660,6 +660,8 @@ class Ui_MainWindow(object):
         self.action_zoomOut.setIcon(icon42)
         self.action_zoomOut.setIconVisibleInMenu(False)
         self.action_zoomOut.setObjectName("action_zoomOut")
+        self.action_setScale = QtWidgets.QAction(MainWindow)
+        self.action_setScale.setObjectName("action_setScale")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -733,6 +735,7 @@ class Ui_MainWindow(object):
         self.menu_Edit.addSeparator()
         self.menu_Edit.addAction(self.menuHeight.menuAction())
         self.menu_Edit.addAction(self.menuGroup.menuAction())
+        self.menu_Edit.addAction(self.action_setScale)
         self.menu_Edit.addSeparator()
         self.menu_Edit.addAction(self.menu_setPenWidth.menuAction())
         self.menu_Edit.addAction(self.menu_setPenColour.menuAction())
@@ -1198,6 +1201,8 @@ class Ui_MainWindow(object):
         self.action_zoomIn.setShortcut(_translate("MainWindow", "Z"))
         self.action_zoomOut.setText(_translate("MainWindow", "Zoom out"))
         self.action_zoomOut.setShortcut(_translate("MainWindow", "Shift+Z"))
+        self.action_setScale.setText(_translate("MainWindow", "&Scale"))
+        self.action_setScale.setToolTip(_translate("MainWindow", "Set the scale for the selected item(s)"))
 
 from src.drawingarea import DrawingArea
 import icon_rc

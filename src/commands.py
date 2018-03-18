@@ -412,6 +412,7 @@ class Group(QtWidgets.QUndoCommand):
         y = min([item.scenePos().y() for item in self.listOfItems])
         self.origin = QtCore.QPointF(x, y)
         self.item = myGraphicsItemGroup(None, self.origin, [])
+        self.item.setSelected(True)
 
     def redo(self):
         self.scene.addItem(self.item)
@@ -446,6 +447,10 @@ class Ungroup(QtWidgets.QUndoCommand):
 
     def redo(self):
         self.item.reparentItems()
+        for item in self.listOfItems:
+            item.setSelected(True)
+            item.localScale = self.item.scale()*item.scale()
+            item.setScale(item.localScale)
         self.scene.removeItem(self.item)
         logger.info('Destroying group %s containing %s', self.item, self.listOfItems)
 
@@ -455,6 +460,8 @@ class Ungroup(QtWidgets.QUndoCommand):
         transform_ = self.item.transform()
         # Set relative origins of child items
         for item in self.listOfItems:
+            item.localScale = item.scale()/self.item.scale()
+            item.setScale(item.localScale)
             if not hasattr(item, 'reflections'):
                 item.reflections = 0
             if hasattr(self.item, 'reflections'):
@@ -476,6 +483,32 @@ class Ungroup(QtWidgets.QUndoCommand):
         for item in self.listOfItems:
             item.transformData = item.transform()
         logger.info('Undoing destruction of group %s containing items %s', self.item, self.listOfItems)
+
+
+class ChangeScale(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, item=None, **kwargs):
+        super().__init__(parent)
+        self.item = item
+        self.oldScale = self.item.localScale
+        if 'scale' in kwargs:
+            self.newScale = kwargs['scale']
+        if 'group' in kwargs:
+            self.isGroup = kwargs['group']
+
+    def redo(self):
+        self.item.setScale(self.newScale)
+        # if isinstance(self.item, myGraphicsItemGroup):
+        if self.isGroup is True:
+            for item in self.item.listOfItems:
+                item.origin = item.pos()*self.newScale
+        self.item.localScale = self.item.scale()
+        logger.info('Changing scale to %f', self.newScale)
+
+    def undo(self):
+        self.item.setScale(self.oldScale) #Item is always created with scale of 1
+        self.item.localScale = self.item.scale()
+        # We do not need to change origin here since it will be done by ungroup
+        logger.info('Changing scale to %f', self.oldScale)
 
 
 class ChangePen(QtWidgets.QUndoCommand):

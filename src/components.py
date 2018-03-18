@@ -26,6 +26,11 @@ class drawingElement(object):
             self.setZValue(self.height)
         else:
             self.setZValue(0)
+        if hasattr(self, 'localScale'):
+            self.setScale(self.localScale)
+        else:
+            self.setScale(1.)
+            self.localScale = self.scale()
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
@@ -37,6 +42,7 @@ class drawingElement(object):
         localDictCopy.pop('localBrush', None)
         localDictCopy['transformData'] = self.transform()
         localDictCopy['height'] = self.zValue()
+        localDictCopy['localScale'] = self.scale()
         return localDictCopy
 
     def __setstate__(self, state):
@@ -187,6 +193,8 @@ class drawingElement(object):
             brushColour=self.localBrushColour)
         # Apply any transforms (rotations, reflections etc.)
         newItem.setTransform(self.transform())
+        newItem.setScale(self.scale())
+        newItem.localScale = newItem.scale()
         # Copy reflection info if it exists
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
@@ -310,6 +318,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         newItem = self.__class__(parent, _start, [])
         newItem.origin = self.origin
         newItem.setTransform(self.transform())
+        newItem.setScale(self.scale())
+        newItem.localScale = newItem.scale()
         # Copy reflection info if it exists
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
@@ -318,7 +328,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
             newItem.setZValue(newItem.height)
         if hasattr(self, 'isPin'):
             newItem.isPin = self.isPin
-            newItem.parentItem().pins.append(newItem)
+            if hasattr(newItem.parentItem(), 'pins'):
+                newItem.parentItem().pins.append(newItem)
         if newItem.parentItem() is None:
             self.scene().addItem(newItem)
             newItem.moveTo(self.scenePos(), 'start')
