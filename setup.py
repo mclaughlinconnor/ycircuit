@@ -80,6 +80,7 @@ options = {
         'includes': includes,
         'excludes': excludes,
         'include_files': include_files,
+        'zip_include_packages': includes,
         'optimize': 2
     }
 }
@@ -112,15 +113,17 @@ from subprocess import check_output
 branch = check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
 # Remove newline and decode
 branch = branch[:-1].decode('utf-8')
+# Python version
+version = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
 
 if sys.platform == 'win32':
     import zipfile
     with zipfile.ZipFile('build/ycircuit-' + branch + '_win64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        for root, dirs, files in os.walk('build/exe.win-amd64-3.6'):
+        for root, dirs, files in os.walk('build/exe.win-amd64-' + version):
             for file in files:
                 zip.write(os.path.join(root, file))
     with zipfile.ZipFile('build/ycircuit-' + branch + '_win64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        zip.write('build/exe.win-amd64-3.6/YCircuit.exe', 'YCircuit.exe')
+        zip.write('build/exe.win-amd64-' + version + '/YCircuit.exe', 'YCircuit.exe')
         for root, dirs, files in os.walk('src'):
             for file in files:
                 zip.write(os.path.join(root, file))
@@ -139,14 +142,14 @@ if sys.platform == 'win32':
 if sys.platform == 'linux':
     import zipfile
     with zipfile.ZipFile('build/ycircuit-' + branch + '_linux64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        for root, dirs, files in os.walk('build/exe.linux-x86_64-3.5'):
+        for root, dirs, files in os.walk('build/exe.linux-x86_64-' + version):
             for file in files:
                 zip.write(os.path.join(root, file))
     with zipfile.ZipFile('build/ycircuit-' + branch + '_linux64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        zip.write('build/exe.linux-x86_64-3.5/YCircuit', 'YCircuit')
+        zip.write('build/exe.linux-x86_64-' + version + '/YCircuit', 'YCircuit')
         for root, dirs, files in os.walk('src'):
             for file in files:
-                zip.write(os.path.join(root, file), 'lib/python3.5/' + os.path.join(root, file))
+                zip.write(os.path.join(root, file), 'lib/python' + version + '/' + os.path.join(root, file))
         for root, dirs, files in os.walk('Resources'):
             for file in files:
                 zip.write(os.path.join(root, file))
