@@ -446,11 +446,11 @@ class Ungroup(QtWidgets.QUndoCommand):
         self.origin = QtCore.QPointF(x, y)
 
     def redo(self):
+        self.item.reparentItems()
         for item in self.listOfItems:
             item.setSelected(True)
             item.localScale = self.item.scale()*item.scale()
             item.setScale(item.localScale)
-        self.item.reparentItems()
         self.scene.removeItem(self.item)
         logger.info('Destroying group %s containing %s', self.item, self.listOfItems)
 
@@ -477,8 +477,8 @@ class Ungroup(QtWidgets.QUndoCommand):
             if item.reflections != self.item.reflections:
                 item.setTransform(item.transform().scale(-1, 1))
             item.transformData = item.transform()
-            # item.origin = transform_.map(item.pos())# - self.item.origin
-            item.origin = self.item.mapFromScene(item.scenePos())
+            invTransform = transform_.inverted()[0]
+            item.origin = invTransform.map(item.pos() - self.item.pos())/self.item.scale()
         self.item.setItems(self.listOfItems)
         for item in self.listOfItems:
             item.transformData = item.transform()

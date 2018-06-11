@@ -376,10 +376,10 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                     self.reflections = 0
                 if item.reflections != self.reflections:
                     item.setTransform(item.transform().scale(-1, 1))
-                item.setPos(self.pos() + transform_.map(item.origin)*self.scale())
                 itemTransform = item.transform()
                 item.setTransform(transform_)
                 item.setTransform(itemTransform, combine=True)
+                item.setPos(self.pos() + transform_.map(item.origin)*self.scale())
                 if item.reflections != self.reflections:
                     item.setTransform(item.transform().scale(-1, 1))
                 item.transformData = item.transform()
