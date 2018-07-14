@@ -131,10 +131,11 @@ if sys.platform == 'win32':
             for file in files:
                 zip.write(os.path.join(root, file))
     if post is True:
+        # Note that BB_AUTH_STRING must be set to the right value as an env variable
         from subprocess import call
         call(['curl',
               '-s',
-              '-u', 'siddharthshekar',
+              '-u', os.environ['BB_AUTH_STRING'],
               '-X', 'POST',
               'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
               '-F', 'files=@build/ycircuit-' + branch + '_win64.zip',
@@ -157,10 +158,11 @@ if sys.platform == 'linux':
     # with tarfile.open('build/ycircuit-' + branch + '_linux64.tar', 'w:gz') as tar:
     #     tar.add('build/exe.linux-x86_64-3.5')
     if post is True:
+        # Note that BB_AUTH_STRING must be set to the right value as an env variable
         from subprocess import call
         call(['curl',
               '-s',
-              '-u', 'siddharthshekar',
+              '-u', os.environ['BB_AUTH_STRING'],
               '-X', 'POST',
               'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
               '-F', 'files=@build/ycircuit-' + branch + '_linux64.zip',
