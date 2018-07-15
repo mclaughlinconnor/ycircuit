@@ -145,6 +145,9 @@ class TextEditor(QtWidgets.QDialog):
             self.ui.action_useEulerFont.setChecked(kwargs['eulerFont'])
         self.ui.latexMenu.addAction(self.ui.action_useEulerFont)
         self.ui.toolButton_latex.setMenu(self.ui.latexMenu)
+        katexHtmlFile = QtCore.QFileInfo('./src/katex.html')
+        self.ui.webEngineView.setUrl(QtCore.QUrl.fromLocalFile(katexHtmlFile.absoluteFilePath()))
+        self.ui.webEngineView.hide()
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
@@ -230,6 +233,15 @@ class TextEditor(QtWidgets.QDialog):
             elif cursor.position() == len(plainText):
                 cursor.setPosition(len(plainText) - 1)
             self.ui.textEdit.setTextCursor(cursor)
+            processedText = self.processTextForKatex(plainText)
+            self.ui.webEngineView.page().runJavaScript('try_render("' + processedText + '")')
+
+    def processTextForKatex(self, plainText=''):
+        # Remove $ signs
+        text = plainText[1:-1]
+        text = text.replace('\\', '\\\\')
+        text = '\\\\begin{aligned}' + text + '\\\\end{aligned}'
+        return text
 
     def modifyText(self):
         bold = self.ui.pushButton_bold.isChecked()
@@ -243,6 +255,7 @@ class TextEditor(QtWidgets.QDialog):
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
         if latex is not True:
+            self.ui.webEngineView.hide()
             if len(self.ui.textEdit.toPlainText()) > 0:
                 if self.ui.textEdit.toPlainText()[0] == '$':
                     self.ui.textEdit.setHtml('')
@@ -277,6 +290,7 @@ class TextEditor(QtWidgets.QDialog):
             cursor.mergeCharFormat(format)
             self.ui.textEdit.setTextCursor(cursor)
         else:
+            self.ui.webEngineView.show()
             self.ui.pushButton_bold.setChecked(False)
             self.ui.pushButton_italic.setChecked(False)
             self.ui.pushButton_underline.setChecked(False)

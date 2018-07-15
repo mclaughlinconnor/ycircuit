@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '.\src\gui\textEditor_gui.ui'
 #
-# Created by: PyQt5 UI code generator 5.6
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,9 +11,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(539, 399)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(Dialog)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        Dialog.resize(842, 475)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -128,15 +128,30 @@ class Ui_Dialog(object):
         self.horizontalLayout.addItem(spacerItem)
         self.horizontalLayout.setStretch(8, 1)
         self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.textEdit = QtWidgets.QTextEdit(Dialog)
         self.textEdit.setObjectName("textEdit")
-        self.verticalLayout.addWidget(self.textEdit)
+        self.verticalLayout_3.addWidget(self.textEdit)
+        self.webEngineView = QtWebEngineWidgets.QWebEngineView(Dialog)
+        self.webEngineView.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.webEngineView.sizePolicy().hasHeightForWidth())
+        self.webEngineView.setSizePolicy(sizePolicy)
+        self.webEngineView.setMaximumSize(QtCore.QSize(16777215, 100))
+        self.webEngineView.setUrl(QtCore.QUrl(None))
+        self.webEngineView.setObjectName("webEngineView")
+        self.verticalLayout_3.addWidget(self.webEngineView)
+        self.verticalLayout_3.setStretch(1, 1)
+        self.verticalLayout.addLayout(self.verticalLayout_3)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
-        self.horizontalLayout_2.addLayout(self.verticalLayout)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -171,3 +186,4 @@ class Ui_Dialog(object):
         self.toolButton_latex.setText(_translate("Dialog", "LaTeX"))
         self.toolButton_latex.setShortcut(_translate("Dialog", "Ctrl+L"))
 
+from PyQt5 import QtWebEngineWidgets
