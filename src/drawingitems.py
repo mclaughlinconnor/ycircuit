@@ -146,6 +146,9 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.latexMenu.addAction(self.ui.action_useEulerFont)
         self.ui.toolButton_latex.setMenu(self.ui.latexMenu)
         katexHtmlFile = QtCore.QFileInfo('./src/katex.html')
+        # On the built version, the file is at /lib/src
+        if not katexHtmlFile.exists():
+            katexHtmlFile = QtCore.QFileInfo('./lib/src/katex.html')
         self.ui.webEngineView.setUrl(QtCore.QUrl.fromLocalFile(katexHtmlFile.absoluteFilePath()))
         self.ui.webEngineView.hide()
 
