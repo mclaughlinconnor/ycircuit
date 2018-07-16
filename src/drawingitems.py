@@ -151,6 +151,17 @@ class TextEditor(QtWidgets.QDialog):
             katexHtmlFile = QtCore.QFileInfo('./lib/src/katex.html')
         self.ui.webEngineView.setUrl(QtCore.QUrl.fromLocalFile(katexHtmlFile.absoluteFilePath()))
         self.ui.webEngineView.hide()
+        if self.textBox is not None:
+            if self.textBox.latexExpression is not None:
+                processedText = self.processTextForKatex(plainText)
+                self.ui.webEngineView.show()
+                self.ui.webEngineView.loadFinished.connect(
+                    lambda: self.ui.webEngineView.page().runJavaScript(
+                        'try {try_render("' +
+                        processedText +
+                        '")} catch(err) {}'
+                    )
+                )
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
