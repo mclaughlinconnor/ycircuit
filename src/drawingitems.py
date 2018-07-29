@@ -145,23 +145,14 @@ class TextEditor(QtWidgets.QDialog):
             self.ui.action_useEulerFont.setChecked(kwargs['eulerFont'])
         self.ui.latexMenu.addAction(self.ui.action_useEulerFont)
         self.ui.toolButton_latex.setMenu(self.ui.latexMenu)
-        katexHtmlFile = QtCore.QFileInfo('./src/katex.html')
-        # On the built version, the file is at /lib/src
-        if not katexHtmlFile.exists():
-            katexHtmlFile = QtCore.QFileInfo('./lib/src/katex.html')
-        self.ui.webEngineView.setUrl(QtCore.QUrl.fromLocalFile(katexHtmlFile.absoluteFilePath()))
-        self.ui.webEngineView.hide()
+        self.ui.label.hide()
         if self.textBox is not None:
             if self.textBox.latexExpression is not None:
-                processedText = self.processTextForKatex(plainText)
-                self.ui.webEngineView.show()
-                self.ui.webEngineView.loadFinished.connect(
-                    lambda: self.ui.webEngineView.page().runJavaScript(
-                        'try {try_render("' +
-                        processedText +
-                        '")} catch(err) {}'
-                    )
-                )
+                self.ui.label.show()
+                latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
+                pix = QtGui.QPixmap()
+                pix.loadFromData(latexImageBinary.getvalue(), format='png')
+                self.ui.label.setPixmap(pix)
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
@@ -247,15 +238,10 @@ class TextEditor(QtWidgets.QDialog):
             elif cursor.position() == len(plainText):
                 cursor.setPosition(len(plainText) - 1)
             self.ui.textEdit.setTextCursor(cursor)
-            processedText = self.processTextForKatex(plainText)
-            self.ui.webEngineView.page().runJavaScript('try_render("' + processedText + '")')
-
-    def processTextForKatex(self, plainText=''):
-        # Remove $ signs
-        text = plainText[1:-1]
-        text = text.replace('\\', '\\\\')
-        text = '\\\\begin{aligned}' + text + '\\\\end{aligned}'
-        return text
+            latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
+            pix = QtGui.QPixmap()
+            pix.loadFromData(latexImageBinary.getvalue(), format='png')
+            self.ui.label.setPixmap(pix)
 
     def modifyText(self):
         bold = self.ui.pushButton_bold.isChecked()
@@ -269,7 +255,7 @@ class TextEditor(QtWidgets.QDialog):
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
         if latex is not True:
-            self.ui.webEngineView.hide()
+            self.ui.label.hide()
             if len(self.ui.textEdit.toPlainText()) > 0:
                 if self.ui.textEdit.toPlainText()[0] == '$':
                     self.ui.textEdit.setHtml('')
@@ -304,7 +290,7 @@ class TextEditor(QtWidgets.QDialog):
             cursor.mergeCharFormat(format)
             self.ui.textEdit.setTextCursor(cursor)
         else:
-            self.ui.webEngineView.show()
+            self.ui.label.show()
             self.ui.pushButton_bold.setChecked(False)
             self.ui.pushButton_italic.setChecked(False)
             self.ui.pushButton_underline.setChecked(False)
@@ -323,12 +309,13 @@ class TextEditor(QtWidgets.QDialog):
             cursor.setPosition(1)
             self.ui.textEdit.setTextCursor(cursor)
 
-    def mathTexToQImage(self, mathTex, fs, fc):
+    def mathTexToQImage(self, mathTex, fs, fc, dpi=None):
         """Use SymPy to generate the latex expression as a binary object, and save it to a file as an image.
         This saves the generated image within the object itself (which gets saved into a higher level
         schematic/symbol). As a result, the file size of the saved schematic/symbol is larger, but we
         benefit from greatly improved loading times."""
-        dpi = self.textBox.latexImageDpi * self.textBox.latexImageDpiScale
+        if dpi is None:
+            dpi = self.textBox.latexImageDpi * self.textBox.latexImageDpiScale
         obj = BytesIO()
 
         color = QtGui.QColor(fc)

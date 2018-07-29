@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\src\gui\textEditor_gui.ui'
+# Form implementation generated from reading ui file 'src/gui/textEditor_gui.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -133,18 +133,15 @@ class Ui_Dialog(object):
         self.textEdit = QtWidgets.QTextEdit(Dialog)
         self.textEdit.setObjectName("textEdit")
         self.verticalLayout_3.addWidget(self.textEdit)
-        self.webEngineView = QtWebEngineWidgets.QWebEngineView(Dialog)
-        self.webEngineView.setEnabled(False)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.webEngineView.sizePolicy().hasHeightForWidth())
-        self.webEngineView.setSizePolicy(sizePolicy)
-        self.webEngineView.setMaximumSize(QtCore.QSize(16777215, 100))
-        self.webEngineView.setUrl(QtCore.QUrl(None))
-        self.webEngineView.setObjectName("webEngineView")
-        self.verticalLayout_3.addWidget(self.webEngineView)
-        self.verticalLayout_3.setStretch(1, 1)
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setMinimumSize(QtCore.QSize(0, 100))
+        self.label.setStyleSheet("background-color: rgb(255, 255, 255)")
+        self.label.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.label.setText("")
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setObjectName("label")
+        self.verticalLayout_3.addWidget(self.label)
         self.verticalLayout.addLayout(self.verticalLayout_3)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -186,4 +183,3 @@ class Ui_Dialog(object):
         self.toolButton_latex.setText(_translate("Dialog", "LaTeX"))
         self.toolButton_latex.setShortcut(_translate("Dialog", "Ctrl+L"))
 
-from PyQt5 import QtWebEngineWidgets
