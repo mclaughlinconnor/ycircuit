@@ -149,6 +149,7 @@ class TextEditor(QtWidgets.QDialog):
         self.latexPreviewTimer = QtCore.QTimer(self)
         self.latexPreviewTimer.setInterval(1000)
         self.latexPreviewTimer.setSingleShot(True)
+        self.latexPreviewTimer.timeout.connect(lambda: self.createLatexPreviewImage(self.ui.textEdit.toPlainText()))
         if self.textBox is not None:
             if self.textBox.latexExpression is not None:
                 self.ui.label.show()
@@ -238,7 +239,7 @@ class TextEditor(QtWidgets.QDialog):
             elif cursor.position() == len(plainText):
                 cursor.setPosition(len(plainText) - 1)
             self.ui.textEdit.setTextCursor(cursor)
-            self.latexPreviewTimer.singleShot(1000, lambda: self.createLatexPreviewImage(plainText))
+            self.latexPreviewTimer.start()
 
     def createLatexPreviewImage(self, plainText):
         latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
