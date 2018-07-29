@@ -923,7 +923,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             f.write(data.readAll())
         with zipfile.ZipFile(self.updateFile, 'r', zipfile.ZIP_DEFLATED) as zip:
             self.logger.info('Unzipping update files')
-            zip.extractall('./lib/')
+            zip.extractall('./')
             if sys.platform == 'linux':
                 shutil.copymode('./YCircuit_old', './YCircuit')
         self.ui.statusbar.showMessage('Update completed', 1000)

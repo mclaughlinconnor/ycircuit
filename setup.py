@@ -47,7 +47,7 @@ if sys.platform == 'win32':
 if sys.platform == 'linux':
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/imageformats')
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/platforms')
-    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/libQt5Svg.so.5')
+    # include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/libQt5Svg.so.5')
 include_files.append('./LICENSE.txt')
 
 excludes = [
@@ -126,7 +126,7 @@ if sys.platform == 'win32':
         zip.write('build/exe.win-amd64-' + version + '/YCircuit.exe', 'YCircuit.exe')
         for root, dirs, files in os.walk('src'):
             for file in files:
-                zip.write(os.path.join(root, file))
+                zip.write(os.path.join(root, file), 'lib/' + os.path.join(root, file))
         for root, dirs, files in os.walk('Resources'):
             for file in files:
                 zip.write(os.path.join(root, file))
@@ -150,7 +150,7 @@ if sys.platform == 'linux':
         zip.write('build/exe.linux-x86_64-' + version + '/YCircuit', 'YCircuit')
         for root, dirs, files in os.walk('src'):
             for file in files:
-                zip.write(os.path.join(root, file), 'lib/python' + version + '/' + os.path.join(root, file))
+                zip.write(os.path.join(root, file), 'lib/' + os.path.join(root, file))
         for root, dirs, files in os.walk('Resources'):
             for file in files:
                 zip.write(os.path.join(root, file))
