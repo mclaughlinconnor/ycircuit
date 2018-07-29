@@ -28,8 +28,6 @@ includes = [
     'pickle',
     'platform',
     'PyQt5',
-    'PyQt5.QtWebChannel',
-    'PyQt5.QtWebEngineCore',
     'sip',
     'sympy',
     'src',
@@ -119,11 +117,6 @@ branch = branch[:-1].decode('utf-8')
 version = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
 
 if sys.platform == 'win32':
-    # Copy some more files that are needed
-    # I did not add these to include_files because it blows up the build size
-    shutil.copy2(sys.prefix + '/Library/resources/qtwebengine_resources.pak', 'build/exe.win-amd64-' + version)
-    shutil.copy2(sys.prefix + '/Library/resources/icudtl.dat', 'build/exe.win-amd64-' + version)
-    shutil.copy2(sys.prefix + '/Library/bin/qtwebengineprocess.exe', 'build/exe.win-amd64-' + version)
     import zipfile
     with zipfile.ZipFile('build/ycircuit-' + branch + '_win64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
         for root, dirs, files in os.walk('build/exe.win-amd64-' + version):

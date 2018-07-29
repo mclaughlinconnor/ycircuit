@@ -146,13 +146,13 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.latexMenu.addAction(self.ui.action_useEulerFont)
         self.ui.toolButton_latex.setMenu(self.ui.latexMenu)
         self.ui.label.hide()
+        self.latexPreviewTimer = QtCore.QTimer(self)
+        self.latexPreviewTimer.setInterval(1000)
+        self.latexPreviewTimer.setSingleShot(True)
         if self.textBox is not None:
             if self.textBox.latexExpression is not None:
                 self.ui.label.show()
-                latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
-                pix = QtGui.QPixmap()
-                pix.loadFromData(latexImageBinary.getvalue(), format='png')
-                self.ui.label.setPixmap(pix)
+                self.createLatexPreviewImage(plainText)
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
@@ -238,10 +238,13 @@ class TextEditor(QtWidgets.QDialog):
             elif cursor.position() == len(plainText):
                 cursor.setPosition(len(plainText) - 1)
             self.ui.textEdit.setTextCursor(cursor)
-            latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
-            pix = QtGui.QPixmap()
-            pix.loadFromData(latexImageBinary.getvalue(), format='png')
-            self.ui.label.setPixmap(pix)
+            self.latexPreviewTimer.singleShot(1000, lambda: self.createLatexPreviewImage(plainText))
+
+    def createLatexPreviewImage(self, plainText):
+        latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
+        pix = QtGui.QPixmap()
+        pix.loadFromData(latexImageBinary.getvalue(), format='png')
+        self.ui.label.setPixmap(pix)
 
     def modifyText(self):
         bold = self.ui.pushButton_bold.isChecked()
