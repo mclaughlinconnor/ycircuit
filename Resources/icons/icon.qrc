@@ -23,6 +23,9 @@
     <file>object-flip-horizontal.svg</file>
     <file>object-rotate-right.svg</file>
   </qresource>
+  <qresource prefix="splash">
+    <file>splash.png</file>
+  </qresource>
   <qresource prefix="penCapStyle">
     <file>penCapStyle_square.svg</file>
     <file>penCapStyle_flat.svg</file>
