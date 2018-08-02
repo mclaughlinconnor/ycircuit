@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '.\src\gui\ycircuit_mainWindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.6
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -77,6 +77,37 @@ class Ui_MainWindow(object):
         self.drawingArea.setRubberBandSelectionMode(QtCore.Qt.ContainsItemShape)
         self.drawingArea.setObjectName("drawingArea")
         self.horizontalLayout.addWidget(self.drawingArea)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.listView_recentSymbols = QtWidgets.QListView(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.listView_recentSymbols.sizePolicy().hasHeightForWidth())
+        self.listView_recentSymbols.setSizePolicy(sizePolicy)
+        self.listView_recentSymbols.setMinimumSize(QtCore.QSize(0, 0))
+        self.listView_recentSymbols.setMaximumSize(QtCore.QSize(110, 16777215))
+        self.listView_recentSymbols.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.listView_recentSymbols.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.listView_recentSymbols.setAutoScroll(True)
+        self.listView_recentSymbols.setFlow(QtWidgets.QListView.TopToBottom)
+        self.listView_recentSymbols.setProperty("isWrapping", False)
+        self.listView_recentSymbols.setViewMode(QtWidgets.QListView.IconMode)
+        self.listView_recentSymbols.setUniformItemSizes(True)
+        self.listView_recentSymbols.setWordWrap(False)
+        self.listView_recentSymbols.setObjectName("listView_recentSymbols")
+        self.verticalLayout_3.addWidget(self.listView_recentSymbols)
+        self.drawingAreaPreview = DrawingAreaPreview(self.centralwidget)
+        self.drawingAreaPreview.setMaximumSize(QtCore.QSize(110, 110))
+        self.drawingAreaPreview.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.drawingAreaPreview.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.drawingAreaPreview.setInteractive(False)
+        self.drawingAreaPreview.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform|QtGui.QPainter.TextAntialiasing)
+        self.drawingAreaPreview.setCacheMode(QtWidgets.QGraphicsView.CacheBackground)
+        self.drawingAreaPreview.setViewportUpdateMode(QtWidgets.QGraphicsView.FullViewportUpdate)
+        self.drawingAreaPreview.setObjectName("drawingAreaPreview")
+        self.verticalLayout_3.addWidget(self.drawingAreaPreview)
+        self.horizontalLayout.addLayout(self.verticalLayout_3)
         self.horizontalLayout.setStretch(1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -1204,5 +1235,5 @@ class Ui_MainWindow(object):
         self.action_setScale.setText(_translate("MainWindow", "&Scale"))
         self.action_setScale.setToolTip(_translate("MainWindow", "Set the scale for the selected item(s)"))
 
-from src.drawingarea import DrawingArea
+from src.drawingarea import DrawingArea, DrawingAreaPreview
 import icon_rc

@@ -329,6 +329,12 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.initialiseSymbolViewer()
         self.logger.info('Successfully created a new window')
 
+        # Initialize the schematic preview window
+        self.ui.drawingAreaPreview.setScene(self.ui.drawingArea.scene())
+        self.ui.drawingAreaPreview.drawingArea = self.ui.drawingArea
+        self.ui.drawingArea.drawingAreaPreview = self.ui.drawingAreaPreview
+        self.ui.drawingArea.scene().changed.connect(self.ui.drawingAreaPreview.fitToViewRoutine)
+
     def changeWindowTitle(self, clean=True):
         if self.ui.drawingArea.schematicFileName is not None:
             fileName = self.ui.drawingArea.schematicFileName

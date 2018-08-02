@@ -13,7 +13,38 @@ logger = logging.getLogger('YCircuit.drawingarea')
 # from src import components
 # import sys
 # sys.modules['components'] = components
+class DrawingAreaPreview(QtWidgets.QGraphicsView):
+    """The drawing area preview is subclassed from QGraphicsView to provide
+    additional functionality such as highlighting the currently viewed area
+    etc."""
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.visibleRect = QtCore.QRectF()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QtGui.QPainter(self.viewport())
+        pen = QtGui.QPen()
+        pen.setColor(QtGui.QColor('black'))
+        pen.setWidth(2)
+        painter.setPen(pen)
+        painter.drawRect(self.visibleRect)
+        self.drawForeground(painter, self.visibleRect)
+
+    def fitToViewRoutine(self):
+        """Resizes viewport so that all items drawn are visible"""
+        if len(self.scene().items()) == 1:
+            # Fit to (0, 0, 800, 800) if nothing is present
+            rect = QtCore.QRectF(0, 0, 800, 800)
+            self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+        else:
+            self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+
+    def updateVisibleRect(self):
+        self.visibleRect = self.drawingArea.mapToScene(self.drawingArea.viewport().geometry()).boundingRect()
+        self.visibleRect = QtCore.QRectF(self.mapFromScene(self.visibleRect).boundingRect())
+        self.fitToViewRoutine()
 
 class DrawingArea(QtWidgets.QGraphicsView):
     """The drawing area is subclassed from QGraphicsView to provide additional
@@ -31,6 +62,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # If that happens, uncomment the line below
         # self.scene().setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
+        self.scene().setMinimumRenderSize(2)
         self.parent = parent
         self._keys = {
             'c': False,
@@ -1133,6 +1165,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self.showMouseRect is True:
                 self.scene().addItem(self.mouseRect)
             logger.info('Set viewport to %s', self.scene().itemsBoundingRect())
+        # Also update the preview area
+        self.drawingAreaPreview.updateVisibleRect()
 
     def togglePinsRoutine(self):
         """Toggles visibility of pins on symbols"""
@@ -2221,6 +2255,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.modifyView(scaleFactor, panZoom)
             logger.debug('Viewport scaled by %.2f', scaleFactor)
         timeline.start()
+        timeline.finished.connect(self.drawingAreaPreview.updateVisibleRect)
 
     def keyboardZoomRoutine(self, direction='in'):
         # angleDelta will be set to 120 anyway in wheelEvent
