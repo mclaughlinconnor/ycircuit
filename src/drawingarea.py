@@ -947,6 +947,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     mode='symbol')
                 self.scene().addItem(self.loadItem)
                 self.loadItem.pinVisibility(self.showPins)
+                self.window().recentSymbolsModel.insertRows(loadFile)
                 # loadItem.loadItems('symbol')
             if mode == 'schematic' or mode == 'symbolModify':
                 loadItem.setPos(loadItem.origin)

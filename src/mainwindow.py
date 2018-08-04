@@ -846,6 +846,9 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.loadRoutine(
                 mode='symbol',
                 loadFile=self.fileSystemModel.filePath(x)))
+        self.ui.listView_symbolPreview.doubleClicked.connect(
+            lambda x: self.recentSymbolsModel.insertRows(
+                self.fileSystemModel.filePath(x)))
         # Set shortcut for the search filter
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence('Ctrl+F'), self)
         shortcut.activated.connect(self.ui.lineEdit_symbolPreviewFilter.selectAll)
@@ -855,6 +858,11 @@ class myMainWindow(QtWidgets.QMainWindow):
                 ['*' + self.ui.lineEdit_symbolPreviewFilter.text() + '*.sym']
             )
         )
+        # Set up the recent symbols list view and model
+        self.recentSymbolsModel = recentSymbolsListModel()
+        self.recentSymbolsModel.setIconProvider(myIconProvider())
+        self.ui.listView_recentSymbols.setModel(self.recentSymbolsModel)
+        self.ui.listView_recentSymbols.setIconSize(QtCore.QSize(100, 100))
 
     def pickSymbolPreviewDirectory(self, dir_=None):
         if dir_ is None:
@@ -935,3 +943,37 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.statusbar.showMessage('Update completed', 1000)
         self.logger.info('Update completed')
         self.downloader.disconnect()
+
+
+class recentSymbolsListModel(QtCore.QAbstractListModel):
+    """Provides an implementation of the list model in order to show the most
+    recently used symbols as a list."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.recentsList = []
+        self.maxRecents = 100
+
+    def rowCount(self, index):
+        return len(self.recentsList)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        fileInfo = QtCore.QFileInfo(self.recentsList[index.row()])
+        if role == QtCore.Qt.DisplayRole:
+            return fileInfo.fileName()
+        elif role == QtCore.Qt.DecorationRole:
+            icon = self.iconProvider.icon(fileInfo)
+            return icon
+
+    def setIconProvider(self, iconProvider):
+        if isinstance(iconProvider, myIconProvider):
+            self.iconProvider = iconProvider
+
+    def insertRows(self, row):
+        self.beginInsertRows(QtCore.QModelIndex(), 0, 1)
+        if row in self.recentsList:
+            self.recentsList.remove(row)
+        self.recentsList.insert(0, row)
+        if len(self.recentsList) > self.maxRecents:
+            self.recentsList.pop(-1)
+        self.endInsertRows()
