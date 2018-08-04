@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'src/gui/textEditor_gui.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,9 +11,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(539, 399)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(Dialog)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        Dialog.resize(842, 475)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -107,31 +107,48 @@ class Ui_Dialog(object):
         self.pushButton_symbol.setFlat(True)
         self.pushButton_symbol.setObjectName("pushButton_symbol")
         self.horizontalLayout.addWidget(self.pushButton_symbol)
-        self.pushButton_latex = QtWidgets.QPushButton(Dialog)
-        self.pushButton_latex.setMinimumSize(QtCore.QSize(50, 0))
-        self.pushButton_latex.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.pushButton_latex.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.pushButton_latex.setStyleSheet("QPushButton {\n"
+        self.toolButton_latex = QtWidgets.QToolButton(Dialog)
+        self.toolButton_latex.setMinimumSize(QtCore.QSize(50, 0))
+        self.toolButton_latex.setMaximumSize(QtCore.QSize(30, 16777215))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.toolButton_latex.setFont(font)
+        self.toolButton_latex.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.toolButton_latex.setStyleSheet("QPushButton {\n"
 "    font-size: 15px;\n"
 "}")
-        self.pushButton_latex.setCheckable(True)
-        self.pushButton_latex.setAutoDefault(False)
-        self.pushButton_latex.setFlat(True)
-        self.pushButton_latex.setObjectName("pushButton_latex")
-        self.horizontalLayout.addWidget(self.pushButton_latex)
+        self.toolButton_latex.setCheckable(True)
+        self.toolButton_latex.setPopupMode(QtWidgets.QToolButton.MenuButtonPopup)
+        self.toolButton_latex.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
+        self.toolButton_latex.setAutoRaise(True)
+        self.toolButton_latex.setArrowType(QtCore.Qt.DownArrow)
+        self.toolButton_latex.setObjectName("toolButton_latex")
+        self.horizontalLayout.addWidget(self.toolButton_latex)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.horizontalLayout.setStretch(8, 1)
         self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.textEdit = QtWidgets.QTextEdit(Dialog)
         self.textEdit.setObjectName("textEdit")
-        self.verticalLayout.addWidget(self.textEdit)
+        self.verticalLayout_3.addWidget(self.textEdit)
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setMinimumSize(QtCore.QSize(0, 100))
+        self.label.setStyleSheet("background-color: rgb(255, 255, 255)")
+        self.label.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.label.setText("")
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setObjectName("label")
+        self.verticalLayout_3.addWidget(self.label)
+        self.verticalLayout.addLayout(self.verticalLayout_3)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
-        self.horizontalLayout_2.addLayout(self.verticalLayout)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -162,7 +179,7 @@ class Ui_Dialog(object):
         self.pushButton_symbol.setToolTip(_translate("Dialog", "Change the font to symbol (Ctrl+S)"))
         self.pushButton_symbol.setText(_translate("Dialog", "abc"))
         self.pushButton_symbol.setShortcut(_translate("Dialog", "Ctrl+S"))
-        self.pushButton_latex.setToolTip(_translate("Dialog", "Insert LaTeX equations (Ctrl+L)"))
-        self.pushButton_latex.setText(_translate("Dialog", "LaTeX"))
-        self.pushButton_latex.setShortcut(_translate("Dialog", "Ctrl+L"))
+        self.toolButton_latex.setToolTip(_translate("Dialog", "Insert LaTeX equations (Ctrl+L)"))
+        self.toolButton_latex.setText(_translate("Dialog", "LaTeX"))
+        self.toolButton_latex.setShortcut(_translate("Dialog", "Ctrl+L"))
 

@@ -47,7 +47,7 @@ if sys.platform == 'win32':
 if sys.platform == 'linux':
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/imageformats')
     include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/qt5/plugins/platforms')
-    include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/libQt5Svg.so.5')
+    # include_files.append(sys.prefix + '/lib/x86_64-linux-gnu/libQt5Svg.so.5')
 include_files.append('./LICENSE.txt')
 
 excludes = [
@@ -80,6 +80,7 @@ options = {
         'includes': includes,
         'excludes': excludes,
         'include_files': include_files,
+        'zip_include_packages': [x for x in includes if x != 'src'],
         'optimize': 2
     }
 }
@@ -101,7 +102,7 @@ if os.path.isdir('build'):
     shutil.rmtree('build')
 
 setup(name='YCircuit',
-      version='0.2',
+      version='0.3',
       description='YCircuit',
       options=options,
       executables=executables
@@ -112,26 +113,29 @@ from subprocess import check_output
 branch = check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
 # Remove newline and decode
 branch = branch[:-1].decode('utf-8')
+# Python version
+version = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
 
 if sys.platform == 'win32':
     import zipfile
     with zipfile.ZipFile('build/ycircuit-' + branch + '_win64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        for root, dirs, files in os.walk('build/exe.win-amd64-3.6'):
+        for root, dirs, files in os.walk('build/exe.win-amd64-' + version):
             for file in files:
                 zip.write(os.path.join(root, file))
     with zipfile.ZipFile('build/ycircuit-' + branch + '_win64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        zip.write('build/exe.win-amd64-3.6/YCircuit.exe', 'YCircuit.exe')
+        zip.write('build/exe.win-amd64-' + version + '/YCircuit.exe', 'YCircuit.exe')
         for root, dirs, files in os.walk('src'):
             for file in files:
-                zip.write(os.path.join(root, file))
+                zip.write(os.path.join(root, file), 'lib/' + os.path.join(root, file))
         for root, dirs, files in os.walk('Resources'):
             for file in files:
                 zip.write(os.path.join(root, file))
     if post is True:
+        # Note that BB_AUTH_STRING must be set to the right value as an env variable
         from subprocess import call
         call(['curl',
               '-s',
-              '-u', 'siddharthshekar',
+              '-u', os.environ['BB_AUTH_STRING'],
               '-X', 'POST',
               'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
               '-F', 'files=@build/ycircuit-' + branch + '_win64.zip',
@@ -139,14 +143,14 @@ if sys.platform == 'win32':
 if sys.platform == 'linux':
     import zipfile
     with zipfile.ZipFile('build/ycircuit-' + branch + '_linux64.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        for root, dirs, files in os.walk('build/exe.linux-x86_64-3.5'):
+        for root, dirs, files in os.walk('build/exe.linux-x86_64-' + version):
             for file in files:
                 zip.write(os.path.join(root, file))
     with zipfile.ZipFile('build/ycircuit-' + branch + '_linux64_update.zip', 'w', zipfile.ZIP_DEFLATED) as zip:
-        zip.write('build/exe.linux-x86_64-3.5/YCircuit', 'YCircuit')
+        zip.write('build/exe.linux-x86_64-' + version + '/YCircuit', 'YCircuit')
         for root, dirs, files in os.walk('src'):
             for file in files:
-                zip.write(os.path.join(root, file), 'lib/python3.5/' + os.path.join(root, file))
+                zip.write(os.path.join(root, file), 'lib/' + os.path.join(root, file))
         for root, dirs, files in os.walk('Resources'):
             for file in files:
                 zip.write(os.path.join(root, file))
@@ -154,10 +158,11 @@ if sys.platform == 'linux':
     # with tarfile.open('build/ycircuit-' + branch + '_linux64.tar', 'w:gz') as tar:
     #     tar.add('build/exe.linux-x86_64-3.5')
     if post is True:
+        # Note that BB_AUTH_STRING must be set to the right value as an env variable
         from subprocess import call
         call(['curl',
               '-s',
-              '-u', 'siddharthshekar',
+              '-u', os.environ['BB_AUTH_STRING'],
               '-X', 'POST',
               'https://api.bitbucket.org/2.0/repositories/siddharthshekar/ycircuit/downloads',
               '-F', 'files=@build/ycircuit-' + branch + '_linux64.zip',

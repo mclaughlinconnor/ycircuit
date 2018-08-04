@@ -3,7 +3,7 @@ if platform.system() == 'Windows':
     import ctypes
 import sip
 import sys
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from src.mainwindow import myMainWindow
 import logging, logging.handlers
 
@@ -34,9 +34,22 @@ if __name__ == "__main__":
     QtCore.QCoreApplication.setOrganizationName('YCircuit')
     QtCore.QCoreApplication.setApplicationName('YCircuit')
     app = QtWidgets.QApplication(sys.argv)
+    # Show the splash screen
+    splashPicture = QtGui.QPixmap(':/splash/splash.png')
+    splash = QtWidgets.QSplashScreen(app.desktop(), splashPicture, QtCore.Qt.WindowStaysOnTopHint)
+    splash.setMask(splashPicture.mask())
+    # Code below from https://stackoverflow.com/a/50680020
+    currentScreen = app.desktop().screenNumber(QtGui.QCursor().pos())
+    currentScreenCenter = app.desktop().availableGeometry(currentScreen).center()
+    splash.move(currentScreenCenter - splash.rect().center())
+    splash.show()
+
     form = myMainWindow(clipboard=app.clipboard())
     form.showMaximized()
     form.ui.drawingArea.fitToViewRoutine()
+
+    # Hide splash screen
+    splash.finish(form)
     sys.excepthook = logException
     app.exec_()
     logger.info('YCircuit closed normally\n')

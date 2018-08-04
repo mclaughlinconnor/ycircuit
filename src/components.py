@@ -26,6 +26,11 @@ class drawingElement(object):
             self.setZValue(self.height)
         else:
             self.setZValue(0)
+        if hasattr(self, 'localScale'):
+            self.setScale(self.localScale)
+        else:
+            self.setScale(1.)
+            self.localScale = self.scale()
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
@@ -37,6 +42,7 @@ class drawingElement(object):
         localDictCopy.pop('localBrush', None)
         localDictCopy['transformData'] = self.transform()
         localDictCopy['height'] = self.zValue()
+        localDictCopy['localScale'] = self.scale()
         return localDictCopy
 
     def __setstate__(self, state):
@@ -60,17 +66,24 @@ class drawingElement(object):
             self.localPenWidth = self.localPen.width()
             self.localPenColour = self.localPen.color()
             self.localPenStyle = self.localPen.style()
+            self.localPenCapStyle = self.localPen.capStyle()
+            self.localPenJoinStyle = self.localPen.joinStyle()
         if 'width' in kwargs:
             self.localPenWidth = kwargs['width']
         if 'penColour' in kwargs:
             self.localPenColour = kwargs['penColour']
         if 'penStyle' in kwargs:
             self.localPenStyle = kwargs['penStyle']
+        if 'penCapStyle' in kwargs:
+            self.localPenCapStyle = kwargs['penCapStyle']
+        if 'penJoinStyle' in kwargs:
+            self.localPenJoinStyle = kwargs['penJoinStyle']
         self.localPen.setWidth(self.localPenWidth)
         self.localPen.setColor(QtGui.QColor(self.localPenColour))
         # self.localPen.setStyle(QtCore.Qt.PenStyle(self.localPenStyle))
         self.localPen.setStyle(self.localPenStyle)
-        self.localPen.setJoinStyle(QtCore.Qt.RoundJoin)
+        self.localPen.setCapStyle(self.localPenCapStyle)
+        self.localPen.setJoinStyle(self.localPenJoinStyle)
         if hasattr(self, 'setPen'):
             self.setPen(self.localPen)
 
@@ -128,7 +141,7 @@ class drawingElement(object):
                 angle = -angle
         if moving is True:
             # origin = self.mapFromScene(origin)
-            origin = origin
+            origin = origin*self.scale()
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
@@ -150,7 +163,7 @@ class drawingElement(object):
         transform_ = self.transform()
         if moving is True:
             # origin = self.mapFromScene(origin)
-            origin = origin
+            origin = origin*self.scale()
         else:
             origin = QtCore.QPointF(0, 0)
         transform_.translate(origin.x(), origin.y())
@@ -180,6 +193,8 @@ class drawingElement(object):
             brushColour=self.localBrushColour)
         # Apply any transforms (rotations, reflections etc.)
         newItem.setTransform(self.transform())
+        newItem.setScale(self.scale())
+        newItem.localScale = newItem.scale()
         # Copy reflection info if it exists
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
@@ -252,12 +267,17 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def __init__(self, parent=None, start=None, listOfItems=None, **kwargs):
         super().__init__(parent=parent, start=start)
         self.listOfItems = listOfItems
+        self.pins = []
         if 'mode' in kwargs:
             self.loadItems(**kwargs)
         if self.listOfItems != []:
             self.setItems(self.listOfItems)
             self.setLocalPenOptions(**kwargs)
             self.setLocalBrushOptions(**kwargs)
+            for item in self.listOfItems:
+                if hasattr(item, 'isPin'):
+                    if item.isPin is True:
+                        self.pins.append(item)
         self.setFlag(self.ItemIsSelectable, True)
         self.setFlag(self.ItemIsFocusable, True)
         if start is not None:
@@ -267,6 +287,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         self.localPenWidth = 2
         self.localPenColour = 'black'
         self.localPenStyle = 1
+        self.localPenCapStyle = 0x10
+        self.localPenJoinStyle = 0x80
         self.localBrushColour = 'black'
         self.localBrushStyle = 0
         self.setAcceptHoverEvents(True)
@@ -296,12 +318,18 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         newItem = self.__class__(parent, _start, [])
         newItem.origin = self.origin
         newItem.setTransform(self.transform())
+        newItem.setScale(self.scale())
+        newItem.localScale = newItem.scale()
         # Copy reflection info if it exists
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
         if hasattr(self, 'height'):
             newItem.height = self.height
             newItem.setZValue(newItem.height)
+        if hasattr(self, 'isPin'):
+            newItem.isPin = self.isPin
+            if hasattr(newItem.parentItem(), 'pins'):
+                newItem.parentItem().pins.append(newItem)
         if newItem.parentItem() is None:
             self.scene().addItem(newItem)
             newItem.moveTo(self.scenePos(), 'start')
@@ -348,10 +376,10 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                     self.reflections = 0
                 if item.reflections != self.reflections:
                     item.setTransform(item.transform().scale(-1, 1))
-                item.setPos(self.pos() + transform_.map(item.origin))
                 itemTransform = item.transform()
                 item.setTransform(transform_)
                 item.setTransform(itemTransform, combine=True)
+                item.setPos(self.pos() + transform_.map(item.origin)*self.scale())
                 if item.reflections != self.reflections:
                     item.setTransform(item.transform().scale(-1, 1))
                 item.transformData = item.transform()
@@ -367,6 +395,8 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         widthList = []
         penColourList = []
         penStyleList = []
+        penCapStyleList = []
+        penJoinStyleList = []
         for item in self.listOfItems:
             if item.localPen.width() not in widthList:
                 widthList.append(item.localPen.width())
@@ -374,6 +404,10 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 penColourList.append(item.localPen.color())
             if item.localPen.style() not in penStyleList:
                 penStyleList.append(item.localPen.style())
+            if item.localPen.capStyle() not in penCapStyleList:
+                penCapStyleList.append(item.localPen.capStyle())
+            if item.localPen.joinStyle() not in penJoinStyleList:
+                penJoinStyleList.append(item.localPen.joinStyle())
         if parameter == 'width':
             if len(widthList) > 1:
                 return None
@@ -389,6 +423,16 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 return None
             else:
                 return penStyleList[0]
+        if parameter == 'capStyle':
+            if len(penCapStyleList) > 1:
+                return None
+            else:
+                return penCapStyleList[0]
+        if parameter == 'joinStyle':
+            if len(penJoinStyleList) > 1:
+                return None
+            else:
+                return penJoinStyleList[0]
 
     def setLocalPenOptions(self, **kwargs):
         """Set pen individually for each child item"""
@@ -441,12 +485,18 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         """Initializes items in self.listOfItems."""
         for item in self.listOfItems:
             if not isinstance(item, myGraphicsItemGroup):
+                if 'localPenCapStyle' not in item.__dict__:
+                    item.localPenCapStyle = 0x10 # Default to square cap
+                if 'localPenJoinStyle' not in item.__dict__:
+                    item.localPenJoinStyle = 0x80 # Default to round join
                 item.__init__(
                     self,
                     item.origin,
                     penColour=item.localPenColour,
                     width=item.localPenWidth,
                     penStyle=item.localPenStyle,
+                    penCapStyle=item.localPenCapStyle,
+                    penJoinStyle=item.localPenJoinStyle,
                     brushColour=item.localBrushColour,
                     brushStyle=item.localBrushStyle)
             else:
@@ -455,6 +505,13 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 # Call loadItems if item is also a myGraphicsItemGroup
                 # item.loadItems(mode)
         self.setItems(self.listOfItems)
+
+    def pinVisibility(self, visible):
+        for pin in self.pins:
+            pin.setVisible(visible)
+        for item in self.listOfItems:
+            if isinstance(item, myGraphicsItemGroup):
+                item.pinVisibility(visible)
 
     def undoEdit(self):
         for item in self.listOfItems:
@@ -489,7 +546,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
 
     def __getstate__(self):
         localDict = super().__getstate__()
-        # Add a list of all points part of the wire
+        # Add a list of all points part of the line
         polyPathList = self.path().toSubpathPolygons(QtGui.QTransform())
         polyPathPointList = []
         for poly in polyPathList:
@@ -504,6 +561,9 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
 
     def __setstate__(self, state):
         super().__setstate__(state)
+        if len(state['polyPathPointList']) == 0:
+            state['polyPathPointList'] = [[QtCore.QPointF(0, 0)]]
+            logger.warning('This item was saved with 0 points. This fix is only temporary.')
         # Add a polygon corresponding to the list of saved points
         a = QtGui.QPolygonF(state['polyPathPointList'][0])
         self.oldPath2 = QtGui.QPainterPath()
@@ -522,6 +582,7 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             return super().shape()
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         return stroker.createStroke(self.path()).simplified()
 
     def paint(self, painter, option, widget):
@@ -683,6 +744,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
             return QtGui.QPainterPath()
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         poly = QtGui.QPolygonF([self.line().p1(), self.line().p2()])
         path = QtGui.QPainterPath()
         path.addPolygon(poly)
@@ -841,7 +903,7 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                 undoStack.push(del1)
         return mergedNet
 
-    def splitNets(self, netList, undoStack, mode='add'):
+    def splitNets(self, netList, pinList, undoStack, mode='add'):
         # Had to do the import here to avoid circular imports
         from src.commands import Add, Delete
         # If this net has already been processed, its scene will not exist
@@ -852,12 +914,55 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         line1 = self.line()
         line1 = QtCore.QLineF(self.mapToScene(line1.p1()), self.mapToScene(line1.p2()))
         scene = self.scene()
+        for pin in pinList:
+            pinPos = pin.scenePos()
+            if pinPos in [line1.p1(), line1.p2()]:
+                pass
+            elif self.contains(self.mapFromScene(pinPos)):
+                newNet1 = self.createCopy()
+                newNet2 = self.createCopy()
+                scene.removeItem(newNet1)
+                scene.removeItem(newNet2)
+                newNet1Line, newNet2Line = newNet1.line(), newNet2.line()
+                newNet1Line.setP1(self.line().p1())
+                newNet1Line.setP2(self.mapFromScene(pinPos))
+                newNet2Line.setP2(self.line().p2())
+                newNet2Line.setP1(self.mapFromScene(pinPos))
+                newNet1.setLine(newNet1Line)
+                newNet2.setLine(newNet2Line)
+                if self.scene() is not None:
+                    parentItem = self.parentItem()
+                    del1 = Delete(None, scene, [self])
+                    undoStack.push(del1)
+                logger.info('Splitting net %s into nets %s and %s', self, newNet1, newNet2)
+                add = Add(None, scene, newNet1, parentItem)
+                undoStack.push(add)
+                add = Add(None, scene, newNet2, parentItem)
+                undoStack.push(add)
+                dotPos = pin.scenePos()
+                self.addDot(scene, dotPos, netList, pinList, undoStack)
+                self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet1)
+                self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet2)
+                return
         for net in netList:
             line2 = net.line()
             line2 = QtCore.QLineF(net.mapToScene(line2.p1()), net.mapToScene(line2.p2()))
             if line2.angleTo(line1) == 90 or line2.angleTo(line1) == 270:
                 if line2.p1() in [line1.p1(), line1.p2()] or line2.p2() in [line1.p1(), line1.p2()]:
-                    pass
+                    if line2.p1() in [line1.p1(), line1.p2()]:
+                        dotPos = line2.p1()
+                    else:
+                        dotPos = line2.p2()
+                    allDots = [item for item in scene.items() if
+                                isinstance(item, Circle) and
+                                item.localBrushStyle == 1 and
+                                item.rect() == QtCore.QRectF(0, -4, 8, 8)
+                    ]
+                    for pin in pinList:
+                        pinPos = pin.scenePos()
+                        if dotPos == pinPos:
+                            self.addDot(scene, dotPos, netList, pinList, undoStack, allDots)
+                            break
                 else:
                     newNet1, newNet2 = None, None
                     if net.contains(net.mapFromItem(self, self.line().p1())):
@@ -949,40 +1054,49 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                         undoStack.push(add)
                         dotPos = net.mapToScene(net.line().p2())
                     if newNet1 is not None:
-                        newNetList1 = [item for item in netList if item.collidesWithItem(newNet1)]
-                        newNetList2 = [item for item in netList if item.collidesWithItem(newNet2)]
-                        # Add a dot if required
-                        allDots = [item for item in scene.items() if isinstance(item, Circle) and item.localBrushStyle == 1 and item.rect() == QtCore.QRectF(0, -4, 8, 8)]
-                        dotExists = False
-                        for item in allDots:
-                            existingDotPos = item.scenePos()
-                            # The dot's scenePos is slightly to the left of actual center
-                            existingDotPos += QtCore.QPointF(4, 0)
-                            if dotPos == item.scenePos():
-                                dotExists = True
-                                break
-                        if dotExists is False:
-                            logger.info('Adding dot at %s', dotPos)
-                            with open('Resources/Symbols/Standard/Dot.sym', 'rb') as f:
-                                dot1 = pickle.load(f)
-                                dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
-                                scene.addItem(dot1)
-                                dot1.moveTo(dotPos, 'start')
-                                dot1.moveTo(dotPos, 'done')
-                                scene.removeItem(dot1)
-                                add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
-                                undoStack.push(add1)
-                        for net in newNetList1:
-                            if net.scene() is None:
-                                newNetList1.remove(net)
-                        newNet1.splitNets(newNetList1, undoStack)
-                        for net in newNetList2:
-                            if net.scene() is None:
-                                newNetList2.remove(net)
-                        newNet2.splitNets(newNetList2, undoStack)
+                        self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet1)
+                        self.splitNewNets(scene, dotPos, netList, pinList, undoStack, newNet2)
                         # Break if self has been deleted
                         if self.scene() is None:
                             break
+
+    def splitNewNets(self, scene, dotPos, netList, pinList, undoStack, newNet):
+        if newNet is not None:
+            self.addDot(scene, dotPos, netList, pinList, undoStack)
+            newNetList = [item for item in netList if item.collidesWithItem(newNet)]
+            for net in newNetList:
+                if net.scene() is None:
+                    newNetList.remove(net)
+            newNet.splitNets(newNetList, pinList, undoStack)
+
+    def addDot(self, scene, dotPos, netList, pinList, undoStack, allDots=None):
+        from src.commands import Add
+        # Add a dot if required
+        if allDots is None:
+            allDots = [item for item in scene.items() if
+                    isinstance(item, Circle) and
+                    item.localBrushStyle == 1 and
+                    item.rect() == QtCore.QRectF(0, -4, 8, 8)
+            ]
+        dotExists = False
+        for item in allDots:
+            existingDotPos = item.scenePos()
+            # The dot's scenePos is slightly to the left of actual center
+            existingDotPos += QtCore.QPointF(4, 0)
+            if dotPos == item.scenePos():
+                dotExists = True
+                break
+        if dotExists is False:
+            logger.info('Adding dot at %s', dotPos)
+            with open('Resources/Symbols/Standard/Dot.sym', 'rb') as f:
+                dot1 = pickle.load(f)
+                dot1.__init__(None, dotPos, dot1.listOfItems, mode='symbol')
+                scene.addItem(dot1)
+                dot1.moveTo(dotPos, 'start')
+                dot1.moveTo(dotPos, 'done')
+                scene.removeItem(dot1)
+                add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
+                undoStack.push(add1)
 
 
 class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
@@ -1020,6 +1134,7 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         path.addRect(self.rect())
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         return stroker.createStroke(path).simplified()
 
     def paint(self, painter, option, widget):
@@ -1132,6 +1247,7 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         path.addEllipse(self.rect())
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(padding)
+        stroker.setJoinStyle(self.localPen.joinStyle())
         return stroker.createStroke(path).simplified()
 
     def paint(self, painter, option, widget):
@@ -1302,6 +1418,10 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         # For backwards compatibility
         if not hasattr(self, 'latexImageColour'):
             self.latexImageColour = QtGui.QColor('black')
+        if 'eulerFont' in kwargs:
+            self.useEulerFont = kwargs['eulerFont']
+        elif not hasattr(self, 'useEulerFont'):
+            self.useEulerFont = True
         if not hasattr(self, 'textScale'):
             self.textScale = 4
         self.setLocalPenOptions(**kwargs)
@@ -1346,6 +1466,9 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             font = QtGui.QFont()
             font.fromString(state.pop('font_'))
             self.font_ = font
+        # Older versions of the software did not save this for latex images
+        if 'localPenWidth' not in state:
+            state['localPenWidth'] = 2
 
     def boundingRect(self):
         if self.latexImageBinary is None:
@@ -1387,7 +1510,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         return path
 
     def showEditor(self):
-        self.textEditor = TextEditor(self)
+        self.textEditor = TextEditor(self, eulerFont=self.useEulerFont)
         self.textEditor.exec_()
 
     def setLocalPenOptions(self, **kwargs):
@@ -1451,10 +1574,16 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 self.changeTextColour('gray')
             else:
                 self.changeTextColour(self.localPenColour)
+        else:
+            if lighten is True:
+                self.setOpacity(0.5)
+            else:
+                self.setOpacity(1)
 
     def mouseDoubleClickEvent(self, event):
         # Show the editor on double click
-        super().mouseDoubleClickEvent(event)
+        if isinstance(event, QtWidgets.QGraphicsSceneMouseEvent):
+            super().mouseDoubleClickEvent(event)
         # Reset the text colour from gray
         self.lightenColour(False)
         self.showEditor()
@@ -1478,7 +1607,9 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 pen=pen,
                 brush=brush,
                 penColour=self.localPenColour,
-                brushColour=self.localBrushColour)
+                brushColour=self.localBrushColour,
+                eulerFont=self.useEulerFont)
+            newItem.localPenWidth = self.localPenWidth
             newItem.latexExpression = self.latexExpression
             newItem.latexImageBinary = self.latexImageBinary
         else:
@@ -1489,7 +1620,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 pen=pen,
                 brush=brush,
                 penColour=self.localPenColour,
-                brushColour=self.localBrushColour)
+                brushColour=self.localBrushColour,
+                eulerFont=self.useEulerFont)
             newItem.localPenWidth = self.localPenWidth
             newItem.setFont(self.font())
         newItem.setTransform(self.transform())
@@ -1518,7 +1650,6 @@ class Arc(Wire):
         self.setFocus()
         self.undoPointsList = []
         self.startPoint = QtCore.QPointF(0, 0)
-        self.localPen.setCapStyle(QtCore.Qt.RoundCap)
 
     def __getstate__(self):
         localDict = super().__getstate__()
@@ -1698,6 +1829,8 @@ class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
         self.localPenWidth = 2
         self.localPenColour = 'black'
         self.localPenStyle = 1
+        self.localPenCapStyle = 0x10
+        self.localPenJoinStyle = 0x80
         self.localBrushColour = 'black'
         self.localBrushStyle = 0
         self.setTransformationMode(QtCore.Qt.SmoothTransformation)

@@ -77,6 +77,10 @@ class Add(QtWidgets.QUndoCommand):
                 self.reflect = 0
             if 'transform' in kwargs:
                 self.transform_ = kwargs['transform']
+            # pinVisibility is actually a reference to the UI object in the
+            # window that holds the value for pin visibility
+            if 'pinVisibility' in kwargs:
+                self.pinVisibility = kwargs['pinVisibility']
         else:
             self.symbol = False
         if self.symbol is True:
@@ -107,6 +111,8 @@ class Add(QtWidgets.QUndoCommand):
             #     self.item.rotateBy(moving=False, origin=self.origin, angle=self.rotateAngle)
             if hasattr(self, 'transform_'):
                 self.item.setTransform(self.transform_)
+            if hasattr(self, 'pinVisibility'):
+                self.item.pinVisibility(self.pinVisibility.isChecked())
             logger.info('Adding item %s as a symbol', self.item)
         self.scene.update(self.scene.sceneRect())
 
@@ -370,6 +376,7 @@ class ChangeHeight(QtWidgets.QUndoCommand):
             elif self.mode == 'reset':
                 self.item.setZValue(0)
             newValue = self.item.zValue()
+            self.item.height = newValue
             logger.info('Changed height of %s from %d to %d', self.item, oldValue, newValue)
         else:
             super().redo()
@@ -384,6 +391,7 @@ class ChangeHeight(QtWidgets.QUndoCommand):
             elif self.mode == 'reset':
                 self.item.setZValue(self.oldHeight)
             newValue = self.item.zValue()
+            self.item.height = newValue
             logger.info('Undoing height change. Changed height of %s from %d to %d', self.item, oldValue, newValue)
         else:
             super().undo()
@@ -404,6 +412,7 @@ class Group(QtWidgets.QUndoCommand):
         y = min([item.scenePos().y() for item in self.listOfItems])
         self.origin = QtCore.QPointF(x, y)
         self.item = myGraphicsItemGroup(None, self.origin, [])
+        self.item.setSelected(True)
 
     def redo(self):
         self.scene.addItem(self.item)
@@ -438,6 +447,10 @@ class Ungroup(QtWidgets.QUndoCommand):
 
     def redo(self):
         self.item.reparentItems()
+        for item in self.listOfItems:
+            item.setSelected(True)
+            item.localScale = self.item.scale()*item.scale()
+            item.setScale(item.localScale)
         self.scene.removeItem(self.item)
         logger.info('Destroying group %s containing %s', self.item, self.listOfItems)
 
@@ -447,6 +460,8 @@ class Ungroup(QtWidgets.QUndoCommand):
         transform_ = self.item.transform()
         # Set relative origins of child items
         for item in self.listOfItems:
+            item.localScale = item.scale()/self.item.scale()
+            item.setScale(item.localScale)
             if not hasattr(item, 'reflections'):
                 item.reflections = 0
             if hasattr(self.item, 'reflections'):
@@ -462,12 +477,34 @@ class Ungroup(QtWidgets.QUndoCommand):
             if item.reflections != self.item.reflections:
                 item.setTransform(item.transform().scale(-1, 1))
             item.transformData = item.transform()
-            # item.origin = transform_.map(item.pos())# - self.item.origin
-            item.origin = self.item.mapFromScene(item.scenePos())
+            invTransform = transform_.inverted()[0]
+            item.origin = invTransform.map(item.pos() - self.item.pos())/self.item.scale()
         self.item.setItems(self.listOfItems)
         for item in self.listOfItems:
             item.transformData = item.transform()
         logger.info('Undoing destruction of group %s containing items %s', self.item, self.listOfItems)
+
+
+class ChangeScale(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, item=None, **kwargs):
+        super().__init__(parent)
+        self.item = item
+        self.oldScale = self.item.localScale
+        if 'scale' in kwargs:
+            self.newScale = kwargs['scale']
+        if 'group' in kwargs:
+            self.isGroup = kwargs['group']
+
+    def redo(self):
+        self.item.setScale(self.newScale)
+        self.item.localScale = self.item.scale()
+        logger.info('Changing scale to %f', self.newScale)
+
+    def undo(self):
+        self.item.setScale(self.oldScale) #Item is always created with scale of 1
+        self.item.localScale = self.item.scale()
+        # We do not need to change origin here since it will be done by ungroup
+        logger.info('Changing scale to %f', self.oldScale)
 
 
 class ChangePen(QtWidgets.QUndoCommand):
@@ -500,6 +537,24 @@ class ChangePen(QtWidgets.QUndoCommand):
                         changePen = ChangePen(self, i.listOfItems, **kwargs)
                     else:
                         changePen = ChangePenStyle(self, i, **kwargs)
+        if 'penJoinStyle' in kwargs:
+            self.newLocalPenJoinStyle = kwargs['penJoinStyle']
+            if isinstance(item, list):
+                self.listOfItems = item
+                for i in self.listOfItems:
+                    if isinstance(i, myGraphicsItemGroup):
+                        changePen = ChangePen(self, i.listOfItems, **kwargs)
+                    else:
+                        changePen = ChangePenJoinStyle(self, i, **kwargs)
+        if 'penCapStyle' in kwargs:
+            self.newLocalPenCapStyle = kwargs['penCapStyle']
+            if isinstance(item, list):
+                self.listOfItems = item
+                for i in self.listOfItems:
+                    if isinstance(i, myGraphicsItemGroup):
+                        changePen = ChangePen(self, i.listOfItems, **kwargs)
+                    else:
+                        changePen = ChangePenCapStyle(self, i, **kwargs)
 
 
 class ChangePenWidth(QtWidgets.QUndoCommand):
@@ -586,6 +641,56 @@ class ChangePenStyle(QtWidgets.QUndoCommand):
                 'Undoing pen style change. Changing pen style of %s back to %d',
                 self.item,
                 self.oldLocalPenStyle)
+
+
+class ChangePenCapStyle(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, item=None, **kwargs):
+        super().__init__(parent)
+        self.item = item
+        self.oldLocalPenCapStyle = self.item.localPenCapStyle
+        if 'penCapStyle' in kwargs:
+            self.newLocalPenCapStyle = kwargs['penCapStyle']
+
+    def redo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.setLocalPenOptions(penCapStyle=self.newLocalPenCapStyle)
+            logger.info(
+                'Changing pen cap style of %s to %d',
+                self.item,
+                self.newLocalPenCapStyle)
+
+    def undo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.setLocalPenOptions(penCapStyle=self.oldLocalPenCapStyle)
+            logger.info(
+                'Undoing pen cap style change. Changing pen cap style of %s back to %d',
+                self.item,
+                self.oldLocalPenCapStyle)
+
+
+class ChangePenJoinStyle(QtWidgets.QUndoCommand):
+    def __init__(self, parent=None, item=None, **kwargs):
+        super().__init__(parent)
+        self.item = item
+        self.oldLocalPenJoinStyle = self.item.localPenJoinStyle
+        if 'penJoinStyle' in kwargs:
+            self.newLocalPenJoinStyle = kwargs['penJoinStyle']
+
+    def redo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.setLocalPenOptions(penJoinStyle=self.newLocalPenJoinStyle)
+            logger.info(
+                'Changing pen join style of %s to %d',
+                self.item,
+                self.newLocalPenJoinStyle)
+
+    def undo(self):
+        if not hasattr(self, 'listOfItems'):
+            self.item.setLocalPenOptions(penJoinStyle=self.oldLocalPenJoinStyle)
+            logger.info(
+                'Undoing pen join style change. Changing pen join style of %s back to %d',
+                self.item,
+                self.oldLocalPenJoinStyle)
 
 
 class ChangeBrush(QtWidgets.QUndoCommand):

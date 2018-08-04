@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="icons">
+    <file>view-restore.svg</file>
+    <file>zoom-in.svg</file>
+    <file>zoom-out.svg</file>
     <file>edit-paste.svg</file>
     <file>edit-clear.svg</file>
     <file>gtk-edit.svg</file>
@@ -19,6 +22,19 @@
     <file>list-remove.svg</file>
     <file>object-flip-horizontal.svg</file>
     <file>object-rotate-right.svg</file>
+  </qresource>
+  <qresource prefix="splash">
+    <file>splash.png</file>
+  </qresource>
+  <qresource prefix="penCapStyle">
+    <file>penCapStyle_square.svg</file>
+    <file>penCapStyle_flat.svg</file>
+    <file>penCapStyle_round.svg</file>
+  </qresource>
+  <qresource prefix="penJoinStyle">
+    <file>penJoinStyle_bevel.svg</file>
+    <file>penJoinStyle_miter.svg</file>
+    <file>penJoinStyle_round.svg</file>
   </qresource>
   <qresource prefix="penStyle">
     <file>penStyle_solid.svg</file>

@@ -107,6 +107,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.groupItems('ungroup'))
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
+        self.ui.action_setScale.triggered.connect(
+            self.action_setScale_triggered)
         self.ui.action_setWidth2.triggered.connect(
             lambda x: self.action_setWidth_triggered(2))
         self.ui.action_setWidth4.triggered.connect(
@@ -148,6 +150,20 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_setPenStyleDashDotDot.triggered.connect(
             lambda x: self.action_setPenStyle_triggered(5))
 
+        self.ui.action_setPenCapStyleSquare.triggered.connect(
+            lambda x: self.action_setPenCapStyle_triggered(0x10))
+        self.ui.action_setPenCapStyleRound.triggered.connect(
+            lambda x: self.action_setPenCapStyle_triggered(0x20))
+        self.ui.action_setPenCapStyleFlat.triggered.connect(
+            lambda x: self.action_setPenCapStyle_triggered(0x00))
+
+        self.ui.action_setPenJoinStyleRound.triggered.connect(
+            lambda x: self.action_setPenJoinStyle_triggered(0x80))
+        self.ui.action_setPenJoinStyleMiter.triggered.connect(
+            lambda x: self.action_setPenJoinStyle_triggered(0x00))
+        self.ui.action_setPenJoinStyleBevel.triggered.connect(
+            lambda x: self.action_setPenJoinStyle_triggered(0x40))
+
         self.ui.action_setBrushColourBlack.triggered.connect(
             lambda x: self.action_setBrushColour_triggered('black'))
         self.ui.action_setBrushColourRed.triggered.connect(
@@ -172,8 +188,16 @@ class myMainWindow(QtWidgets.QMainWindow):
 
         # View menu
         self.ui.menu_View.hovered.connect(self.menu_View_hovered)
+        self.ui.action_zoomIn.triggered.connect(
+            lambda x: self.ui.drawingArea.keyboardZoomRoutine('in'))
+        self.ui.action_zoomOut.triggered.connect(
+            lambda x: self.ui.drawingArea.keyboardZoomRoutine('out'))
         self.ui.action_fitToView.triggered.connect(
             self.ui.drawingArea.fitToViewRoutine)
+        self.ui.action_showPins.triggered.connect(
+            self.ui.drawingArea.togglePinsRoutine)
+        self.ui.action_snapNetToPin.triggered.connect(
+            self.ui.drawingArea.toggleSnapNetToPinRoutine)
         self.ui.action_showGrid.triggered.connect(
             self.ui.drawingArea.toggleGridRoutine)
         self.ui.action_snapToGrid.triggered.connect(
@@ -239,6 +263,7 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.editShape)
 
         # Symbol menu
+        self.ui.action_addPin.triggered.connect(self.ui.drawingArea.addPin)
         self.ui.action_addWire.triggered.connect(self.ui.drawingArea.addNet)
         self.ui.action_addResistor.triggered.connect(
             self.ui.drawingArea.addResistor)
@@ -273,6 +298,16 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda x: self.ui.drawingArea.addSource('CCVS'))
         self.ui.action_addCCCS.triggered.connect(
             lambda x: self.ui.drawingArea.addSource('CCCS'))
+        self.ui.action_quickAddSymbol1.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(1))
+        self.ui.action_quickAddSymbol2.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(2))
+        self.ui.action_quickAddSymbol3.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(3))
+        self.ui.action_quickAddSymbol4.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(4))
+        self.ui.action_quickAddSymbol5.triggered.connect(
+            lambda x: self.ui.drawingArea.quickAddSymbol(5))
 
         # Help menu
         self.ui.action_updateYCircuit.triggered.connect(
@@ -293,6 +328,12 @@ class myMainWindow(QtWidgets.QMainWindow):
         # Initialize the symbol viewer
         self.initialiseSymbolViewer()
         self.logger.info('Successfully created a new window')
+
+        # Initialize the schematic preview window
+        self.ui.drawingAreaPreview.setScene(self.ui.drawingArea.scene())
+        self.ui.drawingAreaPreview.drawingArea = self.ui.drawingArea
+        self.ui.drawingArea.drawingAreaPreview = self.ui.drawingAreaPreview
+        self.ui.drawingArea.scene().changed.connect(self.ui.drawingAreaPreview.fitToViewRoutine)
 
     def changeWindowTitle(self, clean=True):
         if self.ui.drawingArea.schematicFileName is not None:
@@ -383,11 +424,15 @@ class myMainWindow(QtWidgets.QMainWindow):
         widthList = []
         penColourList = []
         penStyleList = []
+        penCapStyleList = []
+        penJoinStyleList = []
         brushColourList = []
         brushStyleList = []
         for item in self.ui.drawingArea.scene().selectedItems():
             if not isinstance(item, TextBox):
                 widthList.append(item.localPenWidth)
+                penCapStyleList.append(item.localPenCapStyle)
+                penJoinStyleList.append(item.localPenJoinStyle)
             penColourList.append(item.localPenColour)
             penStyleList.append(item.localPenStyle)
             brushColourList.append(item.localBrushColour)
@@ -398,6 +443,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             set(widthList)
             set(penColourList)
             set(penStyleList)
+            set(penCapStyleList)
+            set(penJoinStyleList)
             set(brushColourList)
             set(brushStyleList)
         except:
@@ -424,6 +471,20 @@ class myMainWindow(QtWidgets.QMainWindow):
         elif len(set(penStyleList)) == 0:
             self.action_setPenStyle_triggered(self.ui.drawingArea.selectedPenStyle, temporary=True)
 
+        if len(set(penCapStyleList)) == 1:
+            self.action_setPenCapStyle_triggered(penCapStyleList[0], temporary=True)
+        elif len(set(penCapStyleList)) > 1:
+            self.action_setPenCapStyle_triggered(-1, temporary=True)
+        elif len(set(penCapStyleList)) == 0:
+            self.action_setPenCapStyle_triggered(self.ui.drawingArea.selectedPenCapStyle, temporary=True)
+
+        if len(set(penJoinStyleList)) == 1:
+            self.action_setPenJoinStyle_triggered(penJoinStyleList[0], temporary=True)
+        elif len(set(penJoinStyleList)) > 1:
+            self.action_setPenJoinStyle_triggered(-1, temporary=True)
+        elif len(set(penJoinStyleList)) == 0:
+            self.action_setPenJoinStyle_triggered(self.ui.drawingArea.selectedPenJoinStyle, temporary=True)
+
         if len(set(brushColourList)) == 1:
             self.action_setBrushColour_triggered(brushColourList[0], temporary=True)
         elif len(set(brushColourList)) > 1:
@@ -437,6 +498,40 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.action_setBrushStyle_triggered(-1, temporary=True)
         elif len(set(brushStyleList)) == 0:
             self.action_setBrushStyle_triggered(self.ui.drawingArea.selectedBrushStyle, temporary=True)
+
+    def action_setScale_triggered(self):
+        scaleList = []
+        for item in self.ui.drawingArea.scene().selectedItems():
+            scaleList.append(item.localScale)
+        try:
+            set(scaleList)
+        except:
+            pass
+        if len(set(scaleList)) == 1:
+            currentScale = scaleList[0]
+        else:
+            currentScale = 1.0
+        scaleValueList = [str(float(x/10)) for x in range(2, 42, 2)]
+        if str(currentScale) not in scaleValueList:
+            scaleValueList.append(str(currentScale))
+            scaleValueList.sort()
+        currentIndex = scaleValueList.index(str(currentScale))
+        scale, accept = QtWidgets.QInputDialog.getItem(
+            self,
+            'Scale',
+            'Enter the scale',
+            scaleValueList,
+            currentIndex)
+        try:
+            scale = float(scale)
+        except:
+            return
+        if scale < 0.2:
+            scale = 0.2
+        elif scale > 4.0:
+            scale = 4.0
+        if accept is True:
+            self.ui.drawingArea.changeScaleRoutine(scale)
 
     def action_setWidth_triggered(self, width, temporary=False):
         self.ui.action_setWidth2.setChecked(False)
@@ -532,6 +627,34 @@ class myMainWindow(QtWidgets.QMainWindow):
         if temporary is False:
             self.logger.info('Set pen style to %d', penStyle)
             self.ui.drawingArea.changePenStyleRoutine(penStyle)
+
+    def action_setPenCapStyle_triggered(self, penCapStyle, temporary=False):
+        self.ui.action_setPenCapStyleSquare.setChecked(False)
+        self.ui.action_setPenCapStyleRound.setChecked(False)
+        self.ui.action_setPenCapStyleFlat.setChecked(False)
+        if penCapStyle == 0x10:
+            self.ui.action_setPenCapStyleSquare.setChecked(True)
+        if penCapStyle == 0x20:
+            self.ui.action_setPenCapStyleRound.setChecked(True)
+        if penCapStyle == 0x00:
+            self.ui.action_setPenCapStyleFlat.setChecked(True)
+        if temporary is False:
+            self.logger.info('Set pen cap style to %d', penCapStyle)
+            self.ui.drawingArea.changePenCapStyleRoutine(penCapStyle)
+
+    def action_setPenJoinStyle_triggered(self, penJoinStyle, temporary=False):
+        self.ui.action_setPenJoinStyleRound.setChecked(False)
+        self.ui.action_setPenJoinStyleMiter.setChecked(False)
+        self.ui.action_setPenJoinStyleBevel.setChecked(False)
+        if penJoinStyle == 0x80:
+            self.ui.action_setPenJoinStyleRound.setChecked(True)
+        if penJoinStyle == 0x00:
+            self.ui.action_setPenJoinStyleMiter.setChecked(True)
+        if penJoinStyle == 0x40:
+            self.ui.action_setPenJoinStyleBevel.setChecked(True)
+        if temporary is False:
+            self.logger.info('Set pen join style to %d', penJoinStyle)
+            self.ui.drawingArea.changePenJoinStyleRoutine(penJoinStyle)
 
     def action_setBrushColour_triggered(self, brushColour, temporary=False):
         self.ui.action_setBrushColourBlack.setChecked(False)
@@ -669,12 +792,40 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.changeMinorGridPointSpacing(spacing)
 
     def initialiseSymbolViewer(self):
-        # Create a new file picker when the symbol directory pushbutton
+        # Create a new file picker when the symbol directory toolbutton
         # is triggered
-        self.ui.pushButton_symbolPreviewDirectory.clicked.connect(
-            lambda x: self.pickSymbolViewerDirectory())
+        self.ui.menu_symbolPreviewFolderPicker = QtWidgets.QMenu(self.ui.toolButton_symbolPreviewFolder)
+        self.ui.action_symbolPreviewFolderDefault = QtWidgets.QAction('Default', self)
+        self.ui.action_symbolPreviewFolderStandard = QtWidgets.QAction('Standard', self)
+        self.ui.action_symbolPreviewFolderCustom = QtWidgets.QAction('Custom', self)
+        self.ui.action_symbolPreviewFolder1 = QtWidgets.QAction('Folder 1', self)
+        self.ui.action_symbolPreviewFolder2 = QtWidgets.QAction('Folder 2', self)
+        self.ui.action_symbolPreviewFolder3 = QtWidgets.QAction('Folder 3', self)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderStandard)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderCustom)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder1)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder2)
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolder3)
+        self.ui.menu_symbolPreviewFolderPicker.addSeparator()
+        self.ui.menu_symbolPreviewFolderPicker.addAction(self.ui.action_symbolPreviewFolderDefault)
+        self.ui.toolButton_symbolPreviewFolder.setMenu(
+            self.ui.menu_symbolPreviewFolderPicker)
+        self.ui.toolButton_symbolPreviewFolder.clicked.connect(
+            lambda x: self.pickSymbolPreviewDirectory())
+        self.ui.action_symbolPreviewFolderDefault.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.defaultSymbolPreviewFolder))
+        self.ui.action_symbolPreviewFolderStandard.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory('Resources/Symbols/Standard'))
+        self.ui.action_symbolPreviewFolderCustom.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory('Resources/Symbols/Custom'))
+        self.ui.action_symbolPreviewFolder1.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.symbolPreviewFolder1))
+        self.ui.action_symbolPreviewFolder2.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.symbolPreviewFolder2))
+        self.ui.action_symbolPreviewFolder3.triggered.connect(
+            lambda x: self.pickSymbolPreviewDirectory(self.ui.drawingArea.symbolPreviewFolder3))
         # Connecting the symbol viewer to the appropriate model
-        self.fileSystemModel = QtWidgets.QFileSystemModel()
+        self.fileSystemModel = SymbolsListModel()
         if hasattr(self.ui.drawingArea, 'defaultSymbolPreviewFolder'):
             index = self.fileSystemModel.setRootPath(self.ui.drawingArea.defaultSymbolPreviewFolder)
         else:
@@ -704,8 +855,21 @@ class myMainWindow(QtWidgets.QMainWindow):
                 ['*' + self.ui.lineEdit_symbolPreviewFilter.text() + '*.sym']
             )
         )
+        # Set up the recent symbols list view and model
+        self.recentSymbolsModel = RecentSymbolsListModel()
+        self.recentSymbolsModel.setIconProvider(myIconProvider())
+        self.ui.listView_recentSymbols.setModel(self.recentSymbolsModel)
+        self.ui.listView_recentSymbols.setIconSize(QtCore.QSize(100, 100))
+        self.ui.listView_recentSymbols.doubleClicked.connect(
+            self.ui.drawingArea.escapeRoutine)
+        self.ui.listView_recentSymbols.doubleClicked.connect(
+            self.ui.drawingArea.setFocus)
+        self.ui.listView_recentSymbols.doubleClicked.connect(
+            lambda x: self.ui.drawingArea.loadRoutine(
+                mode='symbol',
+                loadFile=self.recentSymbolsModel.filePath(x)))
 
-    def pickSymbolViewerDirectory(self, dir_=None):
+    def pickSymbolPreviewDirectory(self, dir_=None):
         if dir_ is None:
             dir_ = QtWidgets.QFileDialog().getExistingDirectory(
                 self,
@@ -784,3 +948,77 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.statusbar.showMessage('Update completed', 1000)
         self.logger.info('Update completed')
         self.downloader.disconnect()
+
+
+class SymbolsListModel(QtWidgets.QFileSystemModel):
+    """Reimplements some functions of the file system model to enable some
+    extra functionality"""
+
+    def __init__(self, parent=None):
+        "Initialize the symbols list model"
+        super().__init__(parent)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if role == QtCore.Qt.ToolTipRole:
+            fileName = self.fileName(index)
+            return 'Double-click to add ' + fileName + ' to the schematic'
+        else:
+            return super().data(index, role)
+
+
+class RecentSymbolsListModel(QtCore.QAbstractListModel):
+    """Provides an implementation of the list model in order to show the most
+    recently used symbols as a list."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.recentsList = []
+        self.maxRecents = 100
+
+    def filePath(self, x):
+        return self.recentsList[x.row()]
+
+    def rowCount(self, index):
+        return len(self.recentsList)
+
+    def flags(self, index):
+        return (QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        fileInfo = QtCore.QFileInfo(self.recentsList[index.row()])
+        if role == QtCore.Qt.DisplayRole:
+            return fileInfo.fileName()
+        elif role == QtCore.Qt.DecorationRole:
+            icon = self.iconProvider.icon(fileInfo)
+            return icon
+        elif role == QtCore.Qt.ToolTipRole:
+            return 'Double-click to add ' + fileInfo.fileName() +\
+                ' to the schematic'
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        self.layoutAboutToBeChanged.emit()
+        if value in self.recentsList:
+            row = self.recentsList.index(value)
+            self.removeRows(row, index=self.index(row))
+        elif len(self.recentsList) == self.maxRecents:
+            row = len(self.recentsList) - 1
+            self.removeRows(row, index=QtCore.QModelIndex(row))
+        self.insertRows(value)
+        self.dataChanged.emit(self.index(0), self.index(len(self.recentsList)))
+        return True
+
+    def setIconProvider(self, iconProvider):
+        if isinstance(iconProvider, myIconProvider):
+            self.iconProvider = iconProvider
+
+    def insertRows(self, row):
+        self.beginInsertRows(QtCore.QModelIndex(), 0, 0)
+        self.recentsList.insert(0, row)
+        self.endInsertRows()
+        return True
+
+    def removeRows(self, row, count=1, index=QtCore.QModelIndex()):
+        self.beginRemoveRows(index, row, row+count-1)
+        self.recentsList.pop(row)
+        self.endRemoveRows()
+        return True

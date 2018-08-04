@@ -21,6 +21,7 @@ class Grid(QtCore.QObject):
         self.view = view
         self.enableGrid = True
         self.snapToGrid = True
+        self.snapNetToPin = True
         self.minorSpacing = minorSpacing
         self.majorSpacing = majorSpacing
         self.minorSpacingVisibility = True
@@ -34,6 +35,7 @@ class Grid(QtCore.QObject):
         self.yMinorPoints = list(range(0, self.yLength + self.minorSpacing, self.minorSpacing))
         self.xMajorPoints = list(range(0, self.xLength + self.majorSpacing, self.majorSpacing))
         self.yMajorPoints = list(range(0, self.yLength + self.majorSpacing, self.majorSpacing))
+        self.pinsPos = []
 
     def createGrid(self):
         self.xMinorPoints = list(range(0, self.xLength + self.minorSpacing, self.minorSpacing))
@@ -69,18 +71,28 @@ class Grid(QtCore.QObject):
     def removeGrid(self):
         self.view.setBackgroundBrush(QtGui.QBrush())
 
-    def snapTo(self, point, snapToGridSpacing=None):
+    def snapTo(self, point, snapToGridSpacing=None, pin=False):
         if snapToGridSpacing is None:
             newX = round(point.x()/self.snapToGridSpacing)*self.snapToGridSpacing
             newY = round(point.y()/self.snapToGridSpacing)*self.snapToGridSpacing
         else:
             newX = round(point.x()/snapToGridSpacing)*snapToGridSpacing
             newY = round(point.y()/snapToGridSpacing)*snapToGridSpacing
+        if pin is True:
+            if self.pinsPos == []:
+                return QtCore.QPointF(newX, newY)
+            if self.snapNetToPin is False:
+                return QtCore.QPointF(newX, newY)
+            pinsPos = [pos-QtCore.QPointF(newX, newY) for pos in self.pinsPos]
+            dist = [pin.x()**2 + pin.y()**2 for pin in pinsPos]
+            if min(dist) < 25*self.snapToGridSpacing**2:
+                closestPin = dist.index(min(dist))
+                newX, newY = self.pinsPos[closestPin].x(), self.pinsPos[closestPin].y()
         return QtCore.QPointF(newX, newY)
 
 
 class TextEditor(QtWidgets.QDialog):
-    def __init__(self, textBox=None):
+    def __init__(self, textBox=None, **kwargs):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -98,7 +110,7 @@ class TextEditor(QtWidgets.QDialog):
             else:
                 plainText = '$' + self.textBox.latexExpression + '$'
                 self.ui.textEdit.setPlainText(plainText)
-                self.ui.pushButton_latex.setChecked(True)
+                self.ui.toolButton_latex.setChecked(True)
                 cursor = self.ui.textEdit.textCursor()
                 cursor.setPosition(1)
                 self.ui.textEdit.setTextCursor(cursor)
@@ -124,12 +136,28 @@ class TextEditor(QtWidgets.QDialog):
         self.ui.pushButton_superscript.clicked.connect(self.modifyText)
         self.ui.pushButton_symbol.clicked.connect(self.modifyText)
         if not find_executable('latex'):
-            self.ui.pushButton_latex.setEnabled(False)
-        self.ui.pushButton_latex.clicked.connect(self.modifyText)
+            self.ui.toolButton_latex.setEnabled(False)
+        self.ui.toolButton_latex.clicked.connect(self.modifyText)
+        self.ui.latexMenu = QtWidgets.QMenu()
+        self.ui.action_useEulerFont = QtWidgets.QAction('Use Euler font', self)
+        self.ui.action_useEulerFont.setCheckable(True)
+        if 'eulerFont' in kwargs:
+            self.ui.action_useEulerFont.setChecked(kwargs['eulerFont'])
+        self.ui.latexMenu.addAction(self.ui.action_useEulerFont)
+        self.ui.toolButton_latex.setMenu(self.ui.latexMenu)
+        self.ui.label.hide()
+        self.latexPreviewTimer = QtCore.QTimer(self)
+        self.latexPreviewTimer.setInterval(1000)
+        self.latexPreviewTimer.setSingleShot(True)
+        self.latexPreviewTimer.timeout.connect(lambda: self.createLatexPreviewImage(self.ui.textEdit.toPlainText()))
+        if self.textBox is not None:
+            if self.textBox.latexExpression is not None:
+                self.ui.label.show()
+                self.createLatexPreviewImage(plainText)
 
     def accept(self):
         plainText = self.ui.textEdit.toPlainText()
-        if self.ui.pushButton_latex.isChecked():
+        if self.ui.toolButton_latex.isChecked():
             self.textBox.latexImageBinary = self.mathTexToQImage(plainText, self.font().pointSize(), self.textBox.localPenColour)
             # This will not be None if latex is installed
             if self.textBox.latexImageBinary is not None:
@@ -137,6 +165,7 @@ class TextEditor(QtWidgets.QDialog):
                 self.textBox.latexImageHtml = htmlString
                 self.textBox.latexExpression = plainText[1:-1]  # Skip $'s
                 self.textBox.setHtml(htmlString)
+                self.textBox.useEulerFont = self.ui.action_useEulerFont.isChecked()
                 logger.info('Set latex expression for %s to %s', self.textBox, self.textBox.latexExpression)
             else:
                 self.textBox.setHtml(self.ui.textEdit.toHtml())
@@ -158,7 +187,7 @@ class TextEditor(QtWidgets.QDialog):
         format = cursor.charFormat()
         bold, italic, underline, overline = True, True, True, True
         subscript, superscript, symbol = True, True, True
-        latex = self.ui.pushButton_latex.isChecked()
+        latex = self.ui.toolButton_latex.isChecked()
         if latex is not True:
             if cursor.hasSelection() is True:
                 start, end = cursor.selectionStart(), cursor.selectionEnd()
@@ -190,7 +219,7 @@ class TextEditor(QtWidgets.QDialog):
             self.ui.pushButton_symbol.setChecked(symbol)
 
     def latexDollarDecorators(self):
-        latex = self.ui.pushButton_latex.isChecked()
+        latex = self.ui.toolButton_latex.isChecked()
         if latex is True:
             plainText = self.ui.textEdit.toPlainText()
             cursor = self.ui.textEdit.textCursor()
@@ -210,6 +239,13 @@ class TextEditor(QtWidgets.QDialog):
             elif cursor.position() == len(plainText):
                 cursor.setPosition(len(plainText) - 1)
             self.ui.textEdit.setTextCursor(cursor)
+            self.latexPreviewTimer.start()
+
+    def createLatexPreviewImage(self, plainText):
+        latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
+        pix = QtGui.QPixmap()
+        pix.loadFromData(latexImageBinary.getvalue(), format='png')
+        self.ui.label.setPixmap(pix)
 
     def modifyText(self):
         bold = self.ui.pushButton_bold.isChecked()
@@ -219,10 +255,11 @@ class TextEditor(QtWidgets.QDialog):
         subscript = self.ui.pushButton_subscript.isChecked()
         superscript = self.ui.pushButton_superscript.isChecked()
         symbol = self.ui.pushButton_symbol.isChecked()
-        latex = self.ui.pushButton_latex.isChecked()
+        latex = self.ui.toolButton_latex.isChecked()
         cursor = self.ui.textEdit.textCursor()
         format = cursor.charFormat()
         if latex is not True:
+            self.ui.label.hide()
             if len(self.ui.textEdit.toPlainText()) > 0:
                 if self.ui.textEdit.toPlainText()[0] == '$':
                     self.ui.textEdit.setHtml('')
@@ -257,6 +294,7 @@ class TextEditor(QtWidgets.QDialog):
             cursor.mergeCharFormat(format)
             self.ui.textEdit.setTextCursor(cursor)
         else:
+            self.ui.label.show()
             self.ui.pushButton_bold.setChecked(False)
             self.ui.pushButton_italic.setChecked(False)
             self.ui.pushButton_underline.setChecked(False)
@@ -275,12 +313,13 @@ class TextEditor(QtWidgets.QDialog):
             cursor.setPosition(1)
             self.ui.textEdit.setTextCursor(cursor)
 
-    def mathTexToQImage(self, mathTex, fs, fc):
+    def mathTexToQImage(self, mathTex, fs, fc, dpi=None):
         """Use SymPy to generate the latex expression as a binary object, and save it to a file as an image.
         This saves the generated image within the object itself (which gets saved into a higher level
         schematic/symbol). As a result, the file size of the saved schematic/symbol is larger, but we
         benefit from greatly improved loading times."""
-        dpi = self.textBox.latexImageDpi * self.textBox.latexImageDpiScale
+        if dpi is None:
+            dpi = self.textBox.latexImageDpi * self.textBox.latexImageDpiScale
         obj = BytesIO()
 
         color = QtGui.QColor(fc)
@@ -288,10 +327,10 @@ class TextEditor(QtWidgets.QDialog):
         r, g, b = rgba[0], rgba[1], rgba[2]
         fg = 'rgb ' + str(r) + ' ' + str(g) + ' ' + str(b)
         try:
-            sympy.preview(mathTex, output='png', viewer='BytesIO', outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
+            sympy.preview(mathTex, output='png', viewer='BytesIO', euler=self.ui.action_useEulerFont.isChecked(), outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
             logger.info('Generating latex expression %s', mathTex)
         except RuntimeError:
-            self.ui.pushButton_latex.setChecked(False)
+            self.ui.toolButton_latex.setChecked(False)
             logger.info('Latex installation not detected (Sympy raised RuntimeError)')
             return None, None
 

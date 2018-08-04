@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .gui.ycircuit_optionsWindow import Ui_Dialog
+from .drawingitems import myFileDialog
 import os
 
 
@@ -28,8 +29,18 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         self.ui.pushButton_defaultSchematicSaveFolder.clicked.connect(self.changeDefaultSchematicSaveFolder)
         self.ui.pushButton_defaultSymbolSaveFolder.clicked.connect(self.changeDefaultSymbolSaveFolder)
-        self.ui.pushButton_defaultSymbolPreviewFolder.clicked.connect(self.changeDefaultSymbolPreviewFolder)
         self.ui.pushButton_defaultExportFolder.clicked.connect(self.changeDefaultExportFolder)
+
+        self.ui.pushButton_quickAddSymbol1.clicked.connect(lambda: self.changeQuickAddSymbol(1))
+        self.ui.pushButton_quickAddSymbol2.clicked.connect(lambda: self.changeQuickAddSymbol(2))
+        self.ui.pushButton_quickAddSymbol3.clicked.connect(lambda: self.changeQuickAddSymbol(3))
+        self.ui.pushButton_quickAddSymbol4.clicked.connect(lambda: self.changeQuickAddSymbol(4))
+        self.ui.pushButton_quickAddSymbol5.clicked.connect(lambda: self.changeQuickAddSymbol(5))
+
+        self.ui.pushButton_defaultSymbolPreviewFolder.clicked.connect(lambda: self.changeSymbolPreviewFolder('default'))
+        self.ui.pushButton_symbolPreviewFolder1.clicked.connect(lambda: self.changeSymbolPreviewFolder(1))
+        self.ui.pushButton_symbolPreviewFolder2.clicked.connect(lambda: self.changeSymbolPreviewFolder(2))
+        self.ui.pushButton_symbolPreviewFolder3.clicked.connect(lambda: self.changeSymbolPreviewFolder(3))
 
         self.ui.tableView_shortcuts.setItemDelegate(KeySequenceEditorDelegate())
         self.ui.tableView_shortcuts.setModel(self.shortcutsModel)
@@ -49,10 +60,13 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Font settings
         self.ui.fontComboBox_fontFamily.setCurrentText(self.settings.value('Painting/Font/Family', 'Arial'))
         self.ui.comboBox_fontPointSize.setCurrentText(self.settings.value('Painting/Font/Point size', '10'))
+        self.ui.checkBox_useEulerFontForLatex.setChecked(self.settings.value('Painting/Font/Use Euler font for LaTeX', True, type=bool))
         # Painting pen settings
         self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width', '4'))
         self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour', 'Black'))
         self.ui.comboBox_penStyle.setCurrentText(self.settings.value('Painting/Pen/Style', 'Solid'))
+        self.ui.comboBox_penCapStyle.setCurrentText(self.settings.value('Painting/Pen/Cap Style', 'Square'))
+        self.ui.comboBox_penJoinStyle.setCurrentText(self.settings.value('Painting/Pen/Join Style', 'Round'))
         # Painting brush settings
         self.ui.comboBox_brushColour.setCurrentText(self.settings.value('Painting/Brush/Colour', 'Black'))
         self.ui.comboBox_brushStyle.setCurrentText(self.settings.value('Painting/Brush/Style', 'No fill'))
@@ -79,7 +93,6 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.lineEdit_defaultSchematicSaveFolder.setText(self.settings.value('SaveExport/Schematic/Default save folder', './'))
         self.ui.checkBox_showSymbolPreview.setChecked(self.settings.value('SaveExport/Symbol/Show preview', True, type=bool))
         self.ui.lineEdit_defaultSymbolSaveFolder.setText(self.settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/'))
-        self.ui.lineEdit_defaultSymbolPreviewFolder.setText(self.settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/'))
         self.ui.comboBox_defaultExportFormat.setCurrentText(self.settings.value('SaveExport/Export/Default format', 'pdf'))
         self.ui.lineEdit_defaultExportFolder.setText(self.settings.value('SaveExport/Export/Default folder', './'))
         self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(self.settings.value('SaveExport/Export/Whitespace padding', '1.1', type=float))
@@ -98,14 +111,28 @@ class MyOptionsWindow(QtWidgets.QDialog):
         for item in self.shortcutsModel.actionShortcuts:
             item[1] = self.settings.value('Shortcuts/' + item[0], item[1])
 
+        # Misc settings
+        self.ui.lineEdit_quickAddSymbol1.setText(self.settings.value('Misc/Quick Add Symbol/1', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol2.setText(self.settings.value('Misc/Quick Add Symbol/2', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol3.setText(self.settings.value('Misc/Quick Add Symbol/3', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol4.setText(self.settings.value('Misc/Quick Add Symbol/4', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_quickAddSymbol5.setText(self.settings.value('Misc/Quick Add Symbol/5', 'Resources/Symbols/Standard/Resistor.sym'))
+        self.ui.lineEdit_defaultSymbolPreviewFolder.setText(self.settings.value('Misc/Symbol Preview Folder/Default', 'Resources/Symbols/Standard'))
+        self.ui.lineEdit_symbolPreviewFolder1.setText(self.settings.value('Misc/Symbol Preview Folder/1', 'Resources/Symbols/Standard'))
+        self.ui.lineEdit_symbolPreviewFolder2.setText(self.settings.value('Misc/Symbol Preview Folder/2', 'Resources/Symbols/Standard'))
+        self.ui.lineEdit_symbolPreviewFolder3.setText(self.settings.value('Misc/Symbol Preview Folder/3', 'Resources/Symbols/Standard'))
+
     def writeValues(self):
         # Font settings
         self.settings.setValue('Painting/Font/Family', self.ui.fontComboBox_fontFamily.currentText())
         self.settings.setValue('Painting/Font/Point size', self.ui.comboBox_fontPointSize.currentText())
+        self.settings.setValue('Painting/Font/Use Euler font for LaTeX', self.ui.checkBox_useEulerFontForLatex.isChecked())
         # Painting pen settings
         self.settings.setValue('Painting/Pen/Width', self.ui.comboBox_penWidth.currentText())
         self.settings.setValue('Painting/Pen/Colour', self.ui.comboBox_penColour.currentText())
         self.settings.setValue('Painting/Pen/Style', self.ui.comboBox_penStyle.currentText())
+        self.settings.setValue('Painting/Pen/Cap Style', self.ui.comboBox_penCapStyle.currentText())
+        self.settings.setValue('Painting/Pen/Join Style', self.ui.comboBox_penJoinStyle.currentText())
         # Painting brush settings
         self.settings.setValue('Painting/Brush/Colour', self.ui.comboBox_brushColour.currentText())
         self.settings.setValue('Painting/Brush/Style', self.ui.comboBox_brushStyle.currentText())
@@ -132,7 +159,6 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('SaveExport/Schematic/Default save folder', self.ui.lineEdit_defaultSchematicSaveFolder.text())
         self.settings.setValue('SaveExport/Symbol/Show preview', self.ui.checkBox_showSymbolPreview.isChecked())
         self.settings.setValue('SaveExport/Symbol/Default save folder', self.ui.lineEdit_defaultSymbolSaveFolder.text())
-        self.settings.setValue('SaveExport/Symbol/Default preview folder', self.ui.lineEdit_defaultSymbolPreviewFolder.text())
         self.settings.setValue('SaveExport/Export/Default format', self.ui.comboBox_defaultExportFormat.currentText())
         self.settings.setValue('SaveExport/Export/Default folder', self.ui.lineEdit_defaultExportFolder.text())
         self.settings.setValue('SaveExport/Export/Whitespace padding', self.ui.doubleSpinBox_exportImageWhitespacePadding.text())
@@ -151,6 +177,17 @@ class MyOptionsWindow(QtWidgets.QDialog):
         for item, shortcut in self.shortcutsModel.actionShortcuts:
             self.settings.setValue('Shortcuts/' + item, shortcut)
 
+        # Misc settings
+        self.settings.setValue('Misc/Quick Add Symbol/1', self.ui.lineEdit_quickAddSymbol1.text())
+        self.settings.setValue('Misc/Quick Add Symbol/2', self.ui.lineEdit_quickAddSymbol2.text())
+        self.settings.setValue('Misc/Quick Add Symbol/3', self.ui.lineEdit_quickAddSymbol3.text())
+        self.settings.setValue('Misc/Quick Add Symbol/4', self.ui.lineEdit_quickAddSymbol4.text())
+        self.settings.setValue('Misc/Quick Add Symbol/5', self.ui.lineEdit_quickAddSymbol5.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/Default', self.ui.lineEdit_defaultSymbolPreviewFolder.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/1', self.ui.lineEdit_symbolPreviewFolder1.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/2', self.ui.lineEdit_symbolPreviewFolder2.text())
+        self.settings.setValue('Misc/Symbol Preview Folder/3', self.ui.lineEdit_symbolPreviewFolder3.text())
+
         # Sync changes to disk
         self.settings.sync()
 
@@ -161,12 +198,15 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.beginGroup('Font')
         self.settings.setValue('Family', 'Arial')
         self.settings.setValue('Point size', '10')
+        self.settings.setValue('Use Euler font for LaTeX', True)
         self.settings.endGroup()
         # Painting pen settings
         self.settings.beginGroup('Pen')
         self.settings.setValue('Width', '4')
         self.settings.setValue('Colour', 'Black')
         self.settings.setValue('Style', 'Solid')
+        self.settings.setValue('Cap Style', 'Square')
+        self.settings.setValue('Join Style', 'Round')
         self.settings.endGroup()
         # Painting brush settings
         self.settings.beginGroup('Brush')
@@ -210,7 +250,6 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.beginGroup('Symbol')
         self.settings.setValue('Show preview', True)
         self.settings.setValue('Default save folder', 'Resources/Symbols/Custom/')
-        self.settings.setValue('Default preview folder', 'Resources/Symbols/Standard/')
         self.settings.endGroup()
         self.settings.beginGroup('Export')
         self.settings.setValue('Default format', 'pdf')
@@ -235,6 +274,23 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.endGroup()
         self.settings.endGroup()
 
+        # Misc settings
+        self.settings.beginGroup('Misc')
+        self.settings.beginGroup('Quick Add Symbol')
+        self.settings.setValue('1', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('2', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('3', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('4', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.setValue('5', 'Resources/Symbols/Standard/Resistor.sym')
+        self.settings.endGroup()
+        self.settings.beginGroup('Symbol Preview Folder')
+        self.settings.setValue('Default', 'Resources/Symbols/Standard/')
+        self.settings.setValue('1', 'Resources/Symbols/Standard')
+        self.settings.setValue('2', 'Resources/Symbols/Standard')
+        self.settings.setValue('3', 'Resources/Symbols/Standard')
+        self.settings.endGroup()
+        self.settings.endGroup()
+
         # Write data to disk
         self.settings.sync()
 
@@ -254,13 +310,27 @@ class MyOptionsWindow(QtWidgets.QDialog):
         if defaultFolder != '':
             self.ui.lineEdit_defaultSymbolSaveFolder.setText(dir_.relativeFilePath(defaultFolder))
 
-    def changeDefaultSymbolPreviewFolder(self):
+    def changeSymbolPreviewFolder(self, kind='default'):
         fileDialog = QtWidgets.QFileDialog()
-        defaultFolder = self.ui.lineEdit_defaultSymbolPreviewFolder.text()
+        if kind == 'default':
+            defaultFolder = self.ui.lineEdit_defaultSymbolPreviewFolder.text()
+        elif kind == 1:
+            defaultFolder = self.ui.lineEdit_symbolPreviewFolder1.text()
+        elif kind == 2:
+            defaultFolder = self.ui.lineEdit_symbolPreviewFolder2.text()
+        elif kind == 3:
+            defaultFolder = self.ui.lineEdit_symbolPreviewFolder3.text()
         defaultFolder = fileDialog.getExistingDirectory(self, 'Choose default symbol preview folder', defaultFolder)
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
-            self.ui.lineEdit_defaultSymbolPreviewFolder.setText(dir_.relativeFilePath(defaultFolder))
+            if kind == 'default':
+                self.ui.lineEdit_defaultSymbolPreviewFolder.setText(dir_.relativeFilePath(defaultFolder))
+            elif kind == 1:
+                self.ui.lineEdit_symbolPreviewFolder1.setText(dir_.relativeFilePath(defaultFolder))
+            elif kind == 2:
+                self.ui.lineEdit_symbolPreviewFolder2.setText(dir_.relativeFilePath(defaultFolder))
+            elif kind == 3:
+                self.ui.lineEdit_symbolPreviewFolder3.setText(dir_.relativeFilePath(defaultFolder))
 
     def changeDefaultExportFolder(self):
         fileDialog = QtWidgets.QFileDialog()
@@ -269,6 +339,40 @@ class MyOptionsWindow(QtWidgets.QDialog):
         dir_ = QtCore.QDir('./')
         if defaultFolder != '':
             self.ui.lineEdit_defaultExportFolder.setText(dir_.relativeFilePath(defaultFolder))
+
+    def changeQuickAddSymbol(self, index):
+        if index == 1:
+            defaultFile = self.ui.lineEdit_quickAddSymbol1.text()
+        elif index == 2:
+            defaultFile = self.ui.lineEdit_quickAddSymbol2.text()
+        elif index == 3:
+            defaultFile = self.ui.lineEdit_quickAddSymbol3.text()
+        elif index == 4:
+            defaultFile = self.ui.lineEdit_quickAddSymbol4.text()
+        elif index == 5:
+            defaultFile = self.ui.lineEdit_quickAddSymbol5.text()
+        fileDialog = myFileDialog(
+            self,
+            'Load Symbol',
+            defaultFile,
+            filt='Symbols (*.sym)',
+            mode='load',
+            showSymbolPreview=True)
+        loadFile = ''
+        if fileDialog.exec_():
+            loadFile = str(fileDialog.selectedFiles()[0])
+        if loadFile != '':
+            dir_ = QtCore.QDir('./')
+            if index == 1:
+                self.ui.lineEdit_quickAddSymbol1.setText(dir_.relativeFilePath(loadFile))
+            elif index == 2:
+                self.ui.lineEdit_quickAddSymbol2.setText(dir_.relativeFilePath(loadFile))
+            elif index == 3:
+                self.ui.lineEdit_quickAddSymbol3.setText(dir_.relativeFilePath(loadFile))
+            elif index == 4:
+                self.ui.lineEdit_quickAddSymbol4.setText(dir_.relativeFilePath(loadFile))
+            elif index == 5:
+                self.ui.lineEdit_quickAddSymbol5.setText(dir_.relativeFilePath(loadFile))
 
 
 class ShortcutsModel(QtCore.QAbstractTableModel):
@@ -303,9 +407,14 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Reset height', 'Ctrl+0'],
             ['Group', 'Ctrl+G'],
             ['Ungroup', 'Ctrl+Shift+G'],
+            ['Scale', ''],
             ['Options', 'Ctrl+P'],
             # View menu
+            ['Zoom in', 'Z'],
+            ['Zoom out', 'Shift+Z'],
             ['Fit to view', 'F'],
+            ['Show pin(s)', 'Shift+P'],
+            ['Snap net to pin', 'S'],
             ['Show grid', 'G'],
             ['Snap to grid', ''],
             ['Show major grid points', ''],
@@ -319,11 +428,17 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Draw text box', ''],
             ['Edit shape', 'E'],
             # Symbol menu
+            ['Draw pin', 'P'],
             ['Draw wire', 'W'],
             ['Draw resistor', ''],
             ['Draw capacitor', ''],
             ['Draw ground', ''],
-            ['Draw connection dot', '']
+            ['Draw connection dot', ''],
+            ['Quick add symbol 1', 'Ctrl+1'],
+            ['Quick add symbol 2', 'Ctrl+2'],
+            ['Quick add symbol 3', 'Ctrl+3'],
+            ['Quick add symbol 4', 'Ctrl+4'],
+            ['Quick add symbol 5', 'Ctrl+5'],
         ]
 
     def flags(self, index):

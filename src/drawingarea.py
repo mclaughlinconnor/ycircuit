@@ -13,7 +13,38 @@ logger = logging.getLogger('YCircuit.drawingarea')
 # from src import components
 # import sys
 # sys.modules['components'] = components
+class DrawingAreaPreview(QtWidgets.QGraphicsView):
+    """The drawing area preview is subclassed from QGraphicsView to provide
+    additional functionality such as highlighting the currently viewed area
+    etc."""
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.visibleRect = QtCore.QRectF()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QtGui.QPainter(self.viewport())
+        pen = QtGui.QPen()
+        pen.setColor(QtGui.QColor('black'))
+        pen.setWidth(2)
+        painter.setPen(pen)
+        painter.drawRect(self.visibleRect)
+        self.drawForeground(painter, self.visibleRect)
+
+    def fitToViewRoutine(self):
+        """Resizes viewport so that all items drawn are visible"""
+        if len(self.scene().items()) == 1:
+            # Fit to (0, 0, 800, 800) if nothing is present
+            rect = QtCore.QRectF(0, 0, 800, 800)
+            self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+        else:
+            self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+
+    def updateVisibleRect(self):
+        self.visibleRect = self.drawingArea.mapToScene(self.drawingArea.viewport().geometry()).boundingRect()
+        self.visibleRect = QtCore.QRectF(self.mapFromScene(self.visibleRect).boundingRect())
+        self.fitToViewRoutine()
 
 class DrawingArea(QtWidgets.QGraphicsView):
     """The drawing area is subclassed from QGraphicsView to provide additional
@@ -31,6 +62,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # If that happens, uncomment the line below
         # self.scene().setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
+        self.scene().setMinimumRenderSize(2)
         self.parent = parent
         self._keys = {
             'c': False,
@@ -50,6 +82,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         }
         self._mouse = {'1': False}
         self._grid = Grid(None, self)
+        self.showPins = True
         self.undoStack = QtWidgets.QUndoStack(self)
         self.undoStack.setUndoLimit(1000)
         self.reflections = 0
@@ -68,8 +101,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.settingsFileName = '.config'
 
         self.mouseRect = QtWidgets.QGraphicsRectItem(QtCore.QRectF(-4, -4, 8, 8))
-        self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('gray')))
+        self.mouseRect.setPen(QtGui.QPen(QtGui.QColor('darkGray')))
         self.mouseRect.setTransform(QtGui.QTransform().rotate(45))
+        self.mouseRect.setZValue(1000)
         self.showMouseRect = True # Required for autobackup load routine below
         self.autobackupEnable = True # Required for autobackup load routine below
 
@@ -88,6 +122,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if loadFile != autobackupFileNameTemplate:
             self.loadRoutine(mode='schematic', loadFile=loadFile)
             self.schematicFileName = None
+            # Push a dummy undo command so that the user is prompted to save
+            self.undoStack.push(QtWidgets.QUndoCommand(None))
         else:
             # If backup existed, delete it
             if glob.glob(autobackupFileNameTemplate + '*') != []:
@@ -100,6 +136,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.autobackupTimer.start()
 
     def applySettingsFromFile(self, fileName=None):
+        """When provided with an appropriate settings filename, this method
+        opens it for reading and extracts various parameters and sets them."""
         # Load settings file
         settings = QtCore.QSettings(fileName, QtCore.QSettings.IniFormat)
         logger.info('Applying settings from file %s', fileName)
@@ -110,6 +148,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedFont = QtGui.QFont()
         self.selectedFont.setFamily(fontFamily)
         self.selectedFont.setPointSize(fontPointSize)
+        self.useEulerFontForLatex = settings.value('Painting/Font/Use Euler font for LaTeX', True, type=bool)
+        self.selectedScale = 1.0
         # Painting settings
         self.selectedWidth = settings.value('Painting/Pen/Width', '4', type=int)
         self.selectedPenColour = settings.value('Painting/Pen/Colour', 'Black')
@@ -118,6 +158,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.selectedBrushColour = settings.value('Painting/Brush/Colour', 'Black')
         brushStyles = {'No fill': 0, 'Solid': 1}
         self.selectedBrushStyle = brushStyles[settings.value('Painting/Brush/Style', 'No fill')]
+        penCapStyles = {'Square': 0x10, 'Round': 0x20, 'Flat': 0x00}
+        self.selectedPenCapStyle = penCapStyles[settings.value('Painting/Pen/Cap Style', 'Square')]
+        penJoinStyles = {'Round': 0x80, 'Miter': 0x00, 'Bevel': 0x40}
+        self.selectedPenJoinStyle = penJoinStyles[settings.value('Painting/Pen/Join Style', 'Round')]
         self.rotateDirection = settings.value('Painting/Rotation/Direction', 'Clockwise')
         self.rotateAngle = settings.value('Painting/Rotation/Angle', '45', type=float)
         if self.rotateDirection == 'Counter-clockwise':
@@ -151,10 +195,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.showSymbolPreview = settings.value('SaveExport/Symbol/Show preview', True, type=bool)
         if not (hasattr(self, 'defaultSymbolSaveFolder') and self.defaultSymbolSaveFolder is None):
             self.defaultSymbolSaveFolder = settings.value('SaveExport/Symbol/Default save folder', 'Resources/Symbols/Custom/')
-        self.defaultSymbolPreviewFolder = settings.value('SaveExport/Symbol/Default preview folder', 'Resources/Symbols/Standard/')
-        # When the program is starting, myMainWindow will not have fileSystemModel
-        if hasattr(self.window(), 'fileSystemModel'):
-            self.window().pickSymbolViewerDirectory(self.defaultSymbolPreviewFolder)
         # Create default directory if it does not exist
         if self.defaultSymbolSaveFolder is not None:
             if not os.path.isdir(self.defaultSymbolSaveFolder):
@@ -188,7 +228,22 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if 'Shortcuts' in settings.childGroups():
             self.applyShortcuts(settings)
 
+        # Misc settings
+        self.quickAddSymbol1 = settings.value('Misc/Quick Add Symbol/1', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol2 = settings.value('Misc/Quick Add Symbol/2', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol3 = settings.value('Misc/Quick Add Symbol/3', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol4 = settings.value('Misc/Quick Add Symbol/4', 'Resources/Symbols/Standard/Resistor.sym')
+        self.quickAddSymbol5 = settings.value('Misc/Quick Add Symbol/5', 'Resources/Symbols/Standard/Resistor.sym')
+        self.defaultSymbolPreviewFolder = settings.value('Misc/Symbol Preview Folder/Default', 'Resources/Symbols/Standard/')
+        # When the program is starting, myMainWindow will not have fileSystemModel
+        if hasattr(self.window(), 'fileSystemModel'):
+            self.window().pickSymbolPreviewDirectory(self.defaultSymbolPreviewFolder)
+        self.symbolPreviewFolder1 = settings.value('Misc/Symbol Preview Folder/1', 'Resources/Symbols/Standard/')
+        self.symbolPreviewFolder2 = settings.value('Misc/Symbol Preview Folder/2', 'Resources/Symbols/Standard/')
+        self.symbolPreviewFolder3 = settings.value('Misc/Symbol Preview Folder/3', 'Resources/Symbols/Standard/')
+
     def applyShortcuts(self, settings):
+        """Applies shortcuts for the various functions part of YCircuit"""
         ui = self.window().ui
         try:
             actionShortcuts = [
@@ -219,9 +274,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Reset height', ui.action_heightReset],
                 ['Group', ui.action_group],
                 ['Ungroup', ui.action_ungroup],
+                ['Scale', ui.action_setScale],
                 ['Options', ui.action_options],
                 # View menu
+                ['Zoom in', ui.action_zoomIn],
+                ['Zoom out', ui.action_zoomOut],
                 ['Fit to view', ui.action_fitToView],
+                ['Show pin(s)', ui.action_showPins],
+                ['Snap net to pin', ui.action_snapNetToPin],
                 ['Show grid', ui.action_showGrid],
                 ['Snap to grid', ui.action_snapToGrid],
                 ['Show major grid points', ui.action_showMajorGridPoints],
@@ -235,26 +295,43 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Draw text box', ui.action_addTextBox],
                 ['Edit shape', ui.action_editShape],
                 # Symbol menu
+                ['Draw pin', ui.action_addPin],
                 ['Draw wire', ui.action_addWire],
                 ['Draw resistor', ui.action_addResistor],
                 ['Draw capacitor', ui.action_addCapacitor],
                 ['Draw ground', ui.action_addGround],
-                ['Draw connection dot', ui.action_addDot]
+                ['Draw connection dot', ui.action_addDot],
+                ['Quick add symbol 1', ui.action_quickAddSymbol1],
+                ['Quick add symbol 2', ui.action_quickAddSymbol2],
+                ['Quick add symbol 3', ui.action_quickAddSymbol3],
+                ['Quick add symbol 4', ui.action_quickAddSymbol4],
+                ['Quick add symbol 5', ui.action_quickAddSymbol5]
             ]
             for item, action in actionShortcuts:
-                action.setShortcut(QtGui.QKeySequence(settings.value('Shortcuts/'+item)))
+                if settings.contains('Shortcuts/'+item):
+                    action.setShortcut(QtGui.QKeySequence(settings.value('Shortcuts/'+item)))
         except:
             pass
 
+    def addPin(self):
+        """Load standard pin"""
+        self.escapeRoutine()
+        start = self.mapToGrid(self.currentPos)
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Pin.sym')
+        self.loadItem.isPin = True
+
     def addWire(self):
-        """Set _key to wire mode so that a wire is added when LMB is pressed"""
+        """Create a poly-line. The wire name used here is a relic
+        from the past where poly-lines doubled as nets."""
+        # Set _key to wire mode so that a wire is added when LMB is pressed
         self.escapeRoutine()
         self._keys['w'] = True
         self.currentWire = None
         self.statusbarMessage.emit('Left click to begin drawing a new line (press ESC to cancel)', 0)
 
     def addArc(self, points=3):
-        """Set _key to arc mode so that an arc is added when LMB is pressed"""
+        """Create an arc with _points_ number of points"""
+        # Set _key to arc mode so that an arc is added when LMB is pressed
         self.escapeRoutine()
         self._keys['arc'] = True
         self.arcPoints = points
@@ -262,28 +339,32 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.statusbarMessage.emit('Left click to begin drawing a new arc (press ESC to cancel)', 0)
 
     def addRectangle(self):
-        """Set _key to rectangle mode so that a rectangle is added when LMB is pressed"""
+        """Create a rectangle"""
+        # Set _key to rectangle mode so that a rectangle is added when LMB is pressed
         self.escapeRoutine()
         self._keys['rectangle'] = True
         self.currentRectangle = None
         self.statusbarMessage.emit('Left click to begin drawing a new rectangle (press ESC to cancel)', 0)
 
     def addCircle(self):
-        """Set _key to circle mode so that a circle is added when LMB is pressed"""
+        """Create a circle"""
+        # Set _key to circle mode so that a circle is added when LMB is pressed
         self.escapeRoutine()
         self._keys['circle'] = True
         self.currentCircle = None
         self.statusbarMessage.emit('Left click to begin drawing a new circle (press ESC to cancel)', 0)
 
     def addEllipse(self):
-        """Set _key to ellipse mode so that an ellipse is added when LMB is pressed"""
+        """Create an ellipse"""
+        # Set _key to ellipse mode so that an ellipse is added when LMB is pressed
         self.escapeRoutine()
         self._keys['ellipse'] = True
         self.currentEllipse = None
         self.statusbarMessage.emit('Left click to begin drawing a new ellipse (press ESC to cancel)', 0)
 
     def addTextBox(self):
-        """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
+        """Create a text box"""
+        # Set _key to textBox mode so that a textbox is added when LMB is pressed
         self.escapeRoutine()
         cursor = self.cursor()
         cursor.setShape(QtCore.Qt.IBeamCursor)
@@ -293,7 +374,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.statusbarMessage.emit('Left click to pick the location of the new text box (press ESC to cancel)', 0)
 
     def addImage(self):
-        """Set _key to textBox mode so that a textbox is added when LMB is pressed"""
+        """Import an image"""
         self.escapeRoutine()
         cursor = self.cursor()
         cursor.setShape(QtCore.Qt.IBeamCursor)
@@ -303,11 +384,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.statusbarMessage.emit('Left click to pick the location of the new image (press ESC to cancel)', 0)
 
     def addNet(self):
-        """Set _key to net mode so that a net is added when LMB is pressed"""
+        """Add a net. Nets are different from wires in that nets can only be
+        created at right angles and automatically merge/split as needed."""
+        # Set _key to net mode so that a net is added when LMB is pressed
         self.escapeRoutine()
         self._keys['net'] = True
         self.currentNet = None
-        self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
+        self._grid.pinsPos = []
+        # Create a list of all pins in the schematic
+        for item in self.scene().items():
+            if isinstance(item, myGraphicsItemGroup):
+                if hasattr(item, 'isPin'):
+                    if item.isPin is True:
+                        self._grid.pinsPos.append(item.scenePos())
+        self.statusbarMessage.emit('Left click to begin drawing a new net (press ' + self.window().ui.action_snapNetToPin.shortcut().toString() + ' to toggle snapping to pins or press ESC to cancel)', 0)
 
     def addResistor(self):
         """Load the standard resistor"""
@@ -325,7 +415,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Load the standard ground symbol"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
-        self.loadRoutine('symbol', './Resources/Symbols/Standard/Ground.sym')
+        self.loadRoutine('symbol', './Resources/Symbols/Standard/Ground_earth.sym')
 
     def addDot(self):
         """Load the standard dot symbol"""
@@ -355,6 +445,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.loadRoutine('symbol', './Resources/Symbols/Standard/BJT_PNP.sym')
 
     def addSource(self, kind='DCV'):
+        """Load the standard dependent/independent source"""
         self.escapeRoutine()
         start = self.mapToGrid(self.currentPos)
         if kind == 'DCV':
@@ -372,28 +463,76 @@ class DrawingArea(QtWidgets.QGraphicsView):
         elif kind == 'CCCS':
             self.loadRoutine('symbol', './Resources/Symbols/Standard/Source_CCCS.sym')
 
+    def quickAddSymbol(self, kind=1):
+        """Quickly add symbols as defined in the settings file"""
+        self.escapeRoutine()
+        start = self.mapToGrid(self.currentPos)
+        if kind == 1:
+            if os.path.isfile(self.quickAddSymbol1):
+                self.loadRoutine('symbol', self.quickAddSymbol1)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 2:
+            if os.path.isfile(self.quickAddSymbol2):
+                self.loadRoutine('symbol', self.quickAddSymbol2)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 3:
+            if os.path.isfile(self.quickAddSymbol3):
+                self.loadRoutine('symbol', self.quickAddSymbol3)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 4:
+            if os.path.isfile(self.quickAddSymbol4):
+                self.loadRoutine('symbol', self.quickAddSymbol4)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+        if kind == 5:
+            if os.path.isfile(self.quickAddSymbol5):
+                self.loadRoutine('symbol', self.quickAddSymbol5)
+            else:
+                self.statusbarMessage.emit('Please check that the quick access symbol exists', 1000)
+
     def autobackupRoutine(self):
+        """Convenience function for saving the autobackup file"""
         if self.autobackupEnable is True:
             self.saveRoutine(mode='autobackup')
             self.autobackupFile.flush()
 
     def listOfItemsToSave(self, mode='schematicAs'):
+        """Convenience function for generating the list of items to save. Most
+        useful when paired with the autobackup utility. In such a case, we do
+        not wish to save items that are eg. being selected/moved."""
         listOfItems = [item for item in self.scene().items() if item.parentItem() is None]
+        # Remove the mouse diamond if it is present
         if self.mouseRect in listOfItems:
             listOfItems.remove(self.mouseRect)
+        # If mode is not autobackup, return everything else
         if mode != 'autobackup':
             return listOfItems
         removeItems = []
+        # Remove items being added/moved
         if self._keys['m'] is True or self._keys['add'] is True:
             removeItems = self.moveItems
+        # Remove the current rectangle being drawn
         if self._keys['rectangle'] is True:
             removeItems = [self.currentRectangle]
+        # Remove the current circle being drawn
         if self._keys['circle'] is True:
             removeItems = [self.currentCircle]
+        # Remove the current ellipse being drawn
         if self._keys['ellipse'] is True:
             removeItems = [self.currentEllipse]
+        # Remove the current wire being drawn
         if self._keys['w'] is True:
             removeItems = [self.currentWire]
+        # Remove the current net being drawn
+        if self._keys['net'] is True:
+            removeItems = [self.currentNet]
+            if hasattr(self.currentNet, 'perpLine'):
+                if self.currentNet.perpLine is not None:
+                    removeItems.append(self.currentNet.perpLine)
+        # Remove the current arc being drawn
         if self._keys['arc'] is True:
             removeItems = [self.currentArc]
         for item in removeItems:
@@ -453,6 +592,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Set relative origins of child items
             for item in listOfItems:
                 item.origin = item.pos() - saveObject.origin
+                if hasattr(item, 'isPin'):
+                    if item.isPin is True:
+                        saveObject.pins.append(item)
                 item.lightenColour(False)
                 logger.info('Setting origin for item %s to %s', item, item.origin)
             saveObject.setItems(listOfItems)
@@ -528,6 +670,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     # Create and save a preview of the file unless when creating an autobackup
                     if self.mouseRect in self.scene().items():
                         self.scene().removeItem(self.mouseRect)
+                    saveObject.lightenColour(False)
                     saveObject.icon = QtCore.QByteArray()
                     buf = QtCore.QBuffer(saveObject.icon)
                     img = myIconProvider().createIconPixmap(saveObject, self.scene()).toImage()
@@ -652,7 +795,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             printer.setPageSize(pageSize)
             painter = QtGui.QPainter(printer)
             self.scene().render(painter, source=sourceRect)
-            logger.info('Rendering SVG')
+            logger.info('Rendering PDF')
         elif mode == 'svg':
             svgGenerator = QtSvg.QSvgGenerator()
             svgGenerator.setFileName(saveFile)
@@ -661,7 +804,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             svgGenerator.setViewBox(QtCore.QRect(0, 0, width, height))
             painter = QtGui.QPainter(svgGenerator)
             self.scene().render(painter, source=sourceRect)
-            logger.info('Rendering PDF')
+            logger.info('Rendering SVG')
         elif mode == 'image':
             # Create an image object
             img = QtGui.QImage(
@@ -689,6 +832,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         logger.info('Finishing export')
 
     def loadAutobackupRoutine(self, loadFile=None):
+        """Convenience function that generates a message box asking the user
+        whether they would like to recover from the backup"""
         # Ask if you would like to recover the autobackup
         msgBox = QtWidgets.QMessageBox(self)
         msgBox.setWindowTitle("Recover file")
@@ -801,6 +946,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     loadItem.listOfItems,
                     mode='symbol')
                 self.scene().addItem(self.loadItem)
+                self.loadItem.pinVisibility(self.showPins)
+                self.window().recentSymbolsModel.setData(QtCore.QModelIndex(), loadFile)
                 # loadItem.loadItems('symbol')
             if mode == 'schematic' or mode == 'symbolModify':
                 loadItem.setPos(loadItem.origin)
@@ -983,13 +1130,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
         itemsToDelete = self.scene().selectedItems()
         for item2 in self.scene().selectedItems():
             if isinstance(item2, Net):
-                netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
+                netList = [item for item in self.scene().items() if
+                           (isinstance(item, Net) and
+                            item.collidesWithItem(item2)) and
+                           item not in self.scene().selectedItems()
+                ]
+                pinList = [item for item in self.scene().items() if
+                            (isinstance(item, myGraphicsItemGroup) and
+                            hasattr(item, 'isPin') and
+                            item.isPin is True and
+                            item.collidesWithItem(self.currentNet))
+                ]
                 if item2 in netList:
                     netList.remove(item2)
                 for item in netList[:]:
                     mergedNet = item.mergeNets(netList[:], self.undoStack)
                     if mergedNet is not None:
-                        mergedNet.splitNets(netList[:], self.undoStack)
+                        mergedNet.splitNets(netList[:], pinList, self.undoStack)
         del1 = Delete(None, self.scene(), itemsToDelete)
         self.undoStack.push(del1)
         self.undoStack.endMacro()
@@ -1009,6 +1166,19 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self.showMouseRect is True:
                 self.scene().addItem(self.mouseRect)
             logger.info('Set viewport to %s', self.scene().itemsBoundingRect())
+        # Also update the preview area
+        self.drawingAreaPreview.updateVisibleRect()
+
+    def togglePinsRoutine(self):
+        """Toggles visibility of pins on symbols"""
+        self.showPins = not self.showPins
+        for item in self.scene().items():
+            if isinstance(item, myGraphicsItemGroup):
+                item.pinVisibility(self.showPins)
+
+    def toggleSnapNetToPinRoutine(self):
+        """Toggles snapping of nets to nearest pin while drawing nets"""
+        self._grid.snapNetToPin = not self._grid.snapNetToPin
 
     def toggleGridRoutine(self):
         """Toggles grid on and off"""
@@ -1033,6 +1203,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             logger.info('Snap to grid is disabled')
 
     def changeSnapToGridSpacing(self, spacing):
+        """Changes the snap to grid spacing"""
         if spacing != self._grid.snapToGridSpacing:
             self._grid.snapToGridSpacing = spacing
 
@@ -1049,6 +1220,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
 
     def changeMajorGridPointSpacing(self, spacing):
+        """Changes the major grid point spacing"""
         if spacing != self._grid.majorSpacing:
             self._grid.majorSpacing = spacing
             self.statusbarMessage.emit('Major grid point spacing changed to ' + str(spacing), 2000)
@@ -1068,6 +1240,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
 
     def changeMinorGridPointSpacing(self, spacing):
+        """Changes the minor grid point spacing"""
         if spacing != self._grid.minorSpacing:
             self._grid.minorSpacing = spacing
             self.statusbarMessage.emit('Minor grid point spacing changed to ' + str(spacing), 2000)
@@ -1075,6 +1248,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self._grid.createGrid()
 
     def changeFontRoutine(self, selectedFont):
+        """Convenience function for changing the font to selectedFont"""
         if self.scene().selectedItems() != []:
             sameFont = True
             for item in self.scene().selectedItems():
@@ -1095,6 +1269,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                    2000)
 
     def changeHeightRoutine(self, mode='reset'):
+        """Changes the height of the selected items. If mode is 'reset', sets
+        the height to 0."""
         if self.scene().selectedItems == []:
             return
         else:
@@ -1120,7 +1296,35 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 "Reset the height(s) of the selected item(s)",
                 2000)
 
+    def changeScaleRoutine(self, selectedScale):
+        """Changes the scale of the selected items to selectedScale."""
+        self.undoStack.beginMacro('')
+        group = False
+        # if len(self.scene().selectedItems()) > 1:
+        #     scaleList = [item.localScale for item in self.scene().selectedItems()]
+        #     scaleList.sort()
+        #     if scaleList[0] == scaleList[-1]:
+        #         if scaleList[0] == selectedScale:
+        #             return
+        #     group = True
+        #     self.groupItems('group')
+        for item in self.scene().selectedItems():
+            changeScale = ChangeScale(
+                None,
+                # self.scene().selectedItems()[0],
+                item,
+                scale=selectedScale,
+                group=group)
+            self.undoStack.push(changeScale)
+        # if group is True:
+        #     self.groupItems('ungroup')
+        self.undoStack.endMacro()
+        self.statusbarMessage.emit(
+            "Changed scale of the selected item(s) to %1.2f" %(selectedScale),
+            2000)
+
     def changeWidthRoutine(self, selectedWidth):
+        """Changes the width of the selected items to selectedWidth."""
         if self.scene().selectedItems() != []:
             sameWidth = True
             for item in self.scene().selectedItems():
@@ -1149,6 +1353,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changePenColourRoutine(self, selectedPenColour):
+        """Changes the pen colour for the selected items to selectedPenColour."""
         selectedPenColour = QtGui.QColor(selectedPenColour)
         if self.scene().selectedItems() != []:
             sameColour = True
@@ -1176,6 +1381,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changePenStyleRoutine(self, selectedPenStyle):
+        """Changes the pen style for the selected items to selectedPenStyle."""
         styles = {
             1: 'solid',
             2: 'dash',
@@ -1208,7 +1414,75 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 "Changed pen style to %s" %(styles[selectedPenStyle]),
                 2000)
 
+    def changePenCapStyleRoutine(self, selectedPenCapStyle):
+        """Changes the pen cap style for the selected items to
+        selectedPenCapStyle."""
+        styles = {
+            0x10: 'square',
+            0x20: 'round',
+            0x00: 'flat',
+        }
+        if self.scene().selectedItems() != []:
+            samePenCapStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedPenCapStyle != item.getLocalPenParameters('capStyle'):
+                        samePenCapStyle = False
+                        break
+                elif selectedPenCapStyle != item.localPen.capStyle():
+                    samePenCapStyle = False
+                    break
+            if samePenCapStyle is False:
+                changePen = ChangePen(
+                    None,
+                    self.scene().selectedItems(),
+                    penCapStyle=selectedPenCapStyle)
+                self.undoStack.push(changePen)
+                self.statusbarMessage.emit(
+                    "Changed the pen cap style of the selected item(s) to %s" %(styles[selectedPenCapStyle]),
+                    2000)
+        elif selectedPenCapStyle != self.selectedPenCapStyle:
+            self.selectedPenCapStyle = selectedPenCapStyle
+            self.statusbarMessage.emit(
+                "Changed pen cap style to %s" %(styles[selectedPenCapStyle]),
+                2000)
+
+    def changePenJoinStyleRoutine(self, selectedPenJoinStyle):
+        """Changes the pen join style for the selected items to
+        selectedPenJoinStyle."""
+        styles = {
+            0x80: 'round',
+            0x00: 'miter',
+            0x40: 'bevel',
+        }
+        if self.scene().selectedItems() != []:
+            samePenJoinStyle = True
+            for item in self.scene().selectedItems():
+                if isinstance(item, myGraphicsItemGroup):
+                    if selectedPenJoinStyle != item.getLocalPenParameters('joinStyle'):
+                        samePenJoinStyle = False
+                        break
+                elif selectedPenJoinStyle != item.localPen.joinStyle():
+                    samePenJoinStyle = False
+                    break
+            if samePenJoinStyle is False:
+                changePen = ChangePen(
+                    None,
+                    self.scene().selectedItems(),
+                    penJoinStyle=selectedPenJoinStyle)
+                self.undoStack.push(changePen)
+                self.statusbarMessage.emit(
+                    "Changed the pen join style of the selected item(s) to %s" %(styles[selectedPenJoinStyle]),
+                    2000)
+        elif selectedPenJoinStyle != self.selectedPenJoinStyle:
+            self.selectedPenJoinStyle = selectedPenJoinStyle
+            self.statusbarMessage.emit(
+                "Changed pen join style to %s" %(styles[selectedPenJoinStyle]),
+                2000)
+
     def changeBrushColourRoutine(self, selectedBrushColour):
+        """Changes the brush colour for the selected items to
+        selectedBrushColour."""
         selectedBrushColour = QtGui.QColor(selectedBrushColour)
         if self.scene().selectedItems() != []:
             sameBrushColour = True
@@ -1236,6 +1510,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 2000)
 
     def changeBrushStyleRoutine(self, selectedBrushStyle):
+        """Changes the brush style for the selected items to
+        selectedBrushStyle."""
         styles = {
             0: 'no fill',
             1: 'solid',
@@ -1331,13 +1607,23 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['c'] is False:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
+                            netList = [item for item in self.scene().items() if
+                                       (isinstance(item, Net) and
+                                        item.collidesWithItem(item2)) and
+                                       item not in self.scene().selectedItems()
+                            ]
+                            pinList = [item for item in self.scene().items() if
+                                    (isinstance(item, myGraphicsItemGroup) and
+                                        hasattr(item, 'isPin') and
+                                        item.isPin is True and
+                                        item.collidesWithItem(self.currentNet))
+                            ]
                             if item2 in netList:
                                 netList.remove(item2)
                             for item in netList[:]:
                                 mergedNet = item.mergeNets(netList, self.undoStack)
                                 if mergedNet is not None:
-                                    mergedNet.splitNets(netList, self.undoStack)
+                                    mergedNet.splitNets(netList, pinList, self.undoStack)
             # End moving if LMB is clicked again and selection is not empty
             elif self.moveItems != []:
                 point = self.mapToGrid(event.pos())
@@ -1363,12 +1649,22 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if True:
                     for item2 in self.moveItems:
                         if isinstance(item2, Net):
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(item2)) and item not in self.scene().selectedItems()]
+                            netList = [item for item in self.scene().items() if
+                                       (isinstance(item, Net) and
+                                        item.collidesWithItem(item2)) and
+                                       item not in self.scene().selectedItems()
+                            ]
+                            pinList = [item for item in self.scene().items() if
+                                    (isinstance(item, myGraphicsItemGroup) and
+                                        hasattr(item, 'isPin') and
+                                        item.isPin is True and
+                                        item.collidesWithItem(self.currentNet))
+                            ]
                             mergedNet = item2.mergeNets(netList, self.undoStack)
                             if mergedNet is not None:
-                                mergedNet.splitNets(netList, self.undoStack)
+                                mergedNet.splitNets(netList, pinList, self.undoStack)
                             elif item2.scene() is not None:
-                                item2.splitNets(netList, self.undoStack)
+                                item2.splitNets(netList, pinList, self.undoStack)
                 # End move command once item has been placed
                 self._keys['m'] = False
                 self._keys['c'] = False
@@ -1388,6 +1684,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene(),
                     self.loadItem,
                     symbol=True,
+                    pinVisibility=self.window().ui.action_showPins,
                     origin=self.mapToGrid(event.pos()),
                     transform=self.loadItem.transform())
                 self.undoStack.beginMacro('')
@@ -1531,6 +1828,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             penColour=self.selectedPenColour,
                             width=self.selectedWidth,
                             penStyle=self.selectedPenStyle,
+                            penCapStyle=self.selectedPenCapStyle,
+                            penJoinStyle=self.selectedPenJoinStyle,
                             brushColour=self.selectedBrushColour,
                             brushStyle=self.selectedBrushStyle)
                         self.scene().addItem(self.currentWire)
@@ -1549,6 +1848,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             penColour=self.selectedPenColour,
                             width=self.selectedWidth,
                             penStyle=self.selectedPenStyle,
+                            penCapStyle=self.selectedPenCapStyle,
+                            penJoinStyle=self.selectedPenJoinStyle,
                             brushColour=self.selectedBrushColour,
                             brushStyle=self.selectedBrushStyle,
                             points=self.arcPoints)
@@ -1566,9 +1867,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if event.button() == QtCore.Qt.LeftButton:
                 self._mouse['1'] = not self._mouse['1']
             if self._mouse['1'] is True:
-                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation or press ESC to cancel)', 0)
+                self.statusbarMessage.emit('Left click to complete drawing this net (Right click to change the orientation, press ' + self.window().ui.action_snapNetToPin.shortcut().toString() + ' to toggle snapping to pins or press ESC to cancel)', 0)
                 self.currentPos = event.pos()
-                start = self.mapToGrid(self.currentPos)
+                start = self.mapToGrid(self.currentPos, pin=True)
                 # Create new net if none exists
                 if self.currentNet is None:
                     logger.info('Begin drawing net at %s', start)
@@ -1578,14 +1879,25 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     # Add the original net
                     self.scene().addItem(self.currentNet)
             else:
-                self.statusbarMessage.emit('Left click to begin drawing a new net (press ESC to cancel)', 0)
+                self.statusbarMessage.emit('Left click to begin drawing a new net (press ' + self.window().ui.action_snapNetToPin.shortcut().toString() + ' to toggle snapping to pins or press ESC to cancel)', 0)
                 if self.currentNet is not None:
-                    netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet))]
+                    netList = [item for item in self.scene().items() if
+                               (isinstance(item, Net) and
+                                item.collidesWithItem(self.currentNet))
+                    ]
+                    pinList = [item for item in self.scene().items() if
+                               (isinstance(item, myGraphicsItemGroup) and
+                                hasattr(item, 'isPin') and
+                                item.isPin is True and
+                                item.collidesWithItem(self.currentNet))
+                    ]
                     netList.remove(self.currentNet)
                     self.scene().removeItem(self.currentNet)
                     # Only do this if current net is not 0 length
@@ -1594,10 +1906,22 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         add = Add(None, self.scene(), self.currentNet)
                         self.undoStack.push(add)
                         mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
-                        self.currentNet.splitNets(netList, self.undoStack)
+                        if mergedNet is not None:
+                            mergedNet.splitNets(netList, pinList, self.undoStack)
+                        else:
+                            self.currentNet.splitNets(netList, pinList, self.undoStack)
                         # Add the perpendicular line properly, if it exists
                         if self.currentNet.perpLine is not None:
-                            netList = [item for item in self.scene().items() if (isinstance(item, Net) and item.collidesWithItem(self.currentNet.perpLine))]
+                            netList = [item for item in self.scene().items() if
+                                       (isinstance(item, Net) and
+                                        item.collidesWithItem(self.currentNet.perpLine))
+                            ]
+                            pinList = [item for item in self.scene().items() if
+                                    (isinstance(item, myGraphicsItemGroup) and
+                                        hasattr(item, 'isPin') and
+                                        item.isPin is True and
+                                        item.collidesWithItem(self.currentNet.perpLine))
+                            ]
                             netList.remove(self.currentNet.perpLine)
                             perpLineObscured = False
                             for net in netList:
@@ -1612,7 +1936,10 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                 add = Add(None, self.scene(), self.currentNet.perpLine)
                                 self.undoStack.push(add)
                                 mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
-                                self.currentNet.perpLine.splitNets(netList, self.undoStack)
+                                if mergedNet is not None:
+                                    mergedNet.splitNets(netList, pinList, self.undoStack)
+                                else:
+                                    self.currentNet.perpLine.splitNets(netList, pinList, self.undoStack)
                         self.undoStack.endMacro()
                     self.currentNet = None
                     logger.info('Finish drawing net')
@@ -1637,6 +1964,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentRectangle)
@@ -1665,6 +1994,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentCircle)
@@ -1694,6 +2025,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentEllipse)
@@ -1722,9 +2055,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         penColour=self.selectedPenColour,
                         width=self.selectedWidth,
                         penStyle=self.selectedPenStyle,
+                        penCapStyle=self.selectedPenCapStyle,
+                        penJoinStyle=self.selectedPenJoinStyle,
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle,
-                        font=self.selectedFont)
+                        font=self.selectedFont,
+                        eulerFont=self.useEulerFontForLatex)
                     add = Add(None, self.scene(), self.currentTextBox)
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)
@@ -1764,6 +2100,29 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.currentPos = event.pos()
             self.selectOrigin = False
 
+    def mouseDoubleClickEvent(self, event):
+        items = self.scene().selectedItems()
+        if len(items) == 1:
+            if isinstance(items[0], TextBox):
+                items[0].lightenColour(False)
+                oldTextBox = items[0].createCopy()
+                oldTextBox.mouseDoubleClickEvent(event)
+        if len(items) == 1:
+            if isinstance(items[0], TextBox):
+                if items[0].latexExpression == oldTextBox.latexExpression and\
+                   items[0].toHtml() == oldTextBox.toHtml() and\
+                   items[0].useEulerFont == oldTextBox.useEulerFont:
+                    self.scene().removeItem(oldTextBox)
+                else:
+                    logger.info('Edited text box')
+                    self.scene().removeItem(oldTextBox)
+                    self.undoStack.beginMacro('')
+                    add = Add(None, self.scene(), oldTextBox)
+                    del_ = Delete(None, self.scene(), [items[0]])
+                    self.undoStack.push(add)
+                    self.undoStack.push(del_)
+                    self.undoStack.endMacro()
+
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         self.currentPos = event.pos()
@@ -1778,7 +2137,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self._keys['w'] is True:
                     self.currentWire.updateWire(self.mapToGrid(event.pos()))
                 if self._keys['net'] is True:
-                    self.currentNet.updateNet(self.mapToGrid(event.pos()))
+                    self.currentNet.updateNet(self.mapToGrid(event.pos(), pin=True))
                 if self._keys['arc'] is True:
                     if self.currentArc is not None:
                         self.currentArc.updateArc(self.mapToGrid(event.pos()))
@@ -1820,15 +2179,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
     #     actionDelete.triggered.connect(lambda: self.scene().removeItem(self))
     #     menu.exec_(event.screenPos())
 
-    def mapToGrid(self, point):
-        # Convenience function to map given point on to the grid
+    def mapToGrid(self, point, pin=False):
+        """Convenience function to map given point on to the grid"""
         point = self.mapToScene(point)
         if self._grid.snapToGrid is True:
-            return self._grid.snapTo(point)
+            return self._grid.snapTo(point, pin=pin)
         else:
             return point
 
     def wheelEvent(self, event):
+        """Handles mouse wheel interactions."""
         # Pan or zoom depending on keyboard modifiers
         eventDelta = event.angleDelta().y()
         if eventDelta >= 0:
@@ -1844,7 +2204,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 return
             delta = min(-120, eventDelta)
         scaleFactor = -delta / 240.
-        modifiers = QtWidgets.QApplication.keyboardModifiers()
+        modifiers = event.modifiers()
         timeline = QtCore.QTimeLine(300, self)
         timeline.setFrameRange(0, 100)
         if modifiers == QtCore.Qt.ControlModifier:
@@ -1896,8 +2256,29 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.modifyView(scaleFactor, panZoom)
             logger.debug('Viewport scaled by %.2f', scaleFactor)
         timeline.start()
+        timeline.finished.connect(self.drawingAreaPreview.updateVisibleRect)
+
+    def keyboardZoomRoutine(self, direction='in'):
+        # angleDelta will be set to 120 anyway in wheelEvent
+        if direction == 'in':
+            angleDelta = QtCore.QPoint(0, 10)
+        else:
+            angleDelta = QtCore.QPoint(0, -10)
+        cursor = QtGui.QCursor()
+        event = QtGui.QWheelEvent(
+            cursor.pos(), #pos
+            cursor.pos(), #globalPos
+            QtCore.QPoint(), #pixelDelta
+            angleDelta, #angleDelta
+            0, #qt4Delta
+            QtCore.Qt.Vertical, #qt4Orientation
+            QtCore.Qt.NoButton, #buttons
+            QtCore.Qt.NoModifier #modifiers
+            )
+        self.wheelEvent(event)
 
     def modifyView(self, scaleFactor, panZoom='vertical'):
+        """Convenience function for handling panning/zooming"""
         if panZoom == 'vertical':
             self.translate(0, -scaleFactor * 10)
         elif panZoom == 'horizontal':
@@ -1906,6 +2287,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.scale(scaleFactor, scaleFactor)
 
     def editShape(self):
+        """Convenience function for handling the editing of shapes."""
         # Only process this if edit mode is not already active
         if self._keys['edit'] is False:
             if len(self.scene().selectedItems()) == 1:
@@ -1946,22 +2328,30 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.statusbarMessage.emit("Please select an item to edit", 2000)
 
     def optionsRoutine(self):
+        """Convenience function that creates the options box and then applies
+        any changes needed."""
         self.optionswindow = MyOptionsWindow(self, self.settingsFileName)
         self.optionswindow.applied.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.finished.connect(lambda:self.applySettingsFromFile(self.settingsFileName))
         self.optionswindow.exec_()
 
     def updateMousePosLabel(self, pos=None):
+        """Updates the current mouse position."""
         if pos is None:
             return
-        pos = self.mapToGrid(pos)
+        gridPos = self.mapToGrid(pos)
         text = "Current position: "
-        text += '(%s, %s)' %(pos.x(), pos.y())
+        text += '(%s, %s)' %(gridPos.x(), gridPos.y())
         self.mousePosLabel.setText(text)
         if self.showMouseRect is True:
-            self.mouseRect.setPos(pos)
+            if self._keys['net'] is True:
+                pinPos = self.mapToGrid(pos, pin=True)
+            else:
+                pinPos = gridPos
+            self.mouseRect.setPos(pinPos)
 
     def groupItems(self, mode='group'):
+        """Groups or ungroups selected items depending on mode."""
         listOfItems = self.scene().selectedItems()
         if listOfItems == []:
             return
