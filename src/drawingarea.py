@@ -107,7 +107,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self.showMouseRect = True # Required for autobackup load routine below
         self.autobackupEnable = True # Required for autobackup load routine below
 
-        self.items = []
+        self._items = []
         self.moveItems = []
         self.schematicFileName = None
         self.symbolFileName = None
@@ -974,7 +974,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     0)
                 self.updateMoveItems()
         # Save a copy locally so that items don't disappear
-        self.items = self.scene().items()
+        self._items = self.scene().items()
         # Capture focus
         self.setFocus(True)
         logger.info('Load routine complete')
@@ -1054,7 +1054,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         cursor.setShape(QtCore.Qt.ArrowCursor)
         self.setCursor(cursor)
         # Save a copy locally so that items don't disappear
-        self.items = self.scene().items()
+        self._items = self.scene().items()
         # Reset all move items
         self.moveItems = []
         # Clear the statusbar
@@ -1577,7 +1577,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 for item in self.scene().selectedItems():
                     item.createCopy()
                 # Save a copy locally so that items don't disappear
-                self.items = self.scene().items()
+                self._items = self.scene().items()
                 # self.copyItemsToClipboard(self.scene().selectedItems())
             # Start moving after creating copy
             self._keys['m'] = True
@@ -1727,11 +1727,26 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.statusbarMessage.emit('', 0)
             if self._mouse['1'] is False:
                 self.undoStack.endMacro()
-        # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
-        if self.moveItems == [] and self._keys['m'] is True:
-            super().mousePressEvent(event)
-        if self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False and self._keys['edit'] is False:
-            super().mousePressEvent(event)
+        if event.button() == QtCore.Qt.RightButton:
+            # If no item is selected, select the item under the cursor
+            if self.scene().selectedItems() == []:
+                item = None
+                items = self.items(event.pos())
+                if items != []:
+                    if items[0] != self.mouseRect:
+                        item = items[0].topLevelItem()
+                    elif len(items) > 1:
+                        item = items[1].topLevelItem()
+                if item is not None:
+                    item.setSelected(True)
+            menu = self.window().ui.menu_Edit
+            menu.exec(event.screenPos().toPoint())
+        else:
+            # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
+            if self.moveItems == [] and self._keys['m'] is True:
+                super().mousePressEvent(event)
+            elif self._keys['c'] is False and self._keys['m'] is False and self._keys['add'] is False and self._keys['edit'] is False:
+                super().mousePressEvent(event)
 
     def updateMoveItems(self):
         """Simple function that generates a list of selected items"""
