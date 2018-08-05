@@ -3,6 +3,7 @@ from src.commands import *
 from src.components import *
 from src.drawingitems import *
 from .optionswindow import MyOptionsWindow
+from .preview import DrawingAreaPreview, ExportWindow
 import pickle
 import os
 import glob
@@ -13,38 +14,6 @@ logger = logging.getLogger('YCircuit.drawingarea')
 # from src import components
 # import sys
 # sys.modules['components'] = components
-class DrawingAreaPreview(QtWidgets.QGraphicsView):
-    """The drawing area preview is subclassed from QGraphicsView to provide
-    additional functionality such as highlighting the currently viewed area
-    etc."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.visibleRect = QtCore.QRectF()
-
-    def paintEvent(self, event):
-        super().paintEvent(event)
-        painter = QtGui.QPainter(self.viewport())
-        pen = QtGui.QPen()
-        pen.setColor(QtGui.QColor('black'))
-        pen.setWidth(2)
-        painter.setPen(pen)
-        painter.drawRect(self.visibleRect)
-        self.drawForeground(painter, self.visibleRect)
-
-    def fitToViewRoutine(self):
-        """Resizes viewport so that all items drawn are visible"""
-        if len(self.scene().items()) == 1:
-            # Fit to (0, 0, 800, 800) if nothing is present
-            rect = QtCore.QRectF(0, 0, 800, 800)
-            self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
-        else:
-            self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
-
-    def updateVisibleRect(self):
-        self.visibleRect = self.drawingArea.mapToScene(self.drawingArea.viewport().geometry()).boundingRect()
-        self.visibleRect = QtCore.QRectF(self.mapFromScene(self.visibleRect).boundingRect())
-        self.fitToViewRoutine()
 
 class DrawingArea(QtWidgets.QGraphicsView):
     """The drawing area is subclassed from QGraphicsView to provide additional
@@ -728,12 +697,35 @@ class DrawingArea(QtWidgets.QGraphicsView):
         selectedItems = self.scene().selectedItems()
         for item in selectedItems:
             item.setSelected(False)
+        exportWindow = ExportWindow(
+            self,
+            scene=self.scene(),
+            exportFormat=self.defaultExportFormat,
+            whitespacePadding=self.exportImageWhitespacePadding,
+            scaleFactor=self.exportImageScaleFactor,
+            quality=None,
+            hidePins=True
+        )
+        if exportWindow.exec_() == 0:
+            # Add the grid back to the scene
+            self._grid.createGrid()
+            if self.showMouseRect is True:
+                self.scene().addItem(self.mouseRect)
+            if self.showPins is exportWindow.hidePins:
+                self.showPins = not self.showPins
+                self.togglePinsRoutine()
+            return
+        exportFormat = exportWindow.exportFormat
+        whitespacePadding = exportWindow.whitespacePadding
+        scaleFactor = exportWindow.scaleFactor
+        quality = exportWindow.quality
+        hidePins = exportWindow.hidePins
         saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
             self,
             'Export File',
             self.defaultExportFolder,
             'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff)',
-            self.defaultExportFormat.upper() + ' files (*.' + self.defaultExportFormat + ')'
+            exportFormat.upper() + ' files (*.' + exportFormat.lower() + ')'
         )
         self.defaultExportFolder = None
         if '*.pdf' in saveFilter:
@@ -757,6 +749,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self._grid.createGrid()
             if self.showMouseRect is True:
                 self.scene().addItem(self.mouseRect)
+            if self.showPins is exportWindow.hidePins:
+                self.showPins = not self.showPins
+                self.togglePinsRoutine()
             return
         logger.info('Exporting to file %s', saveFile)
         if saveFilter == 'pdf':
@@ -765,24 +760,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
             mode = 'svg'
         elif saveFilter in ['jpg', 'png', 'bmp', 'tiff']:
             mode = 'image'
-            if saveFilter == 'jpg':
-                quality = 90
-            elif saveFilter == 'png':
-                quality = 50
-            elif saveFilter == 'bmp':
-                quality = 1
-            elif saveFilter == 'tiff':
-                quality = 1
         # Create a rect that's scaled appropriately to have some whitespace
         sourceRect = self.scene().itemsBoundingRect()
-        padding = self.exportImageWhitespacePadding
-        scale = self.exportImageScaleFactor
-        sourceRect.setWidth(int(padding * sourceRect.width()))
-        sourceRect.setHeight(int(padding * sourceRect.height()))
+        sourceRect.setWidth(int(whitespacePadding * sourceRect.width()))
+        sourceRect.setHeight(int(whitespacePadding * sourceRect.height()))
         width, height = sourceRect.width(), sourceRect.height()
-        if padding > 1:
-            sourceRect.translate(-width * (padding - 1) / (padding * 2.),
-                                 -height * (padding - 1) / (padding * 2.))
+        if whitespacePadding > 1:
+            sourceRect.translate(-width * (whitespacePadding - 1) / (whitespacePadding * 2.),
+                                 -height * (whitespacePadding - 1) / (whitespacePadding * 2.))
         logger.info('Source rectangle set to %s', sourceRect)
         if mode == 'pdf':
             # Initialize printer
@@ -808,7 +793,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         elif mode == 'image':
             # Create an image object
             img = QtGui.QImage(
-                QtCore.QSize(scale * width, scale * height), QtGui.QImage.Format_RGB32)
+                QtCore.QSize(scaleFactor * width, scaleFactor * height), QtGui.QImage.Format_RGB32)
             # Set background to white
             img.fill(QtGui.QColor('white'))
             painter = QtGui.QPainter(img)
@@ -826,6 +811,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._grid.createGrid()
         if self.showMouseRect is True:
             self.scene().addItem(self.mouseRect)
+        if self.showPins is exportWindow.hidePins:
+            self.showPins = not self.showPins
+            self.togglePinsRoutine()
         # Reselect items after exporting is completed
         for item in selectedItems:
             item.setSelected(True)
