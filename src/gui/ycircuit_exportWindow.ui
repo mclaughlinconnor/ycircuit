@@ -217,6 +217,9 @@
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_6">
+             <property name="toolTip">
+              <string>Choose the area to be exported.</string>
+             </property>
              <property name="text">
               <string>Export Area:</string>
              </property>
@@ -305,6 +308,9 @@
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
               <widget class="QRadioButton" name="radioButton_exportAreaFull">
+               <property name="toolTip">
+                <string>Export the entire schematic.</string>
+               </property>
                <property name="text">
                 <string>Full schematic</string>
                </property>
@@ -318,6 +324,9 @@
              </item>
              <item>
               <widget class="QRadioButton" name="radioButton_exportAreaVisible">
+               <property name="toolTip">
+                <string>Only export the visible region. This may be larger or smaller than the actual schematic.</string>
+               </property>
                <property name="text">
                 <string>Visible area</string>
                </property>
@@ -328,6 +337,9 @@
              </item>
              <item>
               <widget class="QRadioButton" name="radioButton_exportAreaSelected">
+               <property name="toolTip">
+                <string>Only export the tightest bounding box that encompasses all selected items. At least one item needs to be selected for this option to be available.</string>
+               </property>
                <property name="text">
                 <string>Selected items</string>
                </property>
@@ -533,6 +545,9 @@
  </customwidgets>
  <tabstops>
   <tabstop>comboBox_exportFormat</tabstop>
+  <tabstop>radioButton_exportAreaFull</tabstop>
+  <tabstop>radioButton_exportAreaVisible</tabstop>
+  <tabstop>radioButton_exportAreaSelected</tabstop>
   <tabstop>doubleSpinBox_exportImageWhitespacePadding</tabstop>
   <tabstop>doubleSpinBox_exportImageScaleFactor</tabstop>
   <tabstop>comboBox_exportQuality</tabstop>
