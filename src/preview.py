@@ -53,6 +53,7 @@ class ExportWindow(QtWidgets.QDialog):
         super().__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        self.parentView = parent
         self.ui.graphicsView_exportPreview.setScene(scene)
         self.dimensions = {
             'width': 400,
@@ -72,10 +73,22 @@ class ExportWindow(QtWidgets.QDialog):
             self.ui.graphicsView_exportPreview.hidePins)
         self.ui.graphicsView_exportPreview.scene().changed.connect(
             self.updatePreview)
+        self.ui.buttonGroup_exportArea.buttonClicked.connect(
+            self.buttonGroup_exportArea_buttonClicked)
+        if self.parentView._selectedItems == []:
+            self.ui.radioButton_exportAreaSelected.setEnabled(False)
 
         if 'exportFormat' in kwargs:
             self.exportFormat = kwargs['exportFormat']
             self.ui.comboBox_exportFormat.setCurrentText(self.exportFormat)
+        if 'exportArea' in kwargs:
+            self.exportArea = kwargs['exportArea']
+            if self.exportArea == 'full':
+                self.ui.radioButton_exportAreaFull.setChecked(True)
+            elif self.exportArea == 'selected':
+                self.ui.radioButton_exportAreaSelected.setChecked(True)
+            else:
+                self.ui.radioButton_exportAreaVisible.setChecked(True)
         if 'whitespacePadding' in kwargs:
             self.whitespacePadding = kwargs['whitespacePadding']
             self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(
@@ -103,6 +116,12 @@ class ExportWindow(QtWidgets.QDialog):
         self.scaleFactor = self.ui.doubleSpinBox_exportImageScaleFactor.value()
         self.quality = int(self.ui.comboBox_exportQuality.currentText()[:-1])
         self.hidePins = self.ui.checkBox_hidePins.isChecked()
+        if self.ui.radioButton_exportAreaFull.isChecked() is True:
+            self.exportArea = 'full'
+        elif self.ui.radioButton_exportAreaVisible.isChecked() is True:
+            self.exportArea = 'visible'
+        elif self.ui.radioButton_exportAreaSelected.isChecked() is True:
+            self.exportArea = 'selected'
         super().accept()
 
     def reject(self):
@@ -111,6 +130,12 @@ class ExportWindow(QtWidgets.QDialog):
         self.scaleFactor = self.ui.doubleSpinBox_exportImageScaleFactor.value()
         self.quality = int(self.ui.comboBox_exportQuality.currentText()[:-1])
         self.hidePins = self.ui.checkBox_hidePins.isChecked()
+        if self.ui.radioButton_exportAreaFull.isChecked() is True:
+            self.exportArea = 'full'
+        elif self.ui.radioButton_exportAreaVisible.isChecked() is True:
+            self.exportArea = 'visible'
+        elif self.ui.radioButton_exportAreaSelected.isChecked() is True:
+            self.exportArea = 'selected'
         super().reject()
 
     def comboBox_exportFormat_currentIndexChanged(self):
@@ -131,12 +156,35 @@ class ExportWindow(QtWidgets.QDialog):
         self.exportFormat = _format
         self.updatePreview()
 
+    def buttonGroup_exportArea_buttonClicked(self):
+        if self.ui.radioButton_exportAreaFull.isChecked() is True:
+            self.exportArea = 'full'
+        elif self.ui.radioButton_exportAreaVisible.isChecked() is True:
+            self.exportArea = 'visible'
+        elif self.ui.radioButton_exportAreaSelected.isChecked() is True:
+            self.exportArea = 'selected'
+        if self.exportArea in ['visible', 'selected']:
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(False)
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(1)
+        else:
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(True)
+        self.updatePreview()
+
     def comboBox_exportQuality_currentIndexChanged(self):
         self.quality = int(self.ui.comboBox_exportQuality.currentText()[:-1])
 
     def updatePreview(self):
         self.whitespacePadding = self.ui.doubleSpinBox_exportImageWhitespacePadding.value()
-        sourceRect = self.ui.graphicsView_exportPreview.scene().itemsBoundingRect()
+        if self.exportArea == 'full':
+            sourceRect = self.ui.graphicsView_exportPreview.scene().itemsBoundingRect()
+        elif self.exportArea == 'visible':
+            self.whitespacePadding = 1
+            sourceRect = self.parentView.mapToScene(self.parentView.viewport().geometry()).boundingRect()
+        elif self.exportArea == 'selected':
+            self.whitespacePadding = 1
+            sourceRect = self.parentView._selectedItems[0].sceneBoundingRect()
+            for item in self.parentView._selectedItems:
+                sourceRect = sourceRect.united(item.sceneBoundingRect())
         sourceRect.setWidth(int(self.whitespacePadding * sourceRect.width()))
         sourceRect.setHeight(int(self.whitespacePadding * sourceRect.height()))
         width, height = sourceRect.width(), sourceRect.height()
@@ -152,6 +200,7 @@ class ExportWindow(QtWidgets.QDialog):
             sourceRect.translate(-width * (self.whitespacePadding - 1) / (self.whitespacePadding * 2.),
                                  -height * (self.whitespacePadding - 1) / (self.whitespacePadding * 2.))
         self.ui.graphicsView_exportPreview.fitInView(sourceRect)
+        self.sourceRect = sourceRect
         self.dimensions['width'] = int(width)
         self.dimensions['height'] = int(height)
         self.updateDimensions()

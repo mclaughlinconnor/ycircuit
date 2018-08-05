@@ -694,13 +694,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
             logger.info('Nothing to export')
             return
         # Deselect items before exporting
-        selectedItems = self.scene().selectedItems()
-        for item in selectedItems:
+        self._selectedItems = self.scene().selectedItems()
+        for item in self._selectedItems:
             item.setSelected(False)
         exportWindow = ExportWindow(
             self,
             scene=self.scene(),
             exportFormat=self.defaultExportFormat,
+            exportArea='full',
             whitespacePadding=self.exportImageWhitespacePadding,
             scaleFactor=self.exportImageScaleFactor,
             quality=None,
@@ -714,8 +715,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self.showPins is exportWindow.hidePins:
                 self.showPins = not self.showPins
                 self.togglePinsRoutine()
+            # Reselect items after exporting is completed
+            for item in self._selectedItems:
+                item.setSelected(True)
             return
         exportFormat = exportWindow.exportFormat
+        exportArea = exportWindow.exportArea
+        sourceRect = exportWindow.sourceRect
+        width, height = sourceRect.width(), sourceRect.height()
         whitespacePadding = exportWindow.whitespacePadding
         scaleFactor = exportWindow.scaleFactor
         quality = exportWindow.quality
@@ -760,14 +767,6 @@ class DrawingArea(QtWidgets.QGraphicsView):
             mode = 'svg'
         elif saveFilter in ['jpg', 'png', 'bmp', 'tiff']:
             mode = 'image'
-        # Create a rect that's scaled appropriately to have some whitespace
-        sourceRect = self.scene().itemsBoundingRect()
-        sourceRect.setWidth(int(whitespacePadding * sourceRect.width()))
-        sourceRect.setHeight(int(whitespacePadding * sourceRect.height()))
-        width, height = sourceRect.width(), sourceRect.height()
-        if whitespacePadding > 1:
-            sourceRect.translate(-width * (whitespacePadding - 1) / (whitespacePadding * 2.),
-                                 -height * (whitespacePadding - 1) / (whitespacePadding * 2.))
         logger.info('Source rectangle set to %s', sourceRect)
         if mode == 'pdf':
             # Initialize printer
@@ -815,7 +814,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.showPins = not self.showPins
             self.togglePinsRoutine()
         # Reselect items after exporting is completed
-        for item in selectedItems:
+        for item in self._selectedItems:
             item.setSelected(True)
         logger.info('Finishing export')
 

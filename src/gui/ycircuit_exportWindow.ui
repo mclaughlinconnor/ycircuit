@@ -16,7 +16,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
@@ -51,20 +51,7 @@
          </item>
          <item>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="toolTip">
-              <string>Pick the quality of the export. Higher quality implies larger file sizes and vice versa.</string>
-             </property>
-             <property name="text">
-              <string>Quality:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
+           <item row="3" column="1">
             <widget class="QDoubleSpinBox" name="doubleSpinBox_exportImageScaleFactor">
              <property name="enabled">
               <bool>false</bool>
@@ -95,7 +82,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="2" column="1">
             <widget class="QDoubleSpinBox" name="doubleSpinBox_exportImageWhitespacePadding">
              <property name="toolTip">
               <string>Sets the scaling factor of the overall exported image to the tight bounding box of elements within the scene. The difference between the two sizes is effectively the whitespace near the edges of the image.</string>
@@ -123,7 +110,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="label">
              <property name="toolTip">
               <string>Sets the scaling factor of the overall exported image to the tight bounding box of elements within the scene. The difference between the two sizes is effectively the whitespace near the edges of the image.</string>
@@ -136,20 +123,23 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_2">
+           <item row="5" column="1">
+            <widget class="QCheckBox" name="checkBox_hidePins">
              <property name="toolTip">
-              <string>Sets the scaling factor of the exported image. You can tune this value to tradeoff speed of export with the resolution of the resultant images.</string>
+              <string>Hide the pins on symbols during export.</string>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
              </property>
              <property name="text">
-              <string>Scale factor:</string>
+              <string/>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <property name="checked">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
+           <item row="4" column="1">
             <widget class="QComboBox" name="comboBox_exportQuality">
              <property name="enabled">
               <bool>false</bool>
@@ -212,6 +202,42 @@
              </item>
             </widget>
            </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="toolTip">
+              <string>Hide the pins on symbols during export.</string>
+             </property>
+             <property name="text">
+              <string>Hide pins:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Export Area:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="toolTip">
+              <string>Sets the scaling factor of the exported image. You can tune this value to tradeoff speed of export with the resolution of the resultant images.</string>
+             </property>
+             <property name="text">
+              <string>Scale factor:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QLabel" name="label_3">
              <property name="toolTip">
@@ -219,6 +245,19 @@
              </property>
              <property name="text">
               <string>Export format:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="toolTip">
+              <string>Pick the quality of the export. Higher quality implies larger file sizes and vice versa.</string>
+             </property>
+             <property name="text">
+              <string>Quality:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -262,34 +301,42 @@
              </item>
             </widget>
            </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_5">
-             <property name="toolTip">
-              <string>Hide the pins on symbols during export.</string>
-             </property>
-             <property name="text">
-              <string>Hide pins:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QCheckBox" name="checkBox_hidePins">
-             <property name="toolTip">
-              <string>Hide the pins on symbols during export.</string>
-             </property>
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
+           <item row="1" column="1">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QRadioButton" name="radioButton_exportAreaFull">
+               <property name="text">
+                <string>Full schematic</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_exportArea</string>
+               </attribute>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButton_exportAreaVisible">
+               <property name="text">
+                <string>Visible area</string>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_exportArea</string>
+               </attribute>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButton_exportAreaSelected">
+               <property name="text">
+                <string>Selected items</string>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_exportArea</string>
+               </attribute>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
@@ -526,4 +573,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup_exportArea"/>
+ </buttongroups>
 </ui>
