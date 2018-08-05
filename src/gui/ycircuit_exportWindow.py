@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\src\gui\ycircuit_exportWindow.ui'
+# Form implementation generated from reading ui file 'src/gui/ycircuit_exportWindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -13,10 +13,10 @@ class Ui_Dialog(object):
         Dialog.setObjectName("Dialog")
         Dialog.resize(575, 450)
         Dialog.setModal(True)
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout(Dialog)
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
@@ -103,17 +103,15 @@ class Ui_Dialog(object):
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem3)
-        self.horizontalLayout_4.addLayout(self.verticalLayout_3)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout_3.addLayout(self.verticalLayout_3)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setObjectName("gridLayout")
         spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem4)
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        spacerItem5 = QtWidgets.QSpacerItem(27, 17, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem5)
+        self.gridLayout.addItem(spacerItem4, 0, 1, 1, 1)
+        spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem5, 1, 0, 1, 1)
         self.graphicsView_exportPreview = DrawingAreaPreview(Dialog)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
@@ -131,17 +129,16 @@ class Ui_Dialog(object):
         self.graphicsView_exportPreview.setResizeAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
         self.graphicsView_exportPreview.setViewportUpdateMode(QtWidgets.QGraphicsView.BoundingRectViewportUpdate)
         self.graphicsView_exportPreview.setObjectName("graphicsView_exportPreview")
-        self.horizontalLayout_3.addWidget(self.graphicsView_exportPreview)
-        spacerItem6 = QtWidgets.QSpacerItem(27, 17, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem6)
-        self.horizontalLayout_3.setStretch(0, 1)
-        self.horizontalLayout_3.setStretch(2, 1)
-        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.gridLayout.addWidget(self.graphicsView_exportPreview, 1, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
+        spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem6, 1, 2, 1, 1)
         spacerItem7 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem7)
-        self.verticalLayout.setStretch(0, 1)
-        self.verticalLayout.setStretch(2, 1)
-        self.verticalLayout_2.addLayout(self.verticalLayout)
+        self.gridLayout.addItem(spacerItem7, 2, 1, 1, 1)
+        self.gridLayout.setColumnStretch(0, 1)
+        self.gridLayout.setColumnStretch(2, 1)
+        self.gridLayout.setRowStretch(0, 1)
+        self.gridLayout.setRowStretch(2, 1)
+        self.verticalLayout.addLayout(self.gridLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem8 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -151,14 +148,14 @@ class Ui_Dialog(object):
         self.horizontalLayout.addWidget(self.label_exportDimensions, 0, QtCore.Qt.AlignHCenter)
         spacerItem9 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem9)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
-        self.horizontalLayout_4.addLayout(self.verticalLayout_2)
-        self.verticalLayout_4.addLayout(self.horizontalLayout_4)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout_3.addLayout(self.verticalLayout)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
-        self.verticalLayout_4.addWidget(self.buttonBox)
+        self.verticalLayout_2.addWidget(self.buttonBox)
 
         self.retranslateUi(Dialog)
         self.comboBox_exportQuality.setCurrentIndex(4)
@@ -206,4 +203,4 @@ class Ui_Dialog(object):
         self.checkBox_hidePins.setToolTip(_translate("Dialog", "Hide the pins on symbols during export."))
         self.label_exportDimensions.setText(_translate("Dialog", "4in x 4in"))
 
-from src.preview import DrawingAreaPreview
+from src.drawingarea import DrawingAreaPreview

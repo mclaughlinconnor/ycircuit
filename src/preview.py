@@ -141,17 +141,17 @@ class ExportWindow(QtWidgets.QDialog):
         sourceRect.setHeight(int(self.whitespacePadding * sourceRect.height()))
         width, height = sourceRect.width(), sourceRect.height()
         size = QtCore.QSize(width, height)
-        size.scale(300, 300, QtCore.Qt.KeepAspectRatio)
-        print(size.width()/size.height(), width/height)
+        size.scale(275, 275, QtCore.Qt.KeepAspectRatio)
+        if width > height:
+            size.setWidth(size.height()*width/height)
+        else:
+            size.setHeight(size.width()*height/width)
         self.ui.graphicsView_exportPreview.setFixedSize(size)
         self.ui.graphicsView_exportPreview.viewport().setFixedSize(size)
         if self.whitespacePadding > 1:
             sourceRect.translate(-width * (self.whitespacePadding - 1) / (self.whitespacePadding * 2.),
                                  -height * (self.whitespacePadding - 1) / (self.whitespacePadding * 2.))
-        self.ui.graphicsView_exportPreview.fitInView(
-            sourceRect,
-            mode=QtCore.Qt.KeepAspectRatio
-        )
+        self.ui.graphicsView_exportPreview.fitInView(sourceRect)
         self.dimensions['width'] = int(width)
         self.dimensions['height'] = int(height)
         self.updateDimensions()
