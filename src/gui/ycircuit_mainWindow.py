@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\src\gui\ycircuit_mainWindow.ui'
+# Form implementation generated from reading ui file 'src/gui/ycircuit_mainWindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -115,7 +115,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setStretch(1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 20))
         self.menubar.setObjectName("menubar")
         self.menu_File = QtWidgets.QMenu(self.menubar)
         self.menu_File.setToolTipsVisible(True)
@@ -186,10 +186,10 @@ class Ui_MainWindow(object):
         self.menuSnap_to_grid_spacing = QtWidgets.QMenu(self.menu_View)
         self.menuSnap_to_grid_spacing.setToolTipsVisible(True)
         self.menuSnap_to_grid_spacing.setObjectName("menuSnap_to_grid_spacing")
-        self.menuSh_ape = QtWidgets.QMenu(self.menubar)
-        self.menuSh_ape.setToolTipsVisible(True)
-        self.menuSh_ape.setObjectName("menuSh_ape")
-        self.menu_Arc = QtWidgets.QMenu(self.menuSh_ape)
+        self.menu_Shape = QtWidgets.QMenu(self.menubar)
+        self.menu_Shape.setToolTipsVisible(True)
+        self.menu_Shape.setObjectName("menu_Shape")
+        self.menu_Arc = QtWidgets.QMenu(self.menu_Shape)
         self.menu_Arc.setToolTipsVisible(True)
         self.menu_Arc.setObjectName("menu_Arc")
         self.menu_help = QtWidgets.QMenu(self.menubar)
@@ -850,16 +850,16 @@ class Ui_MainWindow(object):
         self.menu_View.addAction(self.menuMinor_grid_point_spacing.menuAction())
         self.menu_Arc.addAction(self.action_addArc3Point)
         self.menu_Arc.addAction(self.action_addArc4Point)
-        self.menuSh_ape.addAction(self.action_addLine)
-        self.menuSh_ape.addAction(self.menu_Arc.menuAction())
-        self.menuSh_ape.addAction(self.action_addRectangle)
-        self.menuSh_ape.addAction(self.action_addCircle)
-        self.menuSh_ape.addAction(self.action_addEllipse)
-        self.menuSh_ape.addSeparator()
-        self.menuSh_ape.addAction(self.action_addTextBox)
-        self.menuSh_ape.addAction(self.action_addImage)
-        self.menuSh_ape.addSeparator()
-        self.menuSh_ape.addAction(self.action_editShape)
+        self.menu_Shape.addAction(self.action_addLine)
+        self.menu_Shape.addAction(self.menu_Arc.menuAction())
+        self.menu_Shape.addAction(self.action_addRectangle)
+        self.menu_Shape.addAction(self.action_addCircle)
+        self.menu_Shape.addAction(self.action_addEllipse)
+        self.menu_Shape.addSeparator()
+        self.menu_Shape.addAction(self.action_addTextBox)
+        self.menu_Shape.addAction(self.action_addImage)
+        self.menu_Shape.addSeparator()
+        self.menu_Shape.addAction(self.action_editShape)
         self.menu_tutorials.addAction(self.action_tutorialInverterSchematic)
         self.menu_tutorials.addAction(self.action_tutorialCustomSymbols)
         self.menu_help.addAction(self.action_updateYCircuit)
@@ -867,7 +867,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menu_Edit.menuAction())
         self.menubar.addAction(self.menu_View.menuAction())
-        self.menubar.addAction(self.menuSh_ape.menuAction())
+        self.menubar.addAction(self.menu_Shape.menuAction())
         self.menubar.addAction(self.menu_AddSymbol.menuAction())
         self.menubar.addAction(self.menu_help.menuAction())
         self.toolBar.addAction(self.action_newSchematic)
@@ -948,7 +948,7 @@ class Ui_MainWindow(object):
         self.menuMinor_grid_point_spacing.setTitle(_translate("MainWindow", "Minor grid point spacing"))
         self.menuSnap_to_grid_spacing.setToolTip(_translate("MainWindow", "Modify the value of the grid used for snapping"))
         self.menuSnap_to_grid_spacing.setTitle(_translate("MainWindow", "Snap to grid spacing"))
-        self.menuSh_ape.setTitle(_translate("MainWindow", "Sh&ape"))
+        self.menu_Shape.setTitle(_translate("MainWindow", "Sh&ape"))
         self.menu_Arc.setToolTip(_translate("MainWindow", "Draw a 3-point or 4-point arc"))
         self.menu_Arc.setTitle(_translate("MainWindow", "&Arc"))
         self.menu_help.setTitle(_translate("MainWindow", "&Help"))

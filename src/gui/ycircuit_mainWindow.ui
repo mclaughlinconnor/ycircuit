@@ -267,7 +267,7 @@
      <x>0</x>
      <y>0</y>
      <width>1089</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -659,7 +659,7 @@
     <addaction name="action_showMinorGridPoints"/>
     <addaction name="menuMinor_grid_point_spacing"/>
    </widget>
-   <widget class="QMenu" name="menuSh_ape">
+   <widget class="QMenu" name="menu_Shape">
     <property name="title">
      <string>Sh&amp;ape</string>
     </property>
@@ -713,7 +713,7 @@
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
-   <addaction name="menuSh_ape"/>
+   <addaction name="menu_Shape"/>
    <addaction name="menu_AddSymbol"/>
    <addaction name="menu_help"/>
   </widget>
@@ -977,7 +977,7 @@
   </action>
   <action name="action_fitToView">
    <property name="icon">
-    <iconset resource="../../Resources/icons/icon.qrc">
+    <iconset>
      <normaloff>:/icons/view-restore.svg</normaloff>:/icons/view-restore.svg</iconset>
    </property>
    <property name="text">
@@ -2346,7 +2346,7 @@
   </action>
   <action name="action_zoomIn">
    <property name="icon">
-    <iconset resource="../../Resources/icons/icon.qrc">
+    <iconset>
      <normaloff>:/icons/zoom-in.svg</normaloff>:/icons/zoom-in.svg</iconset>
    </property>
    <property name="text">
@@ -2361,7 +2361,7 @@
   </action>
   <action name="action_zoomOut">
    <property name="icon">
-    <iconset resource="../../Resources/icons/icon.qrc">
+    <iconset>
      <normaloff>:/icons/zoom-out.svg</normaloff>:/icons/zoom-out.svg</iconset>
    </property>
    <property name="text">
