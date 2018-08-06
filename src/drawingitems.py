@@ -243,6 +243,9 @@ class TextEditor(QtWidgets.QDialog):
 
     def createLatexPreviewImage(self, plainText):
         latexImageBinary = self.mathTexToQImage('$' + plainText + '$', self.font().pointSize(), self.textBox.localPenColour, dpi=300)
+        if latexImageBinary is None:
+            self.ui.label.setText('Please check your LaTeX expression')
+            return
         pix = QtGui.QPixmap()
         pix.loadFromData(latexImageBinary.getvalue(), format='png')
         self.ui.label.setPixmap(pix)
@@ -318,6 +321,10 @@ class TextEditor(QtWidgets.QDialog):
         This saves the generated image within the object itself (which gets saved into a higher level
         schematic/symbol). As a result, the file size of the saved schematic/symbol is larger, but we
         benefit from greatly improved loading times."""
+        if not find_executable('latex'):
+            self.ui.toolButton_latex.setEnabled(False)
+            logger.info('Latex installation not detected')
+            return None
         if dpi is None:
             dpi = self.textBox.latexImageDpi * self.textBox.latexImageDpiScale
         obj = BytesIO()
@@ -330,12 +337,9 @@ class TextEditor(QtWidgets.QDialog):
             sympy.preview(mathTex, output='png', viewer='BytesIO', euler=self.ui.action_useEulerFont.isChecked(), outputbuffer=obj, dvioptions=['-D', str(dpi), '-T', 'tight', '-fg', fg, '-bg', 'Transparent'])
             logger.info('Generating latex expression %s', mathTex)
         except RuntimeError:
-            self.ui.toolButton_latex.setChecked(False)
-            logger.info('Latex installation not detected (Sympy raised RuntimeError)')
-            return None, None
+            logger.info('Latex expression is malformed (Sympy raised RuntimeError)')
+            return None
 
-        img = QtGui.QImage()
-        img.loadFromData(obj.getvalue(), format='png')
         self.textBox.latexImageColour = fc
 
         return obj
