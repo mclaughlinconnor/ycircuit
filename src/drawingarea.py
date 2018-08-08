@@ -52,6 +52,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._mouse = {'1': False}
         self._grid = Grid(None, self)
         self.showPins = True
+        self.showItemCenters = False
         self.undoStack = QtWidgets.QUndoStack(self)
         self.undoStack.setUndoLimit(1000)
         self.reflections = 0
@@ -255,6 +256,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 ['Snap to grid', ui.action_snapToGrid],
                 ['Show major grid points', ui.action_showMajorGridPoints],
                 ['Show minor grid points', ui.action_showMinorGridPoints],
+                ['Show item centers', ui.action_showItemCenters],
                 # Shape menu
                 ['Draw line', ui.action_addLine],
                 ['Draw 3-point arc', ui.action_addArc3Point],
@@ -692,6 +694,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._grid.removeGrid()
         if self.mouseRect in self.scene().items():
             self.scene().removeItem(self.mouseRect)
+        if self.showItemCenters is True:
+            showItemCenters = True
+            self.toggleItemCentersRoutine(False)
         # Deselect items before exporting
         self._selectedItems = self.scene().selectedItems()
         for item in self._selectedItems:
@@ -715,6 +720,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if self.showPins is exportWindow.hidePins:
                 self.showPins = not self.showPins
                 self.togglePinsRoutine()
+            if showItemCenters is True:
+                self.toggleItemCentersRoutine(True)
             # Reselect items after exporting is completed
             for item in self._selectedItems:
                 item.setSelected(True)
@@ -759,7 +766,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.scene().addItem(self.mouseRect)
             if self.showPins is exportWindow.hidePins:
                 self.showPins = not self.showPins
-                self.togglePinsRoutine()
+                self.togglePinsRoutine(True)
+            if showItemCenters is True:
+                self.toggleItemCentersRoutine()
             return
         logger.info('Exporting to file %s', saveFile)
         if saveFilter == 'pdf':
@@ -815,6 +824,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if self.showPins is exportWindow.hidePins:
             self.showPins = not self.showPins
             self.togglePinsRoutine()
+        if showItemCenters is True:
+            self.toggleItemCentersRoutine(True)
         # Reselect items after exporting is completed
         for item in self._selectedItems:
             item.setSelected(True)
@@ -936,6 +947,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     mode='symbol')
                 self.scene().addItem(self.loadItem)
                 self.loadItem.pinVisibility(self.showPins)
+                self.loadItem.showItemCenter = self.showItemCenters
                 self.window().recentSymbolsModel.setData(QtCore.QModelIndex(), loadFile)
                 # loadItem.loadItems('symbol')
             if mode == 'schematic' or mode == 'symbolModify':
@@ -1235,6 +1247,19 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.statusbarMessage.emit('Minor grid point spacing changed to ' + str(spacing), 2000)
             if self._grid.enableGrid is True:
                 self._grid.createGrid()
+
+    def toggleItemCentersRoutine(self, state):
+        """Toggles item centers on and off"""
+        self.showItemCenters = state
+        if state is True:
+            self.statusbarMessage.emit('Showing item centers', 2000)
+            logger.info('Showing item centers')
+        else:
+            self.statusbarMessage.emit('Hiding item centers', 2000)
+            logger.info('Hiding item centers')
+        for item in self.scene().items():
+            item.showItemCenter = self.showItemCenters
+            item.update()
 
     def changeFontRoutine(self, selectedFont):
         """Convenience function for changing the font to selectedFont"""
@@ -1676,11 +1701,12 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     pinVisibility=self.window().ui.action_showPins,
                     origin=self.mapToGrid(event.pos()),
                     transform=self.loadItem.transform())
+                self.loadItem.showItemCenter = self.showItemCenters
                 self.undoStack.beginMacro('')
                 self.undoStack.push(add)
                 if self._keys['v'] is True:
                     logger.info('Ungrouping pasted items')
-                    ungroup = Ungroup(None, self.scene(), add.item)
+                    ungroup = Ungroup(None, self.scene(), add.item, showItemCenter=self.showItemCenter)
                     self.undoStack.push(ungroup)
                 self.undoStack.endMacro()
         if self._keys['edit'] is True:
@@ -1874,6 +1900,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             brushStyle=self.selectedBrushStyle,
                             points=self.arcPoints)
                         add = Add(None, self.scene(), self.currentArc)
+                        self.currentArc.showItemCenter = self.showItemCenters
                         self.undoStack.push(add)
                     # If arc exists, add segments
                     else:
@@ -1924,6 +1951,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     if self.currentNet.line().length() > 0.01:
                         self.undoStack.beginMacro('')
                         add = Add(None, self.scene(), self.currentNet)
+                        self.currentNet.showItemCenter = self.showItemCenters
                         self.undoStack.push(add)
                         mergedNet = self.currentNet.mergeNets(netList, self.undoStack)
                         if mergedNet is not None:
@@ -1954,6 +1982,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                                 self.undoStack.endMacro()
                                 self.undoStack.beginMacro('')
                                 add = Add(None, self.scene(), self.currentNet.perpLine)
+                                self.currentNet.perpLine.showItemCenter = self.showItemCenters
                                 self.undoStack.push(add)
                                 mergedNet = self.currentNet.perpLine.mergeNets(netList, self.undoStack)
                                 if mergedNet is not None:
@@ -1989,6 +2018,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentRectangle)
+                    self.currentRectangle.showItemCenter = self.showItemCenters
                     self.undoStack.push(add)
             else:
                 if self.currentRectangle is not None:
@@ -2019,6 +2049,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentCircle)
+                    self.currentCircle.showItemCenter = self.showItemCenters
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentCircle)
             else:
@@ -2050,6 +2081,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         brushColour=self.selectedBrushColour,
                         brushStyle=self.selectedBrushStyle)
                     add = Add(None, self.scene(), self.currentEllipse)
+                    self.currentEllipse.showItemCenter = self.showItemCenters
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentEllipse)
             else:
@@ -2082,6 +2114,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         font=self.selectedFont,
                         eulerFont=self.useEulerFontForLatex)
                     add = Add(None, self.scene(), self.currentTextBox)
+                    self.currentTextBox.showItemCenter = self.showItemCenters
                     self.undoStack.push(add)
                     # self.scene().addItem(self.currentTextBox)
                 self._keys['textBox'] = False
@@ -2106,6 +2139,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         None,
                         start=start)
                     add = Add(None, self.scene(), self.currentImage)
+                    self.currentImage.showItemCenter = self.showItemCenters
                     self.undoStack.push(add)
                 self._keys['image'] = False
                 self._mouse['1'] = False
@@ -2138,6 +2172,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().removeItem(oldTextBox)
                     self.undoStack.beginMacro('')
                     add = Add(None, self.scene(), oldTextBox)
+                    oldTextBox.showItemCenter = self.showItemCenters
                     del_ = Delete(None, self.scene(), [items[0]])
                     self.undoStack.push(add)
                     self.undoStack.push(del_)
@@ -2382,11 +2417,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.statusbarMessage.emit('Please select at least two items to group', 2000)
             return
         if mode == 'group':
-            group = Group(None, self.scene(), listOfItems)
+            group = Group(None, self.scene(), listOfItems, showItemCenter=self.showItemCenter)
             self.undoStack.push(group)
         if mode == 'ungroup':
             if isinstance(listOfItems[0], myGraphicsItemGroup):
-                ungroup = Ungroup(None, self.scene(), listOfItems[0])
+                ungroup = Ungroup(None, self.scene(), listOfItems[0], showItemCenter=self.showItemCenter)
                 self.undoStack.push(ungroup)
             else:
                 self.statusbarMessage.emit('Selected instance needs to be a group/symbol', 2000)

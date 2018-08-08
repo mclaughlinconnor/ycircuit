@@ -242,6 +242,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda: self.action_minorGridPointSpacing(30))
         self.ui.action_minorGridPointSpacing40.triggered.connect(
             lambda: self.action_minorGridPointSpacing(40))
+        self.ui.action_showItemCenters.triggered.connect(
+            self.ui.drawingArea.toggleItemCentersRoutine)
 
         # Shape menu
         self.ui.action_addLine.triggered.connect(self.ui.drawingArea.addWire)

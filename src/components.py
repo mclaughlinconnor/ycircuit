@@ -12,7 +12,7 @@ class drawingElement(object):
     It contains methods for setting pen and brush options, moving, copying etc.
     """
 
-    def __init__(self, parent=None, start=None):
+    def __init__(self, parent=None, start=None, **kwargs):
         super().__init__()
         self.parent = parent
         self.start = start
@@ -31,6 +31,7 @@ class drawingElement(object):
         else:
             self.setScale(1.)
             self.localScale = self.scale()
+        self.showItemCenter = False
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""
@@ -204,6 +205,7 @@ class drawingElement(object):
         if parent is None:
             # Add new item to scene if no parent exists
             self.scene().addItem(newItem)
+        newItem.showItemCenter = self.showItemCenter
         # Select item
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
@@ -306,7 +308,16 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
                 pen = QtGui.QPen()
                 pen.setStyle(2)
                 painter.setPen(pen)
+                # Draw the bounding rect
                 painter.drawRect(self.boundingRect())
+            if self.showItemCenter is True and self.parentItem() is None:
+                # Draw the center
+                x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
+                width, height = self.boundingRect().width(), self.boundingRect().height()
+                xLine = QtCore.QLineF(x, y+height/2, x, y-height/2)
+                yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
+                painter.drawLine(xLine)
+                painter.drawLine(yLine)
 
     def boundingRect(self):
         return self.childrenBoundingRect()
@@ -338,6 +349,7 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
         for item in self.listOfItems:
             itemCopy = item.createCopy(newItem)
             newItem.listOfItems.append(itemCopy)
+        newItem.showItemCenter = self.showItemCenter
         newItem.setItems(newItem.listOfItems)
         newItem.setSelected(True)
         return newItem
@@ -1145,6 +1157,14 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
             pen.setWidth(0.5)
             painter.setPen(pen)
             painter.drawPath(self.shape())
+        if self.showItemCenter is True and self.parentItem() is None:
+            # Draw the center
+            x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
+            width, height = self.boundingRect().width(), self.boundingRect().height()
+            xLine = QtCore.QLineF(x, y+height/2, x, y-height/2)
+            yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
+            painter.drawLine(xLine)
+            painter.drawLine(yLine)
         option.state &= not QtWidgets.QStyle.State_Selected
         super().paint(painter, option, widget)
 
@@ -1632,6 +1652,7 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             newItem.setZValue(newItem.height)
         if parent is None:
             self.scene().addItem(newItem)
+        newItem.showItemCenter = self.showItemCenter
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
         if hasattr(self, 'origin'):
@@ -1882,6 +1903,7 @@ class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
             newItem.setZValue(newItem.height)
         if parent is None:
             self.scene().addItem(newItem)
+        newItem.showItemCenter = self.showItemCenter
         newItem.setSelected(True)
         newItem.moveTo(self.scenePos(), 'start')
         if hasattr(self, 'origin'):

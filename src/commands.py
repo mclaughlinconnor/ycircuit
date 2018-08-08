@@ -413,6 +413,8 @@ class Group(QtWidgets.QUndoCommand):
         self.origin = QtCore.QPointF(x, y)
         self.item = myGraphicsItemGroup(None, self.origin, [])
         self.item.setSelected(True)
+        if 'showItemCenter' in kwargs:
+            self.item.showItemCenter = kwargs['showItemCenter']
 
     def redo(self):
         self.scene.addItem(self.item)
@@ -444,6 +446,10 @@ class Ungroup(QtWidgets.QUndoCommand):
         x = min([item.scenePos().x() for item in self.listOfItems])
         y = min([item.scenePos().y() for item in self.listOfItems])
         self.origin = QtCore.QPointF(x, y)
+
+        if 'showItemCenter' in kwargs:
+            for item in self.listOfItems:
+                item.showItemCenter = kwargs['showItemCenter']
 
     def redo(self):
         self.item.reparentItems()

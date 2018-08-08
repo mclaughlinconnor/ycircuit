@@ -419,6 +419,7 @@ class ShortcutsModel(QtCore.QAbstractTableModel):
             ['Snap to grid', ''],
             ['Show major grid points', ''],
             ['Show minor grid points', ''],
+            ['Show item centers', 'Shift+C'],
             # Shape menu
             ['Draw line', ''],
             ['Draw 3-point arc', ''],

@@ -115,7 +115,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setStretch(1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 20))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1089, 25))
         self.menubar.setObjectName("menubar")
         self.menu_File = QtWidgets.QMenu(self.menubar)
         self.menu_File.setToolTipsVisible(True)
@@ -697,6 +697,9 @@ class Ui_MainWindow(object):
         self.action_zoomOut.setObjectName("action_zoomOut")
         self.action_setScale = QtWidgets.QAction(MainWindow)
         self.action_setScale.setObjectName("action_setScale")
+        self.action_showItemCenters = QtWidgets.QAction(MainWindow)
+        self.action_showItemCenters.setCheckable(True)
+        self.action_showItemCenters.setObjectName("action_showItemCenters")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -848,6 +851,8 @@ class Ui_MainWindow(object):
         self.menu_View.addSeparator()
         self.menu_View.addAction(self.action_showMinorGridPoints)
         self.menu_View.addAction(self.menuMinor_grid_point_spacing.menuAction())
+        self.menu_View.addSeparator()
+        self.menu_View.addAction(self.action_showItemCenters)
         self.menu_Arc.addAction(self.action_addArc3Point)
         self.menu_Arc.addAction(self.action_addArc4Point)
         self.menu_Shape.addAction(self.action_addLine)
@@ -1239,6 +1244,8 @@ class Ui_MainWindow(object):
         self.action_zoomOut.setShortcut(_translate("MainWindow", "Shift+Z"))
         self.action_setScale.setText(_translate("MainWindow", "&Scale"))
         self.action_setScale.setToolTip(_translate("MainWindow", "Set the scale for the selected item(s)"))
+        self.action_showItemCenters.setText(_translate("MainWindow", "Show item center(s)"))
+        self.action_showItemCenters.setShortcut(_translate("MainWindow", "Shift+C"))
 
 from src.drawingarea import DrawingArea, DrawingAreaPreview
 import icon_rc
