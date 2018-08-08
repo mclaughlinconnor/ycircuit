@@ -694,6 +694,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._grid.removeGrid()
         if self.mouseRect in self.scene().items():
             self.scene().removeItem(self.mouseRect)
+        showItemCenters = self.showItemCenters
         if self.showItemCenters is True:
             showItemCenters = True
             self.toggleItemCentersRoutine(False)
@@ -2414,11 +2415,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.statusbarMessage.emit('Please select at least two items to group', 2000)
             return
         if mode == 'group':
-            group = Group(None, self.scene(), listOfItems, showItemCenter=self.showItemCenter)
+            group = Group(None, self.scene(), listOfItems, showItemCenter=self.showItemCenters)
             self.undoStack.push(group)
         if mode == 'ungroup':
             if isinstance(listOfItems[0], myGraphicsItemGroup):
-                ungroup = Ungroup(None, self.scene(), listOfItems[0], showItemCenter=self.showItemCenter)
+                ungroup = Ungroup(None, self.scene(), listOfItems[0], showItemCenter=self.showItemCenters)
                 self.undoStack.push(ungroup)
             else:
                 self.statusbarMessage.emit('Selected instance needs to be a group/symbol', 2000)
