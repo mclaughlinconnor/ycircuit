@@ -31,7 +31,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # If that happens, uncomment the line below
         # self.scene().setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)
         self.scene().setSceneRect(QtCore.QRectF(-10000, -10000, 20000, 20000))
-        self.scene().setMinimumRenderSize(2)
+        # self.scene().setMinimumRenderSize(1)
         self.parent = parent
         self._keys = {
             'c': False,
@@ -684,15 +684,14 @@ class DrawingArea(QtWidgets.QGraphicsView):
         create the final image.
         """
         logger.info('Beginning export')
+        # Return if no items are present
+        if len(self.scene().items()) == 0:
+            logger.info('Nothing to export')
+            return
         # Remove grid from the scene to avoid saving it
         self._grid.removeGrid()
         if self.mouseRect in self.scene().items():
             self.scene().removeItem(self.mouseRect)
-        # Return if no items are present
-        if len(self.scene().items()) == 0:
-            self._grid.createGrid()
-            logger.info('Nothing to export')
-            return
         # Deselect items before exporting
         self._selectedItems = self.scene().selectedItems()
         for item in self._selectedItems:
@@ -709,7 +708,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         )
         if exportWindow.exec_() == 0:
             # Add the grid back to the scene
-            self._grid.createGrid()
+            if self._grid.enableGrid is True:
+                self._grid.createGrid()
             if self.showMouseRect is True:
                 self.scene().addItem(self.mouseRect)
             if self.showPins is exportWindow.hidePins:
@@ -753,7 +753,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 saveFile = str(saveFile) + '.' + saveFilter
         else:
             # Add the grid back to the scene
-            self._grid.createGrid()
+            if self._grid.enableGrid is True:
+                self._grid.createGrid()
             if self.showMouseRect is True:
                 self.scene().addItem(self.mouseRect)
             if self.showPins is exportWindow.hidePins:
@@ -807,7 +808,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Need to stop painting to avoid errors about painter getting deleted
         painter.end()
         # Add the grid back to the scene when saving is done
-        self._grid.createGrid()
+        if self._grid.enableGrid is True:
+            self._grid.createGrid()
         if self.showMouseRect is True:
             self.scene().addItem(self.mouseRect)
         if self.showPins is exportWindow.hidePins:

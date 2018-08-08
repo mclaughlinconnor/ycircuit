@@ -39,23 +39,23 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_newSchematic.triggered.connect(
             self.action_newSchematic_triggered)
         self.ui.action_saveSchematic.triggered.connect(
-            lambda x: self.ui.drawingArea.saveRoutine('schematic'))
+            lambda: self.ui.drawingArea.saveRoutine('schematic'))
         self.ui.action_saveSchematicAs.triggered.connect(
-            lambda x: self.ui.drawingArea.saveRoutine('schematicAs'))
+            lambda: self.ui.drawingArea.saveRoutine('schematicAs'))
         self.ui.action_loadSchematic.triggered.connect(
-            lambda x: self.ui.drawingArea.loadRoutine('schematic'))
+            lambda: self.ui.drawingArea.loadRoutine('schematic'))
         self.ui.action_loadSchematic.triggered.connect(
-            lambda x: self.changeWindowTitle(True))
+            lambda: self.changeWindowTitle(True))
         self.ui.action_saveSymbol.triggered.connect(
-            lambda x: self.ui.drawingArea.saveRoutine('symbol'))
+            lambda: self.ui.drawingArea.saveRoutine('symbol'))
         self.ui.action_saveSymbolAs.triggered.connect(
-            lambda x: self.ui.drawingArea.saveRoutine('symbolAs'))
+            lambda: self.ui.drawingArea.saveRoutine('symbolAs'))
         self.ui.action_loadSymbol.triggered.connect(
-            lambda x: self.ui.drawingArea.loadRoutine('symbol'))
+            lambda: self.ui.drawingArea.loadRoutine('symbol'))
         self.ui.action_modifySymbol.triggered.connect(
-            lambda x: self.ui.drawingArea.loadRoutine('symbolModify'))
+            lambda: self.ui.drawingArea.loadRoutine('symbolModify'))
         self.ui.action_modifySymbol.triggered.connect(
-            lambda x: self.changeWindowTitle(True))
+            lambda: self.changeWindowTitle(True))
         self.ui.action_importImage.triggered.connect(
             lambda: self.ui.drawingArea.addImage())
         self.ui.action_exportFile.triggered.connect(
@@ -66,11 +66,11 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_undo.triggered.connect(
             self.ui.drawingArea.undoStack.undo)
         self.ui.action_undo.triggered.connect(
-            lambda x: self.ui.statusbar.showMessage("Undo", 1000))
+            lambda: self.ui.statusbar.showMessage("Undo", 1000))
         self.ui.action_redo.triggered.connect(
             self.ui.drawingArea.undoStack.redo)
         self.ui.action_redo.triggered.connect(
-            lambda x: self.ui.statusbar.showMessage("Redo", 1000))
+            lambda: self.ui.statusbar.showMessage("Redo", 1000))
         self.ui.drawingArea.undoStack.canRedoChanged.connect(
             self.ui.action_redo.setEnabled)
         self.ui.drawingArea.undoStack.canUndoChanged.connect(
@@ -78,7 +78,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_rotate.triggered.connect(
             self.ui.drawingArea.rotateRoutine)
         self.ui.action_mirror.triggered.connect(
-            lambda x:self.ui.drawingArea.rotateRoutine(modifier=QtCore.Qt.ShiftModifier))
+            lambda:self.ui.drawingArea.rotateRoutine(modifier=QtCore.Qt.ShiftModifier))
         self.ui.action_move.triggered.connect(
             self.ui.drawingArea.moveRoutine)
         self.ui.action_copy.triggered.connect(
@@ -95,103 +95,103 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.escapeRoutine)
 
         self.ui.action_heightBringForward.triggered.connect(
-            lambda x: self.ui.drawingArea.changeHeightRoutine('forward'))
+            lambda: self.ui.drawingArea.changeHeightRoutine('forward'))
         self.ui.action_heightSendBack.triggered.connect(
-            lambda x: self.ui.drawingArea.changeHeightRoutine('back'))
+            lambda: self.ui.drawingArea.changeHeightRoutine('back'))
         self.ui.action_heightReset.triggered.connect(
-            lambda x: self.ui.drawingArea.changeHeightRoutine('reset'))
+            lambda: self.ui.drawingArea.changeHeightRoutine('reset'))
 
         self.ui.action_group.triggered.connect(
-            lambda x: self.ui.drawingArea.groupItems('group'))
+            lambda: self.ui.drawingArea.groupItems('group'))
         self.ui.action_ungroup.triggered.connect(
-            lambda x: self.ui.drawingArea.groupItems('ungroup'))
+            lambda: self.ui.drawingArea.groupItems('ungroup'))
 
         self.ui.menu_Edit.hovered.connect(self.menu_Edit_hovered)
         self.ui.action_setScale.triggered.connect(
             self.action_setScale_triggered)
         self.ui.action_setWidth2.triggered.connect(
-            lambda x: self.action_setWidth_triggered(2))
+            lambda: self.action_setWidth_triggered(2))
         self.ui.action_setWidth4.triggered.connect(
-            lambda x: self.action_setWidth_triggered(4))
+            lambda: self.action_setWidth_triggered(4))
         self.ui.action_setWidth6.triggered.connect(
-            lambda x: self.action_setWidth_triggered(6))
+            lambda: self.action_setWidth_triggered(6))
         self.ui.action_setWidth8.triggered.connect(
-            lambda x: self.action_setWidth_triggered(8))
+            lambda: self.action_setWidth_triggered(8))
         self.ui.action_setWidth10.triggered.connect(
-            lambda x: self.action_setWidth_triggered(10))
+            lambda: self.action_setWidth_triggered(10))
         self.ui.action_setWidthCustom.triggered.connect(
-            lambda x: self.action_setWidth_triggered('custom'))
+            lambda: self.action_setWidth_triggered('custom'))
 
         self.ui.action_setPenColourBlack.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('black'))
+            lambda: self.action_setPenColour_triggered('black'))
         self.ui.action_setPenColourRed.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('red'))
+            lambda: self.action_setPenColour_triggered('red'))
         self.ui.action_setPenColourGreen.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('green'))
+            lambda: self.action_setPenColour_triggered('green'))
         self.ui.action_setPenColourBlue.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('blue'))
+            lambda: self.action_setPenColour_triggered('blue'))
         self.ui.action_setPenColourCyan.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('cyan'))
+            lambda: self.action_setPenColour_triggered('cyan'))
         self.ui.action_setPenColourMagenta.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('magenta'))
+            lambda: self.action_setPenColour_triggered('magenta'))
         self.ui.action_setPenColourYellow.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('yellow'))
+            lambda: self.action_setPenColour_triggered('yellow'))
         self.ui.action_setPenColourCustom.triggered.connect(
-            lambda x: self.action_setPenColour_triggered('custom'))
+            lambda: self.action_setPenColour_triggered('custom'))
 
         self.ui.action_setPenStyleSolid.triggered.connect(
-            lambda x: self.action_setPenStyle_triggered(1))
+            lambda: self.action_setPenStyle_triggered(1))
         self.ui.action_setPenStyleDash.triggered.connect(
-            lambda x: self.action_setPenStyle_triggered(2))
+            lambda: self.action_setPenStyle_triggered(2))
         self.ui.action_setPenStyleDot.triggered.connect(
-            lambda x: self.action_setPenStyle_triggered(3))
+            lambda: self.action_setPenStyle_triggered(3))
         self.ui.action_setPenStyleDashDot.triggered.connect(
-            lambda x: self.action_setPenStyle_triggered(4))
+            lambda: self.action_setPenStyle_triggered(4))
         self.ui.action_setPenStyleDashDotDot.triggered.connect(
-            lambda x: self.action_setPenStyle_triggered(5))
+            lambda: self.action_setPenStyle_triggered(5))
 
         self.ui.action_setPenCapStyleSquare.triggered.connect(
-            lambda x: self.action_setPenCapStyle_triggered(0x10))
+            lambda: self.action_setPenCapStyle_triggered(0x10))
         self.ui.action_setPenCapStyleRound.triggered.connect(
-            lambda x: self.action_setPenCapStyle_triggered(0x20))
+            lambda: self.action_setPenCapStyle_triggered(0x20))
         self.ui.action_setPenCapStyleFlat.triggered.connect(
-            lambda x: self.action_setPenCapStyle_triggered(0x00))
+            lambda: self.action_setPenCapStyle_triggered(0x00))
 
         self.ui.action_setPenJoinStyleRound.triggered.connect(
-            lambda x: self.action_setPenJoinStyle_triggered(0x80))
+            lambda: self.action_setPenJoinStyle_triggered(0x80))
         self.ui.action_setPenJoinStyleMiter.triggered.connect(
-            lambda x: self.action_setPenJoinStyle_triggered(0x00))
+            lambda: self.action_setPenJoinStyle_triggered(0x00))
         self.ui.action_setPenJoinStyleBevel.triggered.connect(
-            lambda x: self.action_setPenJoinStyle_triggered(0x40))
+            lambda: self.action_setPenJoinStyle_triggered(0x40))
 
         self.ui.action_setBrushColourBlack.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('black'))
+            lambda: self.action_setBrushColour_triggered('black'))
         self.ui.action_setBrushColourRed.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('red'))
+            lambda: self.action_setBrushColour_triggered('red'))
         self.ui.action_setBrushColourGreen.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('green'))
+            lambda: self.action_setBrushColour_triggered('green'))
         self.ui.action_setBrushColourBlue.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('blue'))
+            lambda: self.action_setBrushColour_triggered('blue'))
         self.ui.action_setBrushColourCyan.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('cyan'))
+            lambda: self.action_setBrushColour_triggered('cyan'))
         self.ui.action_setBrushColourMagenta.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('magenta'))
+            lambda: self.action_setBrushColour_triggered('magenta'))
         self.ui.action_setBrushColourYellow.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('yellow'))
+            lambda: self.action_setBrushColour_triggered('yellow'))
         self.ui.action_setBrushColourCustom.triggered.connect(
-            lambda x: self.action_setBrushColour_triggered('custom'))
+            lambda: self.action_setBrushColour_triggered('custom'))
 
         self.ui.action_setBrushStyleNone.triggered.connect(
-            lambda x: self.action_setBrushStyle_triggered(0))
+            lambda: self.action_setBrushStyle_triggered(0))
         self.ui.action_setBrushStyleSolid.triggered.connect(
-            lambda x: self.action_setBrushStyle_triggered(1))
+            lambda: self.action_setBrushStyle_triggered(1))
 
         # View menu
         self.ui.menu_View.hovered.connect(self.menu_View_hovered)
         self.ui.action_zoomIn.triggered.connect(
-            lambda x: self.ui.drawingArea.keyboardZoomRoutine('in'))
+            lambda: self.ui.drawingArea.keyboardZoomRoutine('in'))
         self.ui.action_zoomOut.triggered.connect(
-            lambda x: self.ui.drawingArea.keyboardZoomRoutine('out'))
+            lambda: self.ui.drawingArea.keyboardZoomRoutine('out'))
         self.ui.action_fitToView.triggered.connect(
             self.ui.drawingArea.fitToViewRoutine)
         self.ui.action_showPins.triggered.connect(
@@ -203,52 +203,52 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_snapToGrid.triggered.connect(
             self.ui.drawingArea.toggleSnapToGridRoutine)
         self.ui.action_snapToGridSpacing1.triggered.connect(
-            lambda x: self.action_snapToGridSpacing(1))
+            lambda: self.action_snapToGridSpacing(1))
         self.ui.action_snapToGridSpacing2.triggered.connect(
-            lambda x: self.action_snapToGridSpacing(2))
+            lambda: self.action_snapToGridSpacing(2))
         self.ui.action_snapToGridSpacing5.triggered.connect(
-            lambda x: self.action_snapToGridSpacing(5))
+            lambda: self.action_snapToGridSpacing(5))
         self.ui.action_snapToGridSpacing10.triggered.connect(
-            lambda x: self.action_snapToGridSpacing(10))
+            lambda: self.action_snapToGridSpacing(10))
         self.ui.action_snapToGridSpacing20.triggered.connect(
-            lambda x: self.action_snapToGridSpacing(20))
+            lambda: self.action_snapToGridSpacing(20))
         self.ui.action_snapToGridSpacing30.triggered.connect(
-            lambda x: self.action_snapToGridSpacing(30))
+            lambda: self.action_snapToGridSpacing(30))
         self.ui.action_snapToGridSpacing40.triggered.connect(
-            lambda x: self.action_snapToGridSpacing(40))
+            lambda: self.action_snapToGridSpacing(40))
         self.ui.action_showMajorGridPoints.triggered.connect(
             self.ui.drawingArea.toggleMajorGridPointsRoutine)
         self.ui.action_majorGridPointSpacing100.triggered.connect(
-            lambda x: self.action_majorGridPointSpacing(100))
+            lambda: self.action_majorGridPointSpacing(100))
         self.ui.action_majorGridPointSpacing200.triggered.connect(
-            lambda x: self.action_majorGridPointSpacing(200))
+            lambda: self.action_majorGridPointSpacing(200))
         self.ui.action_majorGridPointSpacing300.triggered.connect(
-            lambda x: self.action_majorGridPointSpacing(300))
+            lambda: self.action_majorGridPointSpacing(300))
         self.ui.action_majorGridPointSpacing400.triggered.connect(
-            lambda x: self.action_majorGridPointSpacing(400))
+            lambda: self.action_majorGridPointSpacing(400))
         self.ui.action_showMinorGridPoints.triggered.connect(
             self.ui.drawingArea.toggleMinorGridPointsRoutine)
         self.ui.action_minorGridPointSpacing1.triggered.connect(
-            lambda x: self.action_minorGridPointSpacing(1))
+            lambda: self.action_minorGridPointSpacing(1))
         self.ui.action_minorGridPointSpacing2.triggered.connect(
-            lambda x: self.action_minorGridPointSpacing(2))
+            lambda: self.action_minorGridPointSpacing(2))
         self.ui.action_minorGridPointSpacing5.triggered.connect(
-            lambda x: self.action_minorGridPointSpacing(5))
+            lambda: self.action_minorGridPointSpacing(5))
         self.ui.action_minorGridPointSpacing10.triggered.connect(
-            lambda x: self.action_minorGridPointSpacing(10))
+            lambda: self.action_minorGridPointSpacing(10))
         self.ui.action_minorGridPointSpacing20.triggered.connect(
-            lambda x: self.action_minorGridPointSpacing(20))
+            lambda: self.action_minorGridPointSpacing(20))
         self.ui.action_minorGridPointSpacing30.triggered.connect(
-            lambda x: self.action_minorGridPointSpacing(30))
+            lambda: self.action_minorGridPointSpacing(30))
         self.ui.action_minorGridPointSpacing40.triggered.connect(
-            lambda x: self.action_minorGridPointSpacing(40))
+            lambda: self.action_minorGridPointSpacing(40))
 
         # Shape menu
         self.ui.action_addLine.triggered.connect(self.ui.drawingArea.addWire)
         self.ui.action_addArc3Point.triggered.connect(
-            lambda x: self.ui.drawingArea.addArc(3))
+            lambda: self.ui.drawingArea.addArc(3))
         self.ui.action_addArc4Point.triggered.connect(
-            lambda x: self.ui.drawingArea.addArc(4))
+            lambda: self.ui.drawingArea.addArc(4))
         self.ui.action_addRectangle.triggered.connect(
             self.ui.drawingArea.addRectangle)
         self.ui.action_addCircle.triggered.connect(
@@ -273,51 +273,51 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.drawingArea.addGround)
         self.ui.action_addDot.triggered.connect(self.ui.drawingArea.addDot)
         self.ui.action_addNMOSWithArrow.triggered.connect(
-            lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', True))
+            lambda: self.ui.drawingArea.addTransistor('MOS', 'N', True))
         self.ui.action_addNMOSWithoutArrow.triggered.connect(
-            lambda x: self.ui.drawingArea.addTransistor('MOS', 'N', False))
+            lambda: self.ui.drawingArea.addTransistor('MOS', 'N', False))
         self.ui.action_addPMOSWithArrow.triggered.connect(
-            lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', True))
+            lambda: self.ui.drawingArea.addTransistor('MOS', 'P', True))
         self.ui.action_addPMOSWithoutArrow.triggered.connect(
-            lambda x: self.ui.drawingArea.addTransistor('MOS', 'P', False))
+            lambda: self.ui.drawingArea.addTransistor('MOS', 'P', False))
         self.ui.action_addNPNBJT.triggered.connect(
-            lambda x: self.ui.drawingArea.addTransistor('BJT', 'N', True))
+            lambda: self.ui.drawingArea.addTransistor('BJT', 'N', True))
         self.ui.action_addPNPBJT.triggered.connect(
-            lambda x: self.ui.drawingArea.addTransistor('BJT', 'P', True))
+            lambda: self.ui.drawingArea.addTransistor('BJT', 'P', True))
         self.ui.action_addDCVoltageSource.triggered.connect(
-            lambda x: self.ui.drawingArea.addSource('DCV'))
+            lambda: self.ui.drawingArea.addSource('DCV'))
         self.ui.action_addDCCurrentSource.triggered.connect(
-            lambda x: self.ui.drawingArea.addSource('DCI'))
+            lambda: self.ui.drawingArea.addSource('DCI'))
         self.ui.action_addACSource.triggered.connect(
-            lambda x: self.ui.drawingArea.addSource('AC'))
+            lambda: self.ui.drawingArea.addSource('AC'))
         self.ui.action_addVCVS.triggered.connect(
-            lambda x: self.ui.drawingArea.addSource('VCVS'))
+            lambda: self.ui.drawingArea.addSource('VCVS'))
         self.ui.action_addVCCS.triggered.connect(
-            lambda x: self.ui.drawingArea.addSource('VCCS'))
+            lambda: self.ui.drawingArea.addSource('VCCS'))
         self.ui.action_addCCVS.triggered.connect(
-            lambda x: self.ui.drawingArea.addSource('CCVS'))
+            lambda: self.ui.drawingArea.addSource('CCVS'))
         self.ui.action_addCCCS.triggered.connect(
-            lambda x: self.ui.drawingArea.addSource('CCCS'))
+            lambda: self.ui.drawingArea.addSource('CCCS'))
         self.ui.action_quickAddSymbol1.triggered.connect(
-            lambda x: self.ui.drawingArea.quickAddSymbol(1))
+            lambda: self.ui.drawingArea.quickAddSymbol(1))
         self.ui.action_quickAddSymbol2.triggered.connect(
-            lambda x: self.ui.drawingArea.quickAddSymbol(2))
+            lambda: self.ui.drawingArea.quickAddSymbol(2))
         self.ui.action_quickAddSymbol3.triggered.connect(
-            lambda x: self.ui.drawingArea.quickAddSymbol(3))
+            lambda: self.ui.drawingArea.quickAddSymbol(3))
         self.ui.action_quickAddSymbol4.triggered.connect(
-            lambda x: self.ui.drawingArea.quickAddSymbol(4))
+            lambda: self.ui.drawingArea.quickAddSymbol(4))
         self.ui.action_quickAddSymbol5.triggered.connect(
-            lambda x: self.ui.drawingArea.quickAddSymbol(5))
+            lambda: self.ui.drawingArea.quickAddSymbol(5))
 
         # Help menu
         self.ui.action_updateYCircuit.triggered.connect(
             self.updateYCircuit)
         self.ui.action_tutorialInverterSchematic.triggered.connect(
-            lambda x: QtGui.QDesktopServices.openUrl(
+            lambda: QtGui.QDesktopServices.openUrl(
                 QtCore.QUrl(
                 'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/1/tutorial1.html')))
         self.ui.action_tutorialCustomSymbols.triggered.connect(
-            lambda x: QtGui.QDesktopServices.openUrl(
+            lambda: QtGui.QDesktopServices.openUrl(
                 QtCore.QUrl(
                 'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/2/tutorial2.html')))
 
