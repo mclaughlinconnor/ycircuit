@@ -1139,8 +1139,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 pinList = [item for item in self.scene().items() if
                             (isinstance(item, myGraphicsItemGroup) and
                             hasattr(item, 'isPin') and
-                            item.isPin is True and
-                            item.collidesWithItem(self.currentNet))
+                            item.isPin is True)
                 ]
                 if item2 in netList:
                     netList.remove(item2)
@@ -1629,8 +1628,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             pinList = [item for item in self.scene().items() if
                                     (isinstance(item, myGraphicsItemGroup) and
                                         hasattr(item, 'isPin') and
-                                        item.isPin is True and
-                                        item.collidesWithItem(self.currentNet))
+                                        item.isPin is True)
                             ]
                             if item2 in netList:
                                 netList.remove(item2)
@@ -1671,8 +1669,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             pinList = [item for item in self.scene().items() if
                                     (isinstance(item, myGraphicsItemGroup) and
                                         hasattr(item, 'isPin') and
-                                        item.isPin is True and
-                                        item.collidesWithItem(self.currentNet))
+                                        item.isPin is True)
                             ]
                             mergedNet = item2.mergeNets(netList, self.undoStack)
                             if mergedNet is not None:
