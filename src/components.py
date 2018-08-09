@@ -31,7 +31,8 @@ class drawingElement(object):
         else:
             self.setScale(1.)
             self.localScale = self.scale()
-        self.showItemCenter = False
+        if not hasattr(self, 'showItemCenter'):
+            self.showItemCenter = False
 
     def __getstate__(self):
         """Pen and brush objects are not picklable so remove them"""

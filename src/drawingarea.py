@@ -1699,13 +1699,13 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     pinVisibility=self.window().ui.action_showPins,
                     origin=self.mapToGrid(event.pos()),
                     transform=self.loadItem.transform())
-                self.loadItem.showItemCenter = self.showItemCenters
                 self.undoStack.beginMacro('')
                 self.undoStack.push(add)
                 if self._keys['v'] is True:
                     logger.info('Ungrouping pasted items')
-                    ungroup = Ungroup(None, self.scene(), add.item, showItemCenter=self.showItemCenter)
+                    ungroup = Ungroup(None, self.scene(), add.item, showItemCenter=self.showItemCenters)
                     self.undoStack.push(ungroup)
+                self.loadItem.showItemCenter = self.showItemCenters
                 self.undoStack.endMacro()
         if self._keys['edit'] is True:
             item = self.scene().selectedItems()[0]
