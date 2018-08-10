@@ -14,7 +14,6 @@ build = False
 post = False
 update = False
 if 'build' in sys.argv:
-    sys.argv.remove('build')
     build = True
 
 if 'post' in sys.argv:
