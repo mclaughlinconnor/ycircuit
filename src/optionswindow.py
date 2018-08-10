@@ -174,6 +174,12 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('Mouse/PanningZooming/Invert zoom', self.ui.checkBox_zoomInvert.isChecked())
 
         # Shortcut settings
+        try:
+            self.ui.tableView_shortcuts.itemDelegate().commitData.emit(
+                self.ui.tableView_shortcuts.itemDelegate()._editor
+            )
+        except:
+            pass
         for item, shortcut in self.shortcutsModel.actionShortcuts:
             self.settings.setValue('Shortcuts/' + item, shortcut)
 
@@ -492,8 +498,8 @@ class KeySequenceEditorDelegate(QtWidgets.QItemDelegate):
         super().__init__(parent)
 
     def createEditor(self, parent, option, index):
-        widget = KeySequenceEdit(parent)
-        return widget
+        self._editor = KeySequenceEdit(parent)
+        return self._editor
 
     def setEditorData(self, editor, index):
         editor.keySequence.setKeySequence(index.data())
