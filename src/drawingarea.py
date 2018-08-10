@@ -1742,34 +1742,39 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.undoStack.endMacro()
         if event.button() == QtCore.Qt.RightButton:
             # If no item is selected, select the item under the cursor
-            if self.scene().selectedItems() == []:
-                item = None
-                items = self.items(event.pos())
-                if items != []:
-                    if items[0] != self.mouseRect:
-                        item = items[0].topLevelItem()
-                    elif len(items) > 1:
-                        item = items[1].topLevelItem()
-                if item is not None:
-                    item.setSelected(True)
-            if self.scene().selectedItems() != []:
-                menu = self.window().ui.menu_Edit
-                menu.insertAction(
-                    self.window().ui.action_undo,
-                    # self.editShape
-                    self.window().ui.action_editShape
-                )
-                menu.insertSeparator(self.window().ui.action_undo)
-                menu.aboutToHide.connect(
-                    lambda: menu.removeAction(self.window().ui.action_editShape))
+            if self._keys['w'] is True:
+                pass
+            elif self._keys['net'] is True:
+                pass
             else:
-                menu = QtWidgets.QMenu()
-                menu.addMenu(self.window().ui.menu_File)
-                menu.addMenu(self.window().ui.menu_Edit)
-                menu.addMenu(self.window().ui.menu_View)
-                menu.addMenu(self.window().ui.menu_Shape)
-                menu.addMenu(self.window().ui.menu_AddSymbol)
-            menu.exec(event.screenPos().toPoint())
+                if self.scene().selectedItems() == []:
+                    item = None
+                    items = self.items(event.pos())
+                    if items != []:
+                        if items[0] != self.mouseRect:
+                            item = items[0].topLevelItem()
+                        elif len(items) > 1:
+                            item = items[1].topLevelItem()
+                    if item is not None:
+                        item.setSelected(True)
+                if self.scene().selectedItems() != []:
+                    menu = self.window().ui.menu_Edit
+                    menu.insertAction(
+                        self.window().ui.action_undo,
+                        # self.editShape
+                        self.window().ui.action_editShape
+                    )
+                    menu.insertSeparator(self.window().ui.action_undo)
+                    menu.aboutToHide.connect(
+                        lambda: menu.removeAction(self.window().ui.action_editShape))
+                else:
+                    menu = QtWidgets.QMenu()
+                    menu.addMenu(self.window().ui.menu_File)
+                    menu.addMenu(self.window().ui.menu_Edit)
+                    menu.addMenu(self.window().ui.menu_View)
+                    menu.addMenu(self.window().ui.menu_Shape)
+                    menu.addMenu(self.window().ui.menu_AddSymbol)
+                menu.exec(event.screenPos().toPoint())
         else:
             # Only propagate these events downwards if move and copy are disabled or if nothing is selected or if a symbol is not being added
             if self.moveItems == [] and self._keys['m'] is True:
