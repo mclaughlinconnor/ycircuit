@@ -607,6 +607,18 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             painter.drawPath(self.shape())
         option.state &= not QtWidgets.QStyle.State_Selected
         super().paint(painter, option, widget)
+        if self.showItemCenter is True and self.parentItem() is None:
+            pen = QtGui.QPen()
+            pen.setWidth(0.5)
+            pen.setStyle(2)
+            painter.setPen(pen)
+            # Draw the center
+            x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
+            width, height = self.boundingRect().width(), self.boundingRect().height()
+            xLine = QtCore.QLineF(x, y+height/2, x, y-height/2)
+            yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
+            painter.drawLine(xLine)
+            painter.drawLine(yLine)
 
     def updateWire(self, newEnd, edit=False):
         # Update existing segment to end at newEnd
@@ -762,6 +774,21 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
         path = QtGui.QPainterPath()
         path.addPolygon(poly)
         return stroker.createStroke(path).simplified()
+
+    def paint(self, painter, option, widget):
+        super().paint(painter, option, widget)
+        if self.showItemCenter is True and self.parentItem() is None:
+            pen = QtGui.QPen()
+            pen.setWidth(0.5)
+            pen.setStyle(2)
+            painter.setPen(pen)
+            # Draw the center
+            x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
+            width, height = self.boundingRect().width(), self.boundingRect().height()
+            xLine = QtCore.QLineF(x, y+height/2, x, y-height/2)
+            yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
+            painter.drawLine(xLine)
+            painter.drawLine(yLine)
 
     def updateNet(self, newEnd):
         newEnd = self.mapFromScene(newEnd)
@@ -1158,7 +1185,13 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
             pen.setWidth(0.5)
             painter.setPen(pen)
             painter.drawPath(self.shape())
+        option.state &= not QtWidgets.QStyle.State_Selected
+        super().paint(painter, option, widget)
         if self.showItemCenter is True and self.parentItem() is None:
+            pen = QtGui.QPen()
+            pen.setStyle(2)
+            pen.setWidth(0.5)
+            painter.setPen(pen)
             # Draw the center
             x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
             width, height = self.boundingRect().width(), self.boundingRect().height()
@@ -1166,8 +1199,6 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
             yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
             painter.drawLine(xLine)
             painter.drawLine(yLine)
-        option.state &= not QtWidgets.QStyle.State_Selected
-        super().paint(painter, option, widget)
 
     def updateRectangle(self, end, edit=False):
         # Update the end point of the rectangle to end
@@ -1281,6 +1312,18 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
             painter.drawPath(self.shape())
         option.state &= not QtWidgets.QStyle.State_Selected
         super().paint(painter, option, widget)
+        if self.showItemCenter is True and self.parentItem() is None:
+            pen = QtGui.QPen()
+            pen.setWidth(0.5)
+            pen.setStyle(2)
+            painter.setPen(pen)
+            # Draw the center
+            x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
+            width, height = self.boundingRect().width(), self.boundingRect().height()
+            xLine = QtCore.QLineF(x, y+height/2, x, y-height/2)
+            yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
+            painter.drawLine(xLine)
+            painter.drawLine(yLine)
 
     def updateEllipse(self, end, edit=False):
         # Update the end point of the ellipse to end
@@ -1524,6 +1567,18 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             # painter.setBrush(self.localBrush)
             self.rect_ = QtCore.QRectF(QtCore.QPointF(0, 0), QtCore.QSizeF(pix.size()/self.latexImageDpiScale))
             painter.drawPixmap(self.rect_.toRect(), pix)
+        if self.showItemCenter is True and self.parentItem() is None:
+            pen = QtGui.QPen()
+            pen.setWidth(0.5)
+            pen.setStyle(2)
+            painter.setPen(pen)
+            # Draw the center
+            x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
+            width, height = self.boundingRect().width(), self.boundingRect().height()
+            xLine = QtCore.QLineF(x, y+height/2, x, y-height/2)
+            yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
+            painter.drawLine(xLine)
+            painter.drawLine(yLine)
 
     def shape(self):
         path = QtGui.QPainterPath()
@@ -1869,6 +1924,21 @@ class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
             self.setPixmap(pix)
         else:
             self.chooseFile()
+
+    def paint(self, painter, options, widget):
+        super().paint(painter, options, widget)
+        if self.showItemCenter is True and self.parentItem() is None:
+            pen = QtGui.QPen()
+            pen.setWidth(0.5)
+            pen.setStyle(2)
+            painter.setPen(pen)
+            # Draw the center
+            x, y = self.boundingRect().center().x(), self.boundingRect().center().y()
+            width, height = self.boundingRect().width(), self.boundingRect().height()
+            xLine = QtCore.QLineF(x, y+height/2, x, y-height/2)
+            yLine = QtCore.QLineF(x+width/2, y, x-width/2, y)
+            painter.drawLine(xLine)
+            painter.drawLine(yLine)
 
     def setLocalPenOptions(self, **kwargs):
         pass
