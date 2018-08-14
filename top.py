@@ -1,8 +1,14 @@
+import os, sys
+if getattr(sys, 'frozen', False):
+    dname = os.path.dirname(sys.executable)
+else:
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+os.chdir(dname)
 import platform
 if platform.system() == 'Windows':
     import ctypes
 import sip
-import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
 from src.mainwindow import myMainWindow
 import logging, logging.handlers
@@ -22,6 +28,7 @@ def logException(excType, value, traceback):
 
 if __name__ == "__main__":
     logger.info('YCircuit started on ' + sys.platform)
+    logger.info('Setting directory to ' + dname)
     if platform.system() == 'Windows':
         sip.setdestroyonexit(False)
         myappid = u'ycircuit.0.2'
