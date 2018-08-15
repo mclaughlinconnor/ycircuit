@@ -187,6 +187,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().addItem(self.mouseRect)
             elif self.mouseRect in self.scene().items():
                 self.scene().removeItem(self.mouseRect)
+        self.mouseScrollSensitivity = settings.value('Mouse/Scroll sensitivity', '11', type=int)
         self.showAnimationPan = settings.value('Mouse/Animations/Pan', True, type=bool)
         self.showAnimationZoom = settings.value('Mouse/Animations/Zoom', True, type=bool)
         self.scrollModifierNone = settings.value('Mouse/PanningZooming/Modifier none', 'Zoom')
@@ -2254,14 +2255,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if eventDelta > 240:
                 event.ignore()
                 return
-            delta = max(120, eventDelta)
+            delta = 10
         elif eventDelta < 0:
             # Ignore event for fast scrolls where delta < -240
             if eventDelta < -240:
                 event.ignore()
                 return
-            delta = min(-120, eventDelta)
-        scaleFactor = -delta / 240.
+            delta = -10
+        delta *= self.mouseScrollSensitivity
+        scaleFactor = delta/240.
         modifiers = event.modifiers()
         timeline = QtCore.QTimeLine(300, self)
         timeline.setFrameRange(0, 100)
@@ -2295,15 +2297,9 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.modifyView(scaleFactor*15, panZoom)
             logger.debug('Pan in the %s direction by %d', panZoom, -scaleFactor*150)
         else:
-            if self.invertZoom is False:
-                if scaleFactor < 0:
-                    scaleFactor = -1 / scaleFactor
-            else:
-                if scaleFactor > 0:
-                    scaleFactor = 1 / scaleFactor
-                else:
-                    scaleFactor = -scaleFactor
-            scaleFactor = 1 + (scaleFactor - 1) / 2.5
+            if self.invertZoom is True:
+                scaleFactor *= -1
+            scaleFactor += 1
             self.setTransformationAnchor(self.AnchorUnderMouse)
             if self.showAnimationZoom is True:
                 timeline.setDuration(100)
