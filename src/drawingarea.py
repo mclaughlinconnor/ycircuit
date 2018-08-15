@@ -531,7 +531,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         # Return if no items are present
         if len(listOfItems) == 0:
             logger.info('Nothing to save')
-            return
+            return False
         if mode in possibleModes:
             x = min([item.scenePos().x() for item in listOfItems])
             y = min([item.scenePos().y() for item in listOfItems])
@@ -554,22 +554,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     item.setSelected(False)
                 # Pressing escape sets selectOrigin to None
                 if self.selectOrigin is None:
-                    return
+                    return False
                 logger.info('Setting origin for symbol at %s', origin)
-
-            saveObject = myGraphicsItemGroup(None, origin, [])
-            self.scene().addItem(saveObject)
-            saveObject.origin = origin
-
-            # Set relative origins of child items
-            for item in listOfItems:
-                item.origin = item.pos() - saveObject.origin
-                if hasattr(item, 'isPin'):
-                    if item.isPin is True:
-                        saveObject.pins.append(item)
-                item.lightenColour(False)
-                logger.info('Setting origin for item %s to %s', item, item.origin)
-            saveObject.setItems(listOfItems)
 
             saveFile = ''
             if mode == 'symbol':
@@ -584,6 +570,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.defaultSymbolSaveFolder = None
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
+                    else:
+                        return False
                     if not saveFile.endswith('.sym'):
                         saveFile += '.sym'
                 else:
@@ -599,6 +587,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.defaultSymbolSaveFolder = None
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
+                else:
+                    return False
                 if not saveFile.endswith('.sym'):
                     saveFile += '.sym'
             elif mode == 'schematic':
@@ -613,6 +603,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.defaultSchematicSaveFolder = None
                     if (fileDialog.exec_()):
                         saveFile = str(fileDialog.selectedFiles()[0])
+                    else:
+                        return False
                     if not saveFile.endswith('.sch'):
                         saveFile += '.sch'
                 else:
@@ -628,10 +620,26 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.defaultSchematicSaveFolder = None
                 if (fileDialog.exec_()):
                     saveFile = str(fileDialog.selectedFiles()[0])
+                else:
+                    return False
                 if not saveFile.endswith('.sch'):
                     saveFile += '.sch'
             elif mode == 'autobackup':
                 saveFile = self.autobackupFile.fileName()
+
+            saveObject = myGraphicsItemGroup(None, origin, [])
+            self.scene().addItem(saveObject)
+            saveObject.origin = origin
+
+            # Set relative origins of child items
+            for item in listOfItems:
+                item.origin = item.pos() - saveObject.origin
+                if hasattr(item, 'isPin'):
+                    if item.isPin is True:
+                        saveObject.pins.append(item)
+                item.lightenColour(False)
+                logger.info('Setting origin for item %s to %s', item, item.origin)
+            saveObject.setItems(listOfItems)
 
             if saveFile[:-4] != '':
                 # Delete old autobackup file
@@ -679,6 +687,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 item = self.itemAt(self.currentPos).topLevelItem()
                 if item != self.mouseRect:
                     item.lightenColour(True)
+            return True
 
     def exportRoutine(self):
         """

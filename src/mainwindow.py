@@ -377,7 +377,11 @@ class myMainWindow(QtWidgets.QMainWindow):
             msgBox.setIcon(msgBox.Information)
             ret = msgBox.exec_()
             if ret == msgBox.Save:
-                self.ui.drawingArea.saveRoutine(modified)
+                saved = self.ui.drawingArea.saveRoutine(modified)
+                if saved is False:
+                    self.logger.info('Not closing since a save file was not specified')
+                    event.ignore()
+                    return
                 self.logger.info('Deleting autobackup file %s', self.ui.drawingArea.autobackupFile.fileName())
                 self.ui.drawingArea.autobackupFile.close()
                 self.ui.drawingArea.autobackupFile.remove()
