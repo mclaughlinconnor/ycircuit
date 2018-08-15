@@ -1725,7 +1725,7 @@
          <item>
           <widget class="QLabel" name="label_47">
            <property name="text">
-            <string>Scroll sensitivity</string>
+            <string>Pan sensitivity</string>
            </property>
           </widget>
          </item>
@@ -1743,9 +1743,76 @@
           </spacer>
          </item>
          <item>
-          <widget class="QSlider" name="horizontalSlider_mouseScrollSensitivity">
+          <widget class="QSlider" name="horizontalSlider_mousePanSensitivity">
+           <property name="maximumSize">
+            <size>
+             <width>250</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="toolTip">
-            <string>Higher values lead to increased panning and zooming per unit motion and vice versa</string>
+            <string>Higher values lead to increased panning per unit motion and vice versa</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>21</number>
+           </property>
+           <property name="value">
+            <number>11</number>
+           </property>
+           <property name="sliderPosition">
+            <number>11</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="invertedAppearance">
+            <bool>false</bool>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksBelow</enum>
+           </property>
+           <property name="tickInterval">
+            <number>4</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_39">
+         <item>
+          <widget class="QLabel" name="label_48">
+           <property name="text">
+            <string>Zoom sensitivity</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_48">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_mouseZoomSensitivity">
+           <property name="maximumSize">
+            <size>
+             <width>250</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Higher values lead to increased zooming per unit motion and vice versa</string>
            </property>
            <property name="minimum">
             <number>1</number>

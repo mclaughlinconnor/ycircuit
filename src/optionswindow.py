@@ -100,7 +100,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         # Mouse settings
         self.ui.checkBox_showMouseRect.setChecked(self.settings.value('Mouse/Show rect', True, type=bool))
-        self.ui.horizontalSlider_mouseScrollSensitivity.setValue(self.settings.value('Mouse/Scroll sensitivity', '11', type=int))
+        self.ui.horizontalSlider_mousePanSensitivity.setValue(self.settings.value('Mouse/Pan sensitivity', '11', type=int))
+        self.ui.horizontalSlider_mouseZoomSensitivity.setValue(self.settings.value('Mouse/Zoom sensitivity', '11', type=int))
         self.ui.checkBox_showAnimationPan.setChecked(self.settings.value('Mouse/Animations/Pan', True, type=bool))
         self.ui.checkBox_showAnimationZoom.setChecked(self.settings.value('Mouse/Animations/Zoom', True, type=bool))
         self.ui.comboBox_scrollModifierNone.setCurrentText(self.settings.value('Mouse/PanningZooming/Modifier none', 'Zoom'))
@@ -167,7 +168,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
 
         # Mouse settings
         self.settings.setValue('Mouse/Show rect', self.ui.checkBox_showMouseRect.isChecked())
-        self.settings.setValue('Mouse/Scroll sensitivity', self.ui.horizontalSlider_mouseScrollSensitivity.value())
+        self.settings.setValue('Mouse/Pan sensitivity', self.ui.horizontalSlider_mousePanSensitivity.value())
+        self.settings.setValue('Mouse/Zoom sensitivity', self.ui.horizontalSlider_mouseZoomSensitivity.value())
         self.settings.setValue('Mouse/Animations/Pan', self.ui.checkBox_showAnimationPan.isChecked())
         self.settings.setValue('Mouse/Animations/Zoom', self.ui.checkBox_showAnimationZoom.isChecked())
         self.settings.setValue('Mouse/PanningZooming/Modifier none', self.ui.comboBox_scrollModifierNone.currentText())
@@ -270,7 +272,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Mouse settings
         self.settings.beginGroup('Mouse')
         self.settings.setValue('Show rect', True)
-        self.settings.setValue('Scroll sensitvity', '11')
+        self.settings.setValue('Pan sensitvity', '11')
+        self.settings.setValue('Zoom sensitvity', '11')
         self.settings.beginGroup('Animations')
         self.settings.setValue('Pan', True)
         self.settings.setValue('Zoom', True)

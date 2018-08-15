@@ -187,7 +187,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     self.scene().addItem(self.mouseRect)
             elif self.mouseRect in self.scene().items():
                 self.scene().removeItem(self.mouseRect)
-        self.mouseScrollSensitivity = settings.value('Mouse/Scroll sensitivity', '11', type=int)
+        self.mousePanSensitivity = settings.value('Mouse/Pan sensitivity', '11', type=int)
+        self.mouseZoomSensitivity = settings.value('Mouse/Zoom sensitivity', '11', type=int)
         self.showAnimationPan = settings.value('Mouse/Animations/Pan', True, type=bool)
         self.showAnimationZoom = settings.value('Mouse/Animations/Zoom', True, type=bool)
         self.scrollModifierNone = settings.value('Mouse/PanningZooming/Modifier none', 'Zoom')
@@ -2271,8 +2272,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 event.ignore()
                 return
             delta = -10
-        delta *= self.mouseScrollSensitivity
-        scaleFactor = delta/240.
+        scaleFactor = -delta/240.
         modifiers = event.modifiers()
         timeline = QtCore.QTimeLine(300, self)
         timeline.setFrameRange(0, 100)
@@ -2298,6 +2298,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             elif self.scrollModifierNone == 'Pan horizontally':
                 panZoom = 'horizontal'
         if panZoom in ['vertical', 'horizontal']:
+            scaleFactor *= self.mousePanSensitivity
             self.setTransformationAnchor(self.NoAnchor)
             if self.showAnimationPan is True:
                 timeline.setUpdateInterval(20)
@@ -2306,7 +2307,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 self.modifyView(scaleFactor*15, panZoom)
             logger.debug('Pan in the %s direction by %d', panZoom, -scaleFactor*150)
         else:
-            if self.invertZoom is True:
+            scaleFactor *= self.mouseZoomSensitivity/2
+            if self.invertZoom is False:
                 scaleFactor *= -1
             scaleFactor += 1
             self.setTransformationAnchor(self.AnchorUnderMouse)
