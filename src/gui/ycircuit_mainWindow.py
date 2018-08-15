@@ -700,6 +700,9 @@ class Ui_MainWindow(object):
         self.action_showItemCenters = QtWidgets.QAction(MainWindow)
         self.action_showItemCenters.setCheckable(True)
         self.action_showItemCenters.setObjectName("action_showItemCenters")
+        self.action_minorGridPointSpacing50 = QtWidgets.QAction(MainWindow)
+        self.action_minorGridPointSpacing50.setCheckable(True)
+        self.action_minorGridPointSpacing50.setObjectName("action_minorGridPointSpacing50")
         self.menu_File.addAction(self.action_newSchematic)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.action_saveSchematic)
@@ -828,6 +831,7 @@ class Ui_MainWindow(object):
         self.menuMinor_grid_point_spacing.addAction(self.action_minorGridPointSpacing20)
         self.menuMinor_grid_point_spacing.addAction(self.action_minorGridPointSpacing30)
         self.menuMinor_grid_point_spacing.addAction(self.action_minorGridPointSpacing40)
+        self.menuMinor_grid_point_spacing.addAction(self.action_minorGridPointSpacing50)
         self.menuSnap_to_grid_spacing.addAction(self.action_snapToGridSpacing1)
         self.menuSnap_to_grid_spacing.addAction(self.action_snapToGridSpacing2)
         self.menuSnap_to_grid_spacing.addAction(self.action_snapToGridSpacing5)
@@ -1246,6 +1250,8 @@ class Ui_MainWindow(object):
         self.action_setScale.setToolTip(_translate("MainWindow", "Set the scale for the selected item(s)"))
         self.action_showItemCenters.setText(_translate("MainWindow", "Show item center(s)"))
         self.action_showItemCenters.setShortcut(_translate("MainWindow", "Shift+C"))
+        self.action_minorGridPointSpacing50.setText(_translate("MainWindow", "50"))
+        self.action_minorGridPointSpacing50.setToolTip(_translate("MainWindow", "Set the minor grid point spacing to 50"))
 
 from src.drawingarea import DrawingArea, DrawingAreaPreview
 import icon_rc

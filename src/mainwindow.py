@@ -242,6 +242,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             lambda: self.action_minorGridPointSpacing(30))
         self.ui.action_minorGridPointSpacing40.triggered.connect(
             lambda: self.action_minorGridPointSpacing(40))
+        self.ui.action_minorGridPointSpacing50.triggered.connect(
+            lambda: self.action_minorGridPointSpacing(50))
         self.ui.action_showItemCenters.triggered.connect(
             self.ui.drawingArea.toggleItemCentersRoutine)
 
@@ -775,6 +777,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_minorGridPointSpacing20.setChecked(False)
         self.ui.action_minorGridPointSpacing30.setChecked(False)
         self.ui.action_minorGridPointSpacing40.setChecked(False)
+        self.ui.action_minorGridPointSpacing50.setChecked(False)
         if spacing == 1:
             self.ui.action_minorGridPointSpacing1.setChecked(True)
         if spacing == 2:
@@ -789,6 +792,8 @@ class myMainWindow(QtWidgets.QMainWindow):
             self.ui.action_minorGridPointSpacing30.setChecked(True)
         if spacing == 40:
             self.ui.action_minorGridPointSpacing40.setChecked(True)
+        if spacing == 50:
+            self.ui.action_minorGridPointSpacing50.setChecked(True)
         if temporary is False:
             self.logger.info('Set minor grid point spacing to %d', spacing)
             self.ui.drawingArea.changeMinorGridPointSpacing(spacing)

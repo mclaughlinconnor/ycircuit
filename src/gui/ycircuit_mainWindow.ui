@@ -623,6 +623,7 @@
      <addaction name="action_minorGridPointSpacing20"/>
      <addaction name="action_minorGridPointSpacing30"/>
      <addaction name="action_minorGridPointSpacing40"/>
+     <addaction name="action_minorGridPointSpacing50"/>
     </widget>
     <widget class="QMenu" name="menuSnap_to_grid_spacing">
      <property name="toolTip">
@@ -2393,6 +2394,17 @@
    </property>
    <property name="shortcut">
     <string>Shift+C</string>
+   </property>
+  </action>
+  <action name="action_minorGridPointSpacing50">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>50</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the minor grid point spacing to 50</string>
    </property>
   </action>
  </widget>
