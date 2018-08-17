@@ -1177,6 +1177,13 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                 add1 = Add(None, scene, dot1, symbol=True, origin=dotPos)
                 undoStack.push(add1)
 
+    def exportToLatex(self):
+        latex = '\draw '
+        latex += sceneXYFromPoint(self.line().p1(), self)
+        latex += ' -- '
+        latex += sceneXYFromPoint(self.line().p2(), self)
+        return latex + ';'
+
 
 class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
     """Class responsible for drawing rectangular objects"""
