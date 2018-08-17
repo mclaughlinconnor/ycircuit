@@ -831,10 +831,20 @@ class DrawingArea(QtWidgets.QGraphicsView):
             logger.info('Rendering PNG to target rectangle %s', targetRect)
         elif mode == 'tex':
             latex = '\\begin{tikzpicture}[scale=0.1]\n'
+            min_ = int(min([item.zValue() for item in self.scene().items()]))
+            max_ = int(max([item.zValue() for item in self.scene().items()])) + 1
+            for i in range(min_, max_):
+                latex += '\\pgfdeclarelayer{%d}\n' %i
+            latex += '\\pgfsetlayers{'
+            for i in range(min_, max_):
+                latex += str(i) + ','
+            latex = latex[:-1] + '}\n'
             for item in self.scene().items():
                 if item.parentItem() is None:
                     latex += '% Drawing ' + str(item) + '\n'
+                    latex += '\\begin{pgfonlayer}{%d}' %int(item.zValue())
                     latex += item.exportToLatex() + '\n'
+                    latex += '\\end{pgfonlayer}'
                     latex += '% End drawing ' + str(item) + '\n'
             latex += '\\end{tikzpicture}\n'
             with open(saveFile, 'w') as f:
