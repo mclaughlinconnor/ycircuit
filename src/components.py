@@ -1444,6 +1444,16 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         self.undoRectList.append(self.rect())
         self.updateP1P2()
 
+    def exportToLatex(self):
+        rect = self.rect().normalized()
+        latex = super().exportToLatex()
+        latex += sceneXYFromPoint(rect.center(), self)
+        latex += ' ellipse '
+        latex += '[x radius=' + str(rect.width()/2)
+        latex += ', '
+        latex += 'y radius=' + str(rect.height()/2) + ']'
+        return latex + ';'
+
 
 class Circle(Ellipse):
     """This is a special case of the Ellipse class where a = b."""
@@ -1502,6 +1512,14 @@ class Circle(Ellipse):
             self.undoPointList = []
         self.updateCircle(point)
         self.undoPointList.append(point)
+
+    def exportToLatex(self):
+        rect = self.rect().normalized()
+        latex = drawingElement.exportToLatex(self)
+        latex += sceneXYFromPoint(rect.center(), self)
+        latex += ' circle '
+        latex += '[radius=' + str(rect.width()/2) + ']'
+        return latex + ';'
 
 
 class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
