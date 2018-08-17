@@ -344,6 +344,22 @@ class TextEditor(QtWidgets.QDialog):
 
         return obj
 
+    def exportToLatex(self):
+        cursor = self.ui.textEdit.textCursor()
+        cursor.setPosition(0)
+        latex = ''
+        while cursor.position() < len(self.ui.textEdit.toPlainText()):
+            cursor.movePosition(cursor.NextCharacter)
+            format_ = cursor.charFormat()
+            char = self.ui.textEdit.toPlainText()[cursor.position()-1]
+            if format_.fontItalic is True:
+                latex += '\\textit{' + char + '}'
+            elif format_.verticalAlignment() == format_.AlignSubScript:
+                latex += '\\textsubscript{' + char + '}'
+            else:
+                latex += char
+        return latex
+
 
 class myFileDialog(QtWidgets.QFileDialog):
     def __init__(self, *args, **kwargs):

@@ -1787,6 +1787,19 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
             newItem.origin = self.origin
         return newItem
 
+    def exportToLatex(self):
+        latex = super().exportToLatex()
+        latex += sceneXYFromPoint(self.boundingRect().center(), self)
+        latex += ' node {'
+        if not hasattr(self, 'textEditor'):
+            self.textEditor = TextEditor(self, eulerFont=self.useEulerFont)
+        if hasattr(self, 'latexExpression') and self.latexExpression is not None:
+            latex += '$' + self.latexExpression + '$'
+        else:
+            latex += self.textEditor.exportToLatex()
+        latex += '}'
+        return latex + ';'
+
 
 class Arc(Wire):
     """This is a special case of the Wire class where repeated clicks change the curvature
