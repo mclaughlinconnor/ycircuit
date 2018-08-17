@@ -184,7 +184,7 @@ class TextEditor(QtWidgets.QDialog):
             self.ui.textEdit.setFontFamily(self.font_.family())
         self.ui.textEdit.setFontPointSize(self.font_.pointSize())
         cursor = self.ui.textEdit.textCursor()
-        format = cursor.charFormat()
+        format_ = cursor.charFormat()
         bold, italic, underline, overline = True, True, True, True
         subscript, superscript, symbol = True, True, True
         latex = self.ui.toolButton_latex.isChecked()
@@ -195,20 +195,20 @@ class TextEditor(QtWidgets.QDialog):
                 start, end = cursor.position() - 1, cursor.position()
             for i in range(start + 1, end + 1):
                 cursor.setPosition(i)
-                format = cursor.charFormat()
-                if format.fontWeight() != 75:
+                format_ = cursor.charFormat()
+                if format_.fontWeight() != 75:
                     bold = False
-                if format.fontItalic() is False:
+                if format_.fontItalic() is False:
                     italic = False
-                if format.fontUnderline() is False:
+                if format_.fontUnderline() is False:
                     underline = False
-                if format.fontOverline() is False:
+                if format_.fontOverline() is False:
                     overline = False
-                if format.verticalAlignment() != format.AlignSubScript:
+                if format_.verticalAlignment() != format.AlignSubScript:
                     subscript = False
-                if format.verticalAlignment() != format.AlignSuperScript:
+                if format_.verticalAlignment() != format.AlignSuperScript:
                     superscript = False
-                if str(format.fontFamily()) != 'Symbol':
+                if str(format_.fontFamily()) != 'Symbol':
                     symbol = False
             self.ui.pushButton_bold.setChecked(bold)
             self.ui.pushButton_italic.setChecked(italic)
