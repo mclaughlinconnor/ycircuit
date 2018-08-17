@@ -273,13 +273,71 @@ class drawingElement(object):
         """Handled by classes individually"""
         pass
 
-    def exportToLatex(self):
+    def convertColourToTikz(self, colour=None):
+        tikzColour = ''
+        if colour is None:
+            colour = QtGui.QColor('white')
+        else:
+            colour = QtGui.QColor(colour)
+        tikzColour += 'rgb,255:red,'
+        tikzColour += str(int(colour.red())) + ';'
+        tikzColour += 'green,'
+        tikzColour += str(int(colour.green())) + ';'
+        tikzColour += 'blue,'
+        tikzColour += str(int(colour.blue()))
+        return tikzColour
+
+    def convertPenStyleToTikz(self, style=None):
+        if style is None:
+            style = QtCore.Qt.SolidLine
+        if style == QtCore.Qt.SolidLine:
+            return 'solid'
+        elif style == QtCore.Qt.DashLine:
+            return 'dashed'
+        elif style == QtCore.Qt.DotLine:
+            return 'dotted'
+        elif style == QtCore.Qt.DashDotLine:
+            return 'dash dot'
+        else:
+            return 'dash dot dot'
+
+    def convertCapStyleToTikz(self, style=None):
+        tikzCapStyle = ''
+        if style is None:
+            style = QtCore.Qt.SquareCap
+        if style == QtCore.Qt.SquareCap:
+            return 'rect'
+        elif style == QtCore.Qt.RoundCap:
+            return 'round'
+        else:
+            return 'butt'
+
+    def convertJoinStyleToTikz(self, style=None):
+        tikzJoinStyle = ''
+        if style is None:
+            style = QtCore.Qt.RoundJoin
+        if style == QtCore.Qt.RoundJoin:
+            return 'round'
+        elif style == QtCore.Qt.BevelJoin:
+            return 'bevel'
+        else:
+            return 'miter'
+
+    def exportToLatex(self, rotate=True):
         """ Handled by classes individually, just sets up the boilerplate code
         that will remain common to all the classes"""
         # latex = '\draw[rotate='
         # latex += str(math.acos(self.transform().m11())*180/math.pi)
         # latex += '] '
-        latex = '\draw '
+        latex = '\draw['
+        latex += 'line width=' + str(self.localPenWidth/4)
+        latex += ',' + self.convertPenStyleToTikz(self.localPenStyle)
+        latex += ',line cap=' + self.convertCapStyleToTikz(self.localPenCapStyle)
+        latex += ',line join=' + self.convertJoinStyleToTikz(self.localPenJoinStyle)
+        latex += ',color={' + self.convertColourToTikz(self.localPenColour) + '}'
+        if self.localBrushStyle == 1:
+            latex += ',fill={' + self.convertColourToTikz(self.localBrushColour) + '}'
+        latex += '] '
         return latex
 
 
@@ -751,7 +809,8 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
     def exportToLatex(self):
         polyPathList = self.path().toSubpathPolygons(QtGui.QTransform())
         polyPathPointList = []
-        latex = '\draw '
+        # latex = '\draw '
+        latex = super().exportToLatex(rotate=False)
         for poly in polyPathList:
             for i in range(poly.count()):
                 point = poly.at(i)
@@ -1178,7 +1237,8 @@ class Net(QtWidgets.QGraphicsLineItem, drawingElement):
                 undoStack.push(add1)
 
     def exportToLatex(self):
-        latex = '\draw '
+        # latex = '\draw '
+        latex = super().exportToLatex(rotate=False)
         latex += sceneXYFromPoint(self.line().p1(), self)
         latex += ' -- '
         latex += sceneXYFromPoint(self.line().p2(), self)
