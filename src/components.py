@@ -748,6 +748,17 @@ class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
             self.editPointNumber += 1
             self.editPointNumber %= self.oldPath.toSubpathPolygons(QtGui.QTransform())[0].size()
 
+    def exportToLatex(self):
+        polyPathList = self.path().toSubpathPolygons(QtGui.QTransform())
+        polyPathPointList = []
+        latex = '\draw '
+        for poly in polyPathList:
+            for i in range(poly.count()):
+                point = poly.at(i)
+                latex += sceneXYFromPoint(point, self)
+                latex += ' -- '
+        return latex[:-4] + ';'
+
 
 class Net(QtWidgets.QGraphicsLineItem, drawingElement):
     def __init__(self, parent=None, start=None, **kwargs):
