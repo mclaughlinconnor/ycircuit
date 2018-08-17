@@ -1961,6 +1961,18 @@ class Arc(Wire):
         self.oldPath = path
         self.setPath(path)
 
+    def exportToLatex(self):
+        latex = super().exportToLatex()
+        latex += sceneXYFromPoint(self.startPoint, self)
+        latex += ' .. controls '
+        latex += sceneXYFromPoint(self.controlPoint, self)
+        if self.points == 4:
+            latex += ' and '
+            latex += sceneXYFromPoint(self.controlPointAlt, self)
+        latex += ' .. '
+        latex += sceneXYFromPoint(self.endPoint, self)
+        return latex + ';'
+
 
 class Image(QtWidgets.QGraphicsPixmapItem, drawingElement):
     def __init__(self, parent=None, start=None, pixmap=None, **kwargs):
