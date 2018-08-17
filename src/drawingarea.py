@@ -1162,7 +1162,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 netList = [item for item in self.scene().items() if
                            (isinstance(item, Net) and
                             item.collidesWithItem(item2)) and
-                           item not in self.scene().selectedItems()
+                           item not in self.scene().selectedItems() and
+                           item.parentItem() is None
                 ]
                 pinList = [item for item in self.scene().items() if
                             (isinstance(item, myGraphicsItemGroup) and
@@ -1651,7 +1652,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             netList = [item for item in self.scene().items() if
                                        (isinstance(item, Net) and
                                         item.collidesWithItem(item2)) and
-                                       item not in self.scene().selectedItems()
+                                       item not in self.scene().selectedItems() and
+                                       item.parentItem() is None
                             ]
                             pinList = [item for item in self.scene().items() if
                                     (isinstance(item, myGraphicsItemGroup) and
@@ -1692,7 +1694,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                             netList = [item for item in self.scene().items() if
                                        (isinstance(item, Net) and
                                         item.collidesWithItem(item2)) and
-                                       item not in self.scene().selectedItems()
+                                       item not in self.scene().selectedItems() and
+                                       item.parentItem() is None
                             ]
                             pinList = [item for item in self.scene().items() if
                                     (isinstance(item, myGraphicsItemGroup) and
@@ -1967,7 +1970,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 if self.currentNet is not None:
                     netList = [item for item in self.scene().items() if
                                (isinstance(item, Net) and
-                                item.collidesWithItem(self.currentNet))
+                                item.collidesWithItem(self.currentNet)) and
+                               item.parentItem() is None
                     ]
                     pinList = [item for item in self.scene().items() if
                                (isinstance(item, myGraphicsItemGroup) and
@@ -1992,7 +1996,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                         if self.currentNet.perpLine is not None:
                             netList = [item for item in self.scene().items() if
                                        (isinstance(item, Net) and
-                                        item.collidesWithItem(self.currentNet.perpLine))
+                                        item.collidesWithItem(self.currentNet.perpLine)) and
+                                       item.parentItem() is None
                             ]
                             pinList = [item for item in self.scene().items() if
                                     (isinstance(item, myGraphicsItemGroup) and
