@@ -830,7 +830,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             img.save(saveFile, saveFilter, quality=quality)
             logger.info('Rendering PNG to target rectangle %s', targetRect)
         elif mode == 'tex':
-            latex = '\\begin{tikzpicture}[scale=0.01]\n'
+            latex = '\\begin{tikzpicture}[scale=0.1]\n'
             for item in self.scene().items():
                 if item.parentItem() is None:
                     latex += '% Drawing ' + str(item) + '\n'
