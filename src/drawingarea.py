@@ -750,7 +750,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self,
             'Export File',
             self.defaultExportFolder,
-            'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff)',
+            'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff);;TEX files (*.tex)',
             exportFormat.upper() + ' files (*.' + exportFormat.lower() + ')'
         )
         self.defaultExportFolder = None
@@ -766,6 +766,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             saveFilter = 'bmp'
         elif '*.tiff' in saveFilter:
             saveFilter = 'tiff'
+        elif '*.tex' in saveFilter:
+            saveFilter = 'tex'
         # Check that file is valid
         if saveFile != '':
             if not saveFile.endswith('.' + saveFilter):
@@ -789,6 +791,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             mode = 'svg'
         elif saveFilter in ['jpg', 'png', 'bmp', 'tiff']:
             mode = 'image'
+        elif saveFilter == 'tex':
+            mode = 'tex'
         logger.info('Source rectangle set to %s', sourceRect)
         if mode == 'pdf':
             # Initialize printer
@@ -825,9 +829,21 @@ class DrawingArea(QtWidgets.QGraphicsView):
             self.scene().render(painter, targetRect, sourceRect)
             img.save(saveFile, saveFilter, quality=quality)
             logger.info('Rendering PNG to target rectangle %s', targetRect)
+        elif mode == 'tex':
+            latex = '\\begin{tikzpicture}[scale=0.01]\n'
+            for item in self.scene().items():
+                if item.parentItem() is None:
+                    latex += '% Drawing ' + str(item) + '\n'
+                    latex += item.exportToLatex() + '\n'
+                    latex += '% End drawing ' + str(item) + '\n'
+            latex += '\\end{tikzpicture}\n'
+            with open(saveFile, 'w') as f:
+                f.write(latex)
+            logger.info('Writing TEX file')
 
         # Need to stop painting to avoid errors about painter getting deleted
-        painter.end()
+        if mode != 'tex':
+            painter.end()
         # Add the grid back to the scene when saving is done
         if self._grid.enableGrid is True:
             self._grid.createGrid()

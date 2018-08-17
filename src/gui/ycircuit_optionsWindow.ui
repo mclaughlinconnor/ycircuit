@@ -1493,6 +1493,11 @@
                 <string>TIFF</string>
                </property>
               </item>
+              <item>
+               <property name="text">
+                <string>TEX</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>
