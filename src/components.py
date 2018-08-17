@@ -6,6 +6,18 @@ import logging
 
 logger = logging.getLogger('YCircuit.components')
 
+def xyFromPoint(point):
+    xy = '('
+    xy += str(point.x())
+    xy += ','
+    # Y axis is inverted in Qt compared to Tikz
+    xy += str(-point.y())
+    xy += ')'
+    return xy
+
+def sceneXYFromPoint(point, item):
+    return xyFromPoint(item.mapToScene(point))
+
 
 class drawingElement(object):
     """The drawingElement forms part of the basis for all drawing classes.
@@ -260,6 +272,15 @@ class drawingElement(object):
     def redoEdit(self, point=None, **kwargs):
         """Handled by classes individually"""
         pass
+
+    def exportToLatex(self):
+        """ Handled by classes individually, just sets up the boilerplate code
+        that will remain common to all the classes"""
+        # latex = '\draw[rotate='
+        # latex += str(math.acos(self.transform().m11())*180/math.pi)
+        # latex += '] '
+        latex = '\draw '
+        return latex
 
 
 class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
@@ -534,6 +555,12 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
     def redoEdit(self, point=None, **kwargs):
         for item in self.listOfItems:
             item.redoEdit(point, **kwargs)
+
+    def exportToLatex(self):
+        latex = ''
+        for item in self.listOfItems:
+            latex += item.exportToLatex()
+        return latex
 
 
 class Wire(QtWidgets.QGraphicsPathItem, drawingElement):
