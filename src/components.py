@@ -1310,6 +1310,14 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         rect = self.rect().normalized()
         self.p1, self.p2 = rect.topLeft(), rect.bottomRight()
 
+    def exportToLatex(self):
+        latex = super().exportToLatex()
+        rect = self.rect().normalized()
+        latex += sceneXYFromPoint(rect.bottomLeft(), self)
+        latex += ' rectangle '
+        latex += sceneXYFromPoint(rect.topRight(), self)
+        return latex + ';'
+
 
 class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
     """Class responsible for drawing elliptical objects"""
