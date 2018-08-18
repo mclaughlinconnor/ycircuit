@@ -326,10 +326,12 @@ class drawingElement(object):
     def exportToLatex(self, rotate=True):
         """ Handled by classes individually, just sets up the boilerplate code
         that will remain common to all the classes"""
-        # latex = '\draw[rotate='
-        # latex += str(math.acos(self.transform().m11())*180/math.pi)
-        # latex += '] '
         latex = '\draw['
+        if rotate is True:
+            # Rotation settings
+            latex += 'rotate around={'
+            latex += str(math.atan2(self.transform().m21(),self.transform().m11())*180/math.pi) + ':'
+            latex += xyFromPoint(self.scenePos()) + '},'
         # Pen settings
         if hasattr(self, 'localPenWidth'):
             latex += 'line width=' + str(self.localPenWidth/4)
@@ -1379,10 +1381,14 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
 
     def exportToLatex(self):
         latex = super().exportToLatex()
-        rect = self.rect().normalized()
-        latex += sceneXYFromPoint(rect.bottomLeft(), self)
+        # Calculate bottom left and top right of rect in scene coords
+        rect = self.rect()
+        width, height = rect.width(), rect.height()
+        p1 = sceneXYFromPoint(rect.bottomLeft(), self)
+        p2 = xyFromPoint(self.mapToScene(rect.bottomLeft()) + QtCore.QPointF(width, -height))
+        latex += p1
         latex += ' rectangle '
-        latex += sceneXYFromPoint(rect.topRight(), self)
+        latex += p2
         return latex + ';'
 
 
@@ -1512,9 +1518,10 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         self.updateP1P2()
 
     def exportToLatex(self):
+        center = self.transform().inverted()[0].mapRect(self.rect()).center()
         rect = self.rect().normalized()
         latex = super().exportToLatex()
-        latex += sceneXYFromPoint(rect.center(), self)
+        latex += sceneXYFromPoint(center, self)
         latex += ' ellipse '
         latex += '[x radius=' + str(rect.width()/20)
         latex += ', '
@@ -1581,9 +1588,10 @@ class Circle(Ellipse):
         self.undoPointList.append(point)
 
     def exportToLatex(self):
+        center = self.transform().inverted()[0].mapRect(self.rect()).center()
         rect = self.rect().normalized()
         latex = drawingElement.exportToLatex(self)
-        latex += sceneXYFromPoint(rect.center(), self)
+        latex += sceneXYFromPoint(center, self)
         latex += ' circle '
         latex += '[radius=' + str(rect.width()/20) + ']'
         return latex + ';'
