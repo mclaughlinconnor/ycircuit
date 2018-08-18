@@ -8,10 +8,10 @@ logger = logging.getLogger('YCircuit.components')
 
 def xyFromPoint(point):
     xy = '('
-    xy += str(point.x()/10)
+    xy += str(point.x()/100)
     xy += ','
     # Y axis is inverted in Qt compared to Tikz
-    xy += str(-point.y()/10)
+    xy += str(-point.y()/100)
     xy += ')'
     return xy
 
@@ -1536,9 +1536,9 @@ class Ellipse(QtWidgets.QGraphicsEllipseItem, drawingElement):
         latex = super().exportToLatex()
         latex += sceneXYFromPoint(center, self)
         latex += ' ellipse '
-        latex += '[x radius=' + str(rect.width()/20)
+        latex += '[x radius=' + str(rect.width()/200)
         latex += ', '
-        latex += 'y radius=' + str(rect.height()/20) + ']'
+        latex += 'y radius=' + str(rect.height()/200) + ']'
         return latex + ';'
 
 
@@ -1606,7 +1606,7 @@ class Circle(Ellipse):
         latex = drawingElement.exportToLatex(self)
         latex += sceneXYFromPoint(center, self)
         latex += ' circle '
-        latex += '[radius=' + str(rect.width()/20) + ']'
+        latex += '[radius=' + str(rect.width()/200) + ']'
         return latex + ';'
 
 
