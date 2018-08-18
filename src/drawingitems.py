@@ -352,12 +352,28 @@ class TextEditor(QtWidgets.QDialog):
             cursor.movePosition(cursor.NextCharacter)
             format_ = cursor.charFormat()
             char = self.ui.textEdit.toPlainText()[cursor.position()-1]
-            if format_.fontItalic is True:
-                latex += '\\textit{' + char + '}'
-            elif format_.verticalAlignment() == format_.AlignSubScript:
-                latex += '\\textsubscript{' + char + '}'
-            else:
-                latex += char
+            modifiers = 0
+            if format_.fontWeight() == 75:
+                latex += '\\textbf{'
+                modifiers += 1
+            if format_.fontItalic() is True:
+                latex += '\\textit{'
+                modifiers += 1
+            if format_.fontUnderline() is True:
+                latex += '\\underline{'
+                modifiers += 1
+            if format_.fontOverline() is True:
+                latex += '\\={'
+                modifiers += 1
+            if format_.verticalAlignment() == format_.AlignSubScript:
+                latex += '\\textsubscript{'
+                modifiers += 1
+            if format_.verticalAlignment() == format_.AlignSuperScript:
+                latex += '\\textsuperscript{'
+                modifiers += 1
+            latex += char
+            for i in range(modifiers):
+                latex += '}'
         return latex
 
 
