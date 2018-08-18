@@ -143,18 +143,27 @@ class ExportWindow(QtWidgets.QDialog):
         if _format in ['pdf', 'svg']:
             self.ui.doubleSpinBox_exportImageScaleFactor.setEnabled(False)
             self.ui.comboBox_exportQuality.setEnabled(False)
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(True)
         elif _format in ['bmp', 'tiff']:
             self.ui.doubleSpinBox_exportImageScaleFactor.setEnabled(True)
             self.ui.comboBox_exportQuality.setEnabled(False)
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(True)
+        elif _format == 'tex':
+            self.ui.doubleSpinBox_exportImageScaleFactor.setEnabled(True)
+            self.ui.comboBox_exportQuality.setEnabled(False)
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(False)
         else:
             self.ui.doubleSpinBox_exportImageScaleFactor.setEnabled(True)
             self.ui.comboBox_exportQuality.setEnabled(True)
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(True)
         if _format in ['pdf', 'svg']:
             self.ui.label_exportDimensions.units = 'in'
+        elif _format == 'tex':
+            self.ui.label_exportDimensions.units = 'cm'
         else:
             self.ui.label_exportDimensions.units = 'px'
         self.exportFormat = _format
-        self.updatePreview()
+        self.buttonGroup_exportArea_buttonClicked()
 
     def buttonGroup_exportArea_buttonClicked(self):
         if self.ui.radioButton_exportAreaFull.isChecked() is True:
@@ -168,6 +177,8 @@ class ExportWindow(QtWidgets.QDialog):
             self.ui.doubleSpinBox_exportImageWhitespacePadding.setValue(1)
         else:
             self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(True)
+        if self.exportFormat == 'tex':
+            self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(False)
         self.updatePreview()
 
     def comboBox_exportQuality_currentIndexChanged(self):
@@ -206,6 +217,7 @@ class ExportWindow(QtWidgets.QDialog):
         self.updateDimensions()
 
     def updateDimensions(self):
+        self.scaleFactor = self.ui.doubleSpinBox_exportImageScaleFactor.value()
         # Convert pixels to inches for PDF and SVG
         if self.exportFormat == 'pdf':
             # 1200 because we use QtPrintSupport.QPrinter.HighResolution
@@ -215,8 +227,10 @@ class ExportWindow(QtWidgets.QDialog):
             # 96 because that is the value set in the export routine
             self.dimensions['width'] = round(self.dimensions['width']/96, 2)
             self.dimensions['height'] = round(self.dimensions['height']/96, 2)
+        elif self.exportFormat == 'tex':
+            self.dimensions['width'] = round(self.dimensions['width']/100*self.scaleFactor, 2)
+            self.dimensions['height'] = round(self.dimensions['height']/100*self.scaleFactor, 2)
         else:
-            self.scaleFactor = self.ui.doubleSpinBox_exportImageScaleFactor.value()
             self.dimensions['width'] = int(self.dimensions['width']*self.scaleFactor)
             self.dimensions['height'] = int(self.dimensions['height']*self.scaleFactor)
         text = str(self.dimensions['width']) + self.ui.label_exportDimensions.units \
