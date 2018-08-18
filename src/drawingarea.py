@@ -831,19 +831,26 @@ class DrawingArea(QtWidgets.QGraphicsView):
             img.save(saveFile, saveFilter, quality=quality)
             logger.info('Rendering PNG to target rectangle %s', targetRect)
         elif mode == 'tex':
-            min_ = int(min([item.zValue() for item in self.scene().items()]))
-            max_ = int(max([item.zValue() for item in self.scene().items()])) + 1
             latex = '\\begin{tikzpicture}[scale=%s]\n' %(scaleFactor)
+            if exportArea in ['full', 'visible']:
+                itemsToExport = self.scene().items()
+            elif exportArea == 'selected':
+                itemsToExport = self._selectedItems
+            min_ = int(min([item.zValue() for item in itemsToExport]))
+            max_ = int(max([item.zValue() for item in itemsToExport])) + 1
             for i in range(min_, max_):
                 latex += '\\pgfdeclarelayer{%d}\n' %i
             latex += '\\pgfsetlayers{'
             for i in range(min_, max_):
                 latex += str(i) + ','
             latex = latex[:-1] + '}\n'
-            for item in self.scene().items():
+            for item in itemsToExport:
                 if item.parentItem() is None:
                     latex += '% Drawing ' + str(item) + '\n'
                     latex += '\\begin{pgfonlayer}{%d}\n' %int(item.zValue())
+                    if exportArea == 'visible':
+                        latex += '\\clip ' + xyFromPoint(sourceRect.topLeft()) + \
+                            ' rectangle ' + xyFromPoint(sourceRect.bottomRight()) + ';\n'
                     latex += item.exportToLatex() + '\n'
                     latex += '\\end{pgfonlayer}\n'
                     latex += '% End drawing ' + str(item) + '\n'
