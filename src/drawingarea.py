@@ -1746,6 +1746,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     logger.info('Ungrouping pasted items')
                     ungroup = Ungroup(None, self.scene(), add.item, showItemCenter=self.showItemCenters)
                     self.undoStack.push(ungroup)
+                    for item_ in add.item.listOfItems:
+                        item_.setSelected(False)
                 self.loadItem.showItemCenter = self.showItemCenters
                 self.undoStack.endMacro()
         if self._keys['edit'] is True:
