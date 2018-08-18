@@ -333,7 +333,7 @@ class drawingElement(object):
         if rotate is True:
             # Rotation settings
             if isinstance(self, TextBox):
-                latex += 'anchor=base,rotate='
+                latex += 'anchor=north west,rotate='
             else:
                 latex += 'rotate around={'
             latex += str(math.atan2(self.transform().m21(),self.transform().m11())*180/math.pi)
@@ -343,9 +343,7 @@ class drawingElement(object):
                 latex += ':' + xyFromPoint(self.scenePos()) + '},'
         # Pen settings
         if hasattr(self, 'localPenWidth'):
-            if isinstance(self, TextBox):
-                latex += 'font=\\normalsize'
-            else:
+            if not isinstance(self, TextBox):
                 latex += 'line width=' + str(self.localPenWidth/4)
         if hasattr(self, 'localPenStyle'):
             latex += ',' + self.convertPenStyleToTikz(self.localPenStyle)
@@ -1878,12 +1876,15 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
         return newItem
 
     def exportToLatex(self):
-        latex = super().exportToLatex()
-        latex += ' at '
-        latex += sceneXYFromPoint(self.boundingRect().center(), self)
-        latex += ' {'
         if not hasattr(self, 'textEditor'):
             self.textEditor = TextEditor(self, eulerFont=self.useEulerFont)
+        latex = super().exportToLatex()
+        latex += ' at '
+        latex += sceneXYFromPoint(QtCore.QPointF(0, 0), self)
+        latex += ' {'
+        fontsize = self.localPenWidth/3
+        latex += '\\fontsize{' + str(fontsize) + 'pt}{' + str(fontsize) + 'pt}'
+        latex += '\\selectfont '
         if hasattr(self, 'latexExpression') and self.latexExpression is not None:
             latex += '$' + self.latexExpression + '$'
         else:
