@@ -80,7 +80,7 @@ class ExportWindow(QtWidgets.QDialog):
 
         if 'exportFormat' in kwargs:
             self.exportFormat = kwargs['exportFormat']
-            self.ui.comboBox_exportFormat.setCurrentText(self.exportFormat)
+            self.ui.comboBox_exportFormat.setCurrentText(self.exportFormat.upper())
         if 'exportArea' in kwargs:
             self.exportArea = kwargs['exportArea']
             if self.exportArea == 'full':
