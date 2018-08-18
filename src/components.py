@@ -637,6 +637,9 @@ class myGraphicsItemGroup(QtWidgets.QGraphicsItem, drawingElement):
 
     def exportToLatex(self):
         latex = ''
+        if hasattr(self, 'isPin') and self.isPin is True:
+            if self.isVisible() is False:
+                return ''
         for item in self.listOfItems:
             latex += item.exportToLatex()
         return latex
