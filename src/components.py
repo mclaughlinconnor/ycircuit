@@ -326,15 +326,27 @@ class drawingElement(object):
     def exportToLatex(self, rotate=True):
         """ Handled by classes individually, just sets up the boilerplate code
         that will remain common to all the classes"""
-        latex = '\draw['
+        if isinstance(self, TextBox):
+            latex = '\\node['
+        else:
+            latex = '\draw['
         if rotate is True:
             # Rotation settings
-            latex += 'rotate around={'
-            latex += str(math.atan2(self.transform().m21(),self.transform().m11())*180/math.pi) + ':'
-            latex += xyFromPoint(self.scenePos()) + '},'
+            if isinstance(self, TextBox):
+                latex += 'anchor=base,rotate='
+            else:
+                latex += 'rotate around={'
+            latex += str(math.atan2(self.transform().m21(),self.transform().m11())*180/math.pi)
+            if isinstance(self, TextBox):
+                latex += ','
+            else:
+                latex += ':' + xyFromPoint(self.scenePos()) + '},'
         # Pen settings
         if hasattr(self, 'localPenWidth'):
-            latex += 'line width=' + str(self.localPenWidth/4)
+            if isinstance(self, TextBox):
+                latex += 'font=\\normalsize'
+            else:
+                latex += 'line width=' + str(self.localPenWidth/4)
         if hasattr(self, 'localPenStyle'):
             latex += ',' + self.convertPenStyleToTikz(self.localPenStyle)
         if hasattr(self, 'localPenCapStyle'):
@@ -1864,8 +1876,9 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
 
     def exportToLatex(self):
         latex = super().exportToLatex()
+        latex += ' at '
         latex += sceneXYFromPoint(self.boundingRect().center(), self)
-        latex += ' node {'
+        latex += ' {'
         if not hasattr(self, 'textEditor'):
             self.textEditor = TextEditor(self, eulerFont=self.useEulerFont)
         if hasattr(self, 'latexExpression') and self.latexExpression is not None:
