@@ -844,7 +844,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     latex += '% Drawing ' + str(item) + '\n'
                     latex += '\\begin{pgfonlayer}{%d}' %int(item.zValue())
                     latex += item.exportToLatex() + '\n'
-                    latex += '\\end{pgfonlayer}'
+                    latex += '\\end{pgfonlayer}\n'
                     latex += '% End drawing ' + str(item) + '\n'
             latex += '\\end{tikzpicture}\n'
             with open(saveFile, 'w') as f:
