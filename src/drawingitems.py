@@ -371,6 +371,10 @@ class TextEditor(QtWidgets.QDialog):
             if format_.verticalAlignment() == format_.AlignSuperScript:
                 latex += '\\textsuperscript{'
                 modifiers += 1
+            if char in ['{', '}', '%']:
+                char = '\\' + char
+            elif char == '\\':
+                char = '\\textbackslash '
             latex += char
             for i in range(modifiers):
                 latex += '}'
