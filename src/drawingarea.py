@@ -842,7 +842,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             for item in self.scene().items():
                 if item.parentItem() is None:
                     latex += '% Drawing ' + str(item) + '\n'
-                    latex += '\\begin{pgfonlayer}{%d}' %int(item.zValue())
+                    latex += '\\begin{pgfonlayer}{%d}\n' %int(item.zValue())
                     latex += item.exportToLatex() + '\n'
                     latex += '\\end{pgfonlayer}\n'
                     latex += '% End drawing ' + str(item) + '\n'
