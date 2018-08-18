@@ -698,7 +698,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """
         logger.info('Beginning export')
         # Return if no items are present
-        if len(self.scene().items()) == 0:
+        if len(self.scene().items()) == 0 or \
+           (len(self.scene().items()) == 1 and self.mouseRect in self.scene().items()):
             logger.info('Nothing to export')
             return
         # Remove grid from the scene to avoid saving it
