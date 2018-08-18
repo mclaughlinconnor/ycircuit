@@ -330,12 +330,19 @@ class drawingElement(object):
         # latex += str(math.acos(self.transform().m11())*180/math.pi)
         # latex += '] '
         latex = '\draw['
-        latex += 'line width=' + str(self.localPenWidth/4)
-        latex += ',' + self.convertPenStyleToTikz(self.localPenStyle)
-        latex += ',line cap=' + self.convertCapStyleToTikz(self.localPenCapStyle)
-        latex += ',line join=' + self.convertJoinStyleToTikz(self.localPenJoinStyle)
-        latex += ',color={' + self.convertColourToTikz(self.localPenColour) + '}'
-        if self.localBrushStyle == 1:
+        # Pen settings
+        if hasattr(self, 'localPenWidth'):
+            latex += 'line width=' + str(self.localPenWidth/4)
+        if hasattr(self, 'localPenStyle'):
+            latex += ',' + self.convertPenStyleToTikz(self.localPenStyle)
+        if hasattr(self, 'localPenCapStyle'):
+            latex += ',line cap=' + self.convertCapStyleToTikz(self.localPenCapStyle)
+        if hasattr(self, 'localPenJoinStyle'):
+            latex += ',line join=' + self.convertJoinStyleToTikz(self.localPenJoinStyle)
+        if hasattr(self, 'localPenColour'):
+            latex += ',color={' + self.convertColourToTikz(self.localPenColour) + '}'
+        # Brush settings
+        if hasattr(self, 'localBrushStyle') and self.localBrushStyle == 1:
             latex += ',fill={' + self.convertColourToTikz(self.localBrushColour) + '}'
         latex += '] '
         return latex
