@@ -319,11 +319,15 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_tutorialInverterSchematic.triggered.connect(
             lambda: QtGui.QDesktopServices.openUrl(
                 QtCore.QUrl(
-                'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/1/tutorial1.html')))
+                'https://siddharthshekar.bitbucket.io/public/ycircuit/tutorial/1/')))
         self.ui.action_tutorialCustomSymbols.triggered.connect(
             lambda: QtGui.QDesktopServices.openUrl(
                 QtCore.QUrl(
-                'https://siddharthshekar.bitbucket.io/YCircuit/Tutorial/2/tutorial2.html')))
+                'https://siddharthshekar.bitbucket.io/public/ycircuit/tutorial/2/')))
+        self.ui.action_tutorialTikzExport.triggered.connect(
+            lambda: QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl(
+                'https://siddharthshekar.bitbucket.io/public/ycircuit/tutorial/3/')))
 
         # Miscellaneous signal and slot connections
         self.ui.drawingArea.undoStack.cleanChanged.connect(self.changeWindowTitle)

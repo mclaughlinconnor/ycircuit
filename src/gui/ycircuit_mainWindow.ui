@@ -709,6 +709,7 @@
      </property>
      <addaction name="action_tutorialInverterSchematic"/>
      <addaction name="action_tutorialCustomSymbols"/>
+     <addaction name="action_tutorialTikzExport"/>
     </widget>
     <addaction name="action_updateYCircuit"/>
     <addaction name="menu_tutorials"/>
@@ -2405,6 +2406,11 @@
    </property>
    <property name="toolTip">
     <string>Set the minor grid point spacing to 50</string>
+   </property>
+  </action>
+  <action name="action_tutorialTikzExport">
+   <property name="text">
+    <string>TikZ export</string>
    </property>
   </action>
  </widget>
