@@ -831,7 +831,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             img.save(saveFile, saveFilter, quality=quality)
             logger.info('Rendering PNG to target rectangle %s', targetRect)
         elif mode == 'tex':
-            latex = '\\begin{tikzpicture}[scale=%s]\n' %(scaleFactor)
+            latex = '\\scalebox{%s}{\\begin{tikzpicture}\n' %(scaleFactor)
             if exportArea in ['full', 'visible']:
                 itemsToExport = self.scene().items()
             elif exportArea == 'selected':
@@ -854,7 +854,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     latex += item.exportToLatex() + '\n'
                     latex += '\\end{pgfonlayer}\n'
                     latex += '% End drawing ' + str(item) + '\n'
-            latex += '\\end{tikzpicture}\n'
+            latex += '\\end{tikzpicture}}\n'
             with open(saveFile, 'w') as f:
                 f.write(latex)
             logger.info('Writing TEX file')
