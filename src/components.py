@@ -1397,8 +1397,12 @@ class Rectangle(QtWidgets.QGraphicsRectItem, drawingElement):
         # Calculate bottom left and top right of rect in scene coords
         rect = self.rect()
         width, height = rect.width(), rect.height()
-        p1 = sceneXYFromPoint(rect.bottomLeft(), self)
-        p2 = xyFromPoint(self.mapToScene(rect.bottomLeft()) + QtCore.QPointF(width, -height))
+        if rect.topLeft().x() < 0:
+            width = -width
+        if rect.topLeft().y() < 0:
+            height = -height
+        p1 = sceneXYFromPoint(QtCore.QPointF(0, 0), self)
+        p2 = xyFromPoint(self.mapToScene(QtCore.QPointF(0, 0)) + QtCore.QPointF(width, height))
         latex += p1
         latex += ' rectangle '
         latex += p2
