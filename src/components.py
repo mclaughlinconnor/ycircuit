@@ -336,11 +336,16 @@ class drawingElement(object):
                 latex += 'anchor=north west,rotate='
             else:
                 latex += 'rotate around={'
-            latex += str(math.atan2(self.transform().m21(),self.transform().m11())*180/math.pi)
+            if hasattr(self, 'reflections') and self.reflections == 1:
+                latex += str(math.atan2(self.transform().m21(),-self.transform().m11())*180/math.pi)
+            else:
+                latex += str(math.atan2(self.transform().m21(),self.transform().m11())*180/math.pi)
             if isinstance(self, TextBox):
                 latex += ','
             else:
                 latex += ':' + xyFromPoint(self.scenePos()) + '},'
+            if hasattr(self, 'reflections') and self.reflections == 1:
+                latex += 'xscale=-1.0,xshift=-' + str(2*self.scenePos().x()/100) + 'cm,'
         # Pen settings
         if hasattr(self, 'localPenWidth'):
             if not isinstance(self, TextBox):
