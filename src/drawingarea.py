@@ -722,7 +722,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             whitespacePadding=self.exportImageWhitespacePadding,
             scaleFactor=self.exportImageScaleFactor,
             quality=None,
-            hidePins=True
+            hidePins=True,
+            transparentBackground=False
         )
         if exportWindow.exec_() == 0:
             # Add the grid back to the scene
@@ -747,6 +748,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         scaleFactor = exportWindow.scaleFactor
         quality = exportWindow.quality
         hidePins = exportWindow.hidePins
+        transparentBackground = exportWindow.transparentBackground
         saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
             self,
             'Export File',
@@ -819,9 +821,11 @@ class DrawingArea(QtWidgets.QGraphicsView):
         elif mode == 'image':
             # Create an image object
             img = QtGui.QImage(
-                QtCore.QSize(scaleFactor * width, scaleFactor * height), QtGui.QImage.Format_RGB32)
-            # Set background to white
-            img.fill(QtGui.QColor('white'))
+                QtCore.QSize(scaleFactor * width, scaleFactor * height), QtGui.QImage.Format_ARGB32_Premultiplied)
+            # Set background to white if required
+            if transparentBackground is False:
+                img.fill(QtGui.QColor('white'))
+                logger.info('Setting exported background to white')
             painter = QtGui.QPainter(img)
             painter.setRenderHint(painter.SmoothPixmapTransform, True)
             painter.setRenderHint(painter.Antialiasing, True)
@@ -829,7 +833,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
             targetRect = QtCore.QRectF(img.rect())
             self.scene().render(painter, targetRect, sourceRect)
             img.save(saveFile, saveFilter, quality=quality)
-            logger.info('Rendering PNG to target rectangle %s', targetRect)
+            logger.info('Rendering %s to target rectangle %s', saveFilter.upper(), targetRect)
         elif mode == 'tex':
             latex = '\\scalebox{%s}{\\begin{tikzpicture}\n' %(scaleFactor)
             if exportArea in ['full', 'visible']:

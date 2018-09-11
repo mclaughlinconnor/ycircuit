@@ -105,6 +105,9 @@ class ExportWindow(QtWidgets.QDialog):
         if 'hidePins' in kwargs:
             self.hidePins = kwargs['hidePins']
             self.ui.checkBox_hidePins.setChecked(self.hidePins)
+        if 'transparentBackground' in kwargs:
+            self.transparentBackground = kwargs['transparentBackground']
+            self.ui.checkBox_transparentBackground.setChecked(self.transparentBackground)
         self.comboBox_exportFormat_currentIndexChanged()
         self.comboBox_exportQuality_currentIndexChanged()
         self.ui.graphicsView_exportPreview.hidePins(self.ui.checkBox_hidePins.isChecked())
@@ -116,6 +119,7 @@ class ExportWindow(QtWidgets.QDialog):
         self.scaleFactor = self.ui.doubleSpinBox_exportImageScaleFactor.value()
         self.quality = int(self.ui.comboBox_exportQuality.currentText()[:-1])
         self.hidePins = self.ui.checkBox_hidePins.isChecked()
+        self.transparentBackground = self.ui.checkBox_transparentBackground.isChecked()
         if self.ui.radioButton_exportAreaFull.isChecked() is True:
             self.exportArea = 'full'
         elif self.ui.radioButton_exportAreaVisible.isChecked() is True:
@@ -130,6 +134,7 @@ class ExportWindow(QtWidgets.QDialog):
         self.scaleFactor = self.ui.doubleSpinBox_exportImageScaleFactor.value()
         self.quality = int(self.ui.comboBox_exportQuality.currentText()[:-1])
         self.hidePins = self.ui.checkBox_hidePins.isChecked()
+        self.transparentBackground = self.ui.checkBox_transparentBackground.isChecked()
         if self.ui.radioButton_exportAreaFull.isChecked() is True:
             self.exportArea = 'full'
         elif self.ui.radioButton_exportAreaVisible.isChecked() is True:
@@ -156,6 +161,11 @@ class ExportWindow(QtWidgets.QDialog):
             self.ui.doubleSpinBox_exportImageScaleFactor.setEnabled(True)
             self.ui.comboBox_exportQuality.setEnabled(True)
             self.ui.doubleSpinBox_exportImageWhitespacePadding.setEnabled(True)
+        if _format in ['png', 'tiff']:
+            self.ui.checkBox_transparentBackground.setEnabled(True)
+        else:
+            self.ui.checkBox_transparentBackground.setEnabled(False)
+            self.ui.checkBox_transparentBackground.setChecked(False)
         if _format in ['pdf', 'svg']:
             self.ui.label_exportDimensions.units = 'in'
         elif _format == 'tex':
