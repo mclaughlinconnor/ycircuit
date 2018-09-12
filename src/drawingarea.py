@@ -826,6 +826,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
             if transparentBackground is False:
                 img.fill(QtGui.QColor('white'))
                 logger.info('Setting exported background to white')
+            else:
+                img.fill(QtCore.Qt.transparent)
             painter = QtGui.QPainter(img)
             painter.setRenderHint(painter.SmoothPixmapTransform, True)
             painter.setRenderHint(painter.Antialiasing, True)
