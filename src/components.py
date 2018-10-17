@@ -1869,6 +1869,8 @@ class TextBox(QtWidgets.QGraphicsTextItem, drawingElement):
                 eulerFont=self.useEulerFont)
             newItem.localPenWidth = self.localPenWidth
             newItem.setFont(self.font())
+        newItem.localScale = self.scale()
+        newItem.setScale(self.scale())
         newItem.setTransform(self.transform())
         if hasattr(self, 'reflections'):
             newItem.reflections = self.reflections
