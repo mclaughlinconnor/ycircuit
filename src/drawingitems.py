@@ -260,7 +260,7 @@ class TextEditor(QtWidgets.QDialog):
         symbol = self.ui.pushButton_symbol.isChecked()
         latex = self.ui.toolButton_latex.isChecked()
         cursor = self.ui.textEdit.textCursor()
-        format = cursor.charFormat()
+        format_ = cursor.charFormat()
         if latex is not True:
             self.ui.label.hide()
             if len(self.ui.textEdit.toPlainText()) > 0:
@@ -268,33 +268,33 @@ class TextEditor(QtWidgets.QDialog):
                     self.ui.textEdit.setHtml('')
             if bold is True:
                 # 75 is bold weight
-                format.setFontWeight(75)
+                format_.setFontWeight(75)
             else:
                 # 50 is normal weight
-                format.setFontWeight(50)
+                format_.setFontWeight(50)
             if italic is True:
-                format.setFontItalic(True)
+                format_.setFontItalic(True)
             else:
-                format.setFontItalic(False)
+                format_.setFontItalic(False)
             if underline is True:
-                format.setFontUnderline(True)
+                format_.setFontUnderline(True)
             else:
-                format.setFontUnderline(False)
+                format_.setFontUnderline(False)
             if overline is True:
-                format.setFontOverline(True)
+                format_.setFontOverline(True)
             else:
-                format.setFontOverline(False)
+                format_.setFontOverline(False)
             if subscript is True:
-                format.setVerticalAlignment(format.AlignSubScript)
+                format_.setVerticalAlignment(format_.AlignSubScript)
             elif superscript is True:
-                format.setVerticalAlignment(format.AlignSuperScript)
+                format_.setVerticalAlignment(format_.AlignSuperScript)
             else:
-                format.setVerticalAlignment(format.AlignNormal)
+                format_.setVerticalAlignment(format_.AlignNormal)
             if symbol is True:
-                format.setFontFamily('Symbol')
+                format_.setFontFamily('Symbol')
             else:
-                format.setFontFamily(self.textBox.font().family())
-            cursor.mergeCharFormat(format)
+                format_.setFontFamily(self.textBox.font().family())
+            cursor.mergeCharFormat(format_)
             self.ui.textEdit.setTextCursor(cursor)
         else:
             self.ui.label.show()
@@ -305,12 +305,12 @@ class TextEditor(QtWidgets.QDialog):
             self.ui.pushButton_subscript.setChecked(False)
             self.ui.pushButton_superscript.setChecked(False)
             self.ui.pushButton_symbol.setChecked(False)
-            format.setFontWeight(50)
-            format.setFontItalic(False)
-            format.setFontUnderline(False)
-            format.setFontOverline(False)
-            format.setVerticalAlignment(format.AlignNormal)
-            cursor.mergeCharFormat(format)
+            format_.setFontWeight(50)
+            format_.setFontItalic(False)
+            format_.setFontUnderline(False)
+            format_.setFontOverline(False)
+            format_.setVerticalAlignment(format_.AlignNormal)
+            cursor.mergeCharFormat(format_)
             self.ui.textEdit.setTextCursor(cursor)
             self.ui.textEdit.setPlainText('$$')
             cursor.setPosition(1)
