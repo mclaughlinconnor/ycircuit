@@ -204,9 +204,9 @@ class TextEditor(QtWidgets.QDialog):
                     underline = False
                 if format_.fontOverline() is False:
                     overline = False
-                if format_.verticalAlignment() != format.AlignSubScript:
+                if format_.verticalAlignment() != format_.AlignSubScript:
                     subscript = False
-                if format_.verticalAlignment() != format.AlignSuperScript:
+                if format_.verticalAlignment() != format_.AlignSuperScript:
                     superscript = False
                 if str(format_.fontFamily()) != 'Symbol':
                     symbol = False
