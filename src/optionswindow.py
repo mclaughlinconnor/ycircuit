@@ -59,10 +59,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         # Read from the newly created settings file
         # Font settings
         self.ui.fontComboBox_fontFamily.setCurrentText(self.settings.value('Painting/Font/Family', 'Arial'))
-        self.ui.comboBox_fontPointSize.setCurrentText(self.settings.value('Painting/Font/Point size', '10'))
+        self.ui.comboBox_fontPointSize.setCurrentText(self.settings.value('Painting/Font/Point size', '10', type=str))
         self.ui.checkBox_useEulerFontForLatex.setChecked(self.settings.value('Painting/Font/Use Euler font for LaTeX', True, type=bool))
         # Painting pen settings
-        self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width', '4'))
+        self.ui.comboBox_penWidth.setCurrentText(self.settings.value('Painting/Pen/Width', '4', type=str))
         self.ui.comboBox_penColour.setCurrentText(self.settings.value('Painting/Pen/Colour', 'Black'))
         self.ui.comboBox_penStyle.setCurrentText(self.settings.value('Painting/Pen/Style', 'Solid'))
         self.ui.comboBox_penCapStyle.setCurrentText(self.settings.value('Painting/Pen/Cap Style', 'Square'))
@@ -81,10 +81,10 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.ui.comboBox_gridSnapToGridSpacing.setCurrentText(self.settings.value('Grid/Snapping/Snap to grid spacing', '10', type=str))
         # Major grid point settings
         self.ui.checkBox_gridShowMajorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Major grid points visibility', True, type=bool))
-        self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Major grid points spacing', '100'))
+        self.ui.comboBox_gridMajorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Major grid points spacing', '100', type=str))
         # Minor grid point settings
         self.ui.checkBox_gridShowMinorGridPoints.setChecked(self.settings.value('Grid/Major and minor grid points/Minor grid points visibility', True, type=bool))
-        self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing', '20'))
+        self.ui.comboBox_gridMinorGridPointSpacing.setCurrentText(self.settings.value('Grid/Major and minor grid points/Minor grid points spacing', '20', type=str))
 
         # Save/export settings
         self.ui.checkBox_autobackupEnable.setChecked(self.settings.value('SaveExport/Autobackup/Enable', True, type=bool))
@@ -163,8 +163,8 @@ class MyOptionsWindow(QtWidgets.QDialog):
         self.settings.setValue('SaveExport/Symbol/Default save folder', self.ui.lineEdit_defaultSymbolSaveFolder.text())
         self.settings.setValue('SaveExport/Export/Default format', self.ui.comboBox_defaultExportFormat.currentText())
         self.settings.setValue('SaveExport/Export/Default folder', self.ui.lineEdit_defaultExportFolder.text())
-        self.settings.setValue('SaveExport/Export/Whitespace padding', self.ui.doubleSpinBox_exportImageWhitespacePadding.text())
-        self.settings.setValue('SaveExport/Export/Image scale factor', self.ui.doubleSpinBox_exportImageScaleFactor.text())
+        self.settings.setValue('SaveExport/Export/Whitespace padding', self.ui.doubleSpinBox_exportImageWhitespacePadding.value())
+        self.settings.setValue('SaveExport/Export/Image scale factor', self.ui.doubleSpinBox_exportImageScaleFactor.value())
 
         # Mouse settings
         self.settings.setValue('Mouse/Show rect', self.ui.checkBox_showMouseRect.isChecked())
