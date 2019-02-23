@@ -887,6 +887,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         """Convenience function that generates a message box asking the user
         whether they would like to recover from the backup"""
         # Ask if you would like to recover the autobackup
+        QtCore.QCoreApplication.instance().splash.hide()
         msgBox = QtWidgets.QMessageBox(self)
         msgBox.setWindowTitle("Recover file")
         msgBox.setText("An autobackup file was detected.")
