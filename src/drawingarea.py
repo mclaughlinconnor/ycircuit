@@ -133,7 +133,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         penJoinStyles = {'Round': 0x80, 'Miter': 0x00, 'Bevel': 0x40}
         self.selectedPenJoinStyle = penJoinStyles[settings.value('Painting/Pen/Join Style', 'Round')]
         self.rotateDirection = settings.value('Painting/Rotation/Direction', 'Clockwise')
-        self.rotateAngle = settings.value('Painting/Rotation/Angle', '45', type=float)
+        self.rotateAngle = settings.value('Painting/Rotation/Angle', '45', type=int)
         if self.rotateDirection == 'Counter-clockwise':
             self.rotateAngle *= -1
 
