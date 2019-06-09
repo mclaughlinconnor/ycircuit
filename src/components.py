@@ -337,9 +337,9 @@ class drawingElement(object):
             else:
                 latex += 'rotate around={'
             if hasattr(self, 'reflections') and self.reflections == 1:
-                latex += str(math.atan2(self.transform().m21(),-self.transform().m11())*180/math.pi)
+                latex += str(math.atan2(self.sceneTransform().m21(),-self.sceneTransform().m11())*180/math.pi)
             else:
-                latex += str(math.atan2(self.transform().m21(),self.transform().m11())*180/math.pi)
+                latex += str(math.atan2(self.sceneTransform().m21(),self.sceneTransform().m11())*180/math.pi)
             if isinstance(self, TextBox):
                 latex += ','
             else:
