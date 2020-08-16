@@ -690,7 +690,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     item.lightenColour(True)
             return True
 
-    def exportRoutine(self):
+    def exportRoutine(self, export_filename):
         """
         For images, a rect slightly larger than the bounding rect of all items is
         created. This rect is then projected onto a QPixmap at a higher resolution to
@@ -749,13 +749,16 @@ class DrawingArea(QtWidgets.QGraphicsView):
         quality = exportWindow.quality
         hidePins = exportWindow.hidePins
         transparentBackground = exportWindow.transparentBackground
-        saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
-            self,
-            'Export File',
-            self.defaultExportFolder,
-            'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff);;TEX files (*.tex)',
-            exportFormat.upper() + ' files (*.' + exportFormat.lower() + ')'
-        )
+        if export_filename:
+            saveFile = export_filename
+        else:
+            saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
+                self,
+                'Export File',
+                self.defaultExportFolder,
+                'PDF files (*.pdf);;SVG files(*.svg);;PNG files (*.png);;JPG files (*.jpg);;BMP files (*.bmp);;TIFF files (*.tiff);;TEX files (*.tex)',
+                exportFormat.upper() + ' files (*.' + exportFormat.lower() + ')'
+                )
         self.defaultExportFolder = None
         if '*.pdf' in saveFilter:
             saveFilter = 'pdf'

@@ -56,7 +56,12 @@ if __name__ == "__main__":
     # app.splash.move(currentScreenCenter - app.splash.rect().center())
     # app.splash.show()
 
-    form = myMainWindow(clipboard=app.clipboard())
+    if len(sys.argv) >= 2:
+        export_filename = sys.argv[1]
+    else:
+        export_filename = None
+
+    form = myMainWindow(clipboard=app.clipboard(), export_filename=export_filename)
     form.showMaximized()
     form.ui.drawingArea.fitToViewRoutine()
 

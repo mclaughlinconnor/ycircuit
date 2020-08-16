@@ -11,7 +11,7 @@ import logging
 
 
 class myMainWindow(QtWidgets.QMainWindow):
-    def __init__(self, clipboard=None):
+    def __init__(self, clipboard=None, export_filename=None):
         self.logger = logging.getLogger('YCircuit.MainWindow')
         self.logger.info('Creating a new schematic window')
 
@@ -59,7 +59,7 @@ class myMainWindow(QtWidgets.QMainWindow):
         self.ui.action_importImage.triggered.connect(
             lambda: self.ui.drawingArea.addImage())
         self.ui.action_exportFile.triggered.connect(
-            self.ui.drawingArea.exportRoutine)
+            lambda: self.ui.drawingArea.exportRoutine(export_filename))
         self.ui.action_quit.triggered.connect(self.close)
 
         # Edit menu
