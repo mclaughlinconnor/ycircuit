@@ -513,7 +513,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
                 listOfItems.remove(item)
         return listOfItems
 
-    def saveRoutine(self, mode='schematicAs'):
+    def saveRoutine(self, mode='schematicAs', export_filename=None):
         """Handles saving of both symbols and schematics. For symbols and
         schematics, items are first parented to a myGraphicsItemGroup.
         The parent item is then saved into a corresponding .sym (symbol) and
@@ -526,7 +526,7 @@ class DrawingArea(QtWidgets.QGraphicsView):
         else:
             selectedItems = self.scene().selectedItems()
             logger.info('Starting autobackup')
-        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup']
+        possibleModes = ['schematic', 'schematicAs', 'symbol', 'symbolAs', 'autobackup', 'commandline']
         # Create list of items
         listOfItems = self.listOfItemsToSave(mode)
         # Return if no items are present
@@ -627,6 +627,8 @@ class DrawingArea(QtWidgets.QGraphicsView):
                     saveFile += '.sch'
             elif mode == 'autobackup':
                 saveFile = self.autobackupFile.fileName()
+            elif mode == 'commandline':
+                saveFile = os.path.splitext(export_filename)[0] + '.sch'
 
             saveObject = myGraphicsItemGroup(None, origin, [])
             self.scene().addItem(saveObject)
@@ -714,24 +716,22 @@ class DrawingArea(QtWidgets.QGraphicsView):
         self._selectedItems = self.scene().selectedItems()
         for item in self._selectedItems:
             item.setSelected(False)
-        exportWindow = ExportWindow(
-            self,
-            scene=self.scene(),
-            exportFormat=self.defaultExportFormat,
-            exportArea='full',
-            whitespacePadding=self.exportImageWhitespacePadding,
-            scaleFactor=self.exportImageScaleFactor,
-            quality=None,
-            hidePins=True,
-            transparentBackground=False
-        )
-        if exportWindow.exec_() == 0:
+        if export_filename:
+            exportFormat = self.defaultExportFormat
+            exportArea = 'full'
+            sourceRect = self.drawingAreaPreview.scene().itemsBoundingRect()
+            width, height = sourceRect.width(), sourceRect.height()
+            whitespacePadding = self.exportImageWhitespacePadding
+            scaleFactor = self.exportImageScaleFactor
+            quality = None
+            hidePins = True
+            transparentBackground = False
+            succeeded = 0
             # Add the grid back to the scene
             if self._grid.enableGrid is True:
                 self._grid.createGrid()
             if self.showMouseRect is True:
                 self.scene().addItem(self.mouseRect)
-            if self.showPins is exportWindow.hidePins:
                 self.showPins = not self.showPins
                 self.togglePinsRoutine()
             if showItemCenters is True:
@@ -739,18 +739,45 @@ class DrawingArea(QtWidgets.QGraphicsView):
             # Reselect items after exporting is completed
             for item in self._selectedItems:
                 item.setSelected(True)
-            return
-        exportFormat = exportWindow.exportFormat
-        exportArea = exportWindow.exportArea
-        sourceRect = exportWindow.sourceRect
-        width, height = sourceRect.width(), sourceRect.height()
-        whitespacePadding = exportWindow.whitespacePadding
-        scaleFactor = exportWindow.scaleFactor
-        quality = exportWindow.quality
-        hidePins = exportWindow.hidePins
-        transparentBackground = exportWindow.transparentBackground
+        else:
+            exportWindow = ExportWindow(
+                self,
+                scene=self.scene(),
+                exportFormat=self.defaultExportFormat,
+                exportArea='full',
+                whitespacePadding=self.exportImageWhitespacePadding,
+                scaleFactor=self.exportImageScaleFactor,
+                quality=None,
+                hidePins=True,
+                transparentBackground=False
+            )
+            exportFormat = exportWindow.exportFormat
+            exportArea = exportWindow.exportArea
+            sourceRect = exportWindow.sourceRect
+            width, height = sourceRect.width(), sourceRect.height()
+            whitespacePadding = exportWindow.whitespacePadding
+            scaleFactor = exportWindow.scaleFactor
+            quality = exportWindow.quality
+            hidePins = exportWindow.hidePins
+            transparentBackground = exportWindow.transparentBackground
+            if exportWindow.exec_() == 0:
+                # Add the grid back to the scene
+                if self._grid.enableGrid is True:
+                    self._grid.createGrid()
+                if self.showMouseRect is True:
+                    self.scene().addItem(self.mouseRect)
+                if self.showPins is exportWindow.hidePins:
+                    self.showPins = not self.showPins
+                    self.togglePinsRoutine()
+                if showItemCenters is True:
+                    self.toggleItemCentersRoutine(True)
+                # Reselect items after exporting is completed
+                for item in self._selectedItems:
+                    item.setSelected(True)
         if export_filename:
-            saveFile = export_filename
+            saveFile = os.path.join(self.defaultExportFolder, export_filename)
+            saveFilter = 'PDF files (*.pdf)'
+            self.saveRoutine(mode='commandline', export_filename=saveFile)
         else:
             saveFile, saveFilter = QtWidgets.QFileDialog.getSaveFileName(
                 self,
@@ -872,15 +899,15 @@ class DrawingArea(QtWidgets.QGraphicsView):
         if mode != 'tex':
             painter.end()
         # Add the grid back to the scene when saving is done
-        if self._grid.enableGrid is True:
-            self._grid.createGrid()
-        if self.showMouseRect is True:
-            self.scene().addItem(self.mouseRect)
-        if self.showPins is exportWindow.hidePins:
-            self.showPins = not self.showPins
-            self.togglePinsRoutine()
-        if showItemCenters is True:
-            self.toggleItemCentersRoutine(True)
+        # if self._grid.enableGrid is True:
+        #     self._grid.createGrid()
+        # if self.showMouseRect is True:
+        #     self.scene().addItem(self.mouseRect)
+        # if self.showPins is exportWindow.hidePins:
+        #     self.showPins = not self.showPins
+        #     self.togglePinsRoutine()
+        # if showItemCenters is True:
+        #     self.toggleItemCentersRoutine(True)
         # Reselect items after exporting is completed
         for item in self._selectedItems:
             item.setSelected(True)
